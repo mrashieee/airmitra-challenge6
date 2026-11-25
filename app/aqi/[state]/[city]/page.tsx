@@ -20,10 +20,26 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const place = city?.name ?? citySlug.replace(/-/g, " ");
 
   return {
-    title: `${place} Air Quality (AQI) — AirMitra`,
+    title: `${place} Air Quality (AQI)`,
     description: `Live air quality for ${place}${
       state ? `, ${state.name}` : ""
     }: AQI, pollutants, station freshness, and household guidance.`,
+    alternates: { canonical: `/aqi/${stateSlug}/${citySlug}` },
+    openGraph: {
+      title: `${place} AQI · AirMitra`,
+      description: `Live AQI for ${place}${
+        state ? `, ${state.name}` : ""
+      } with station freshness and household guidance.`,
+      type: "website",
+      url: `/aqi/${stateSlug}/${citySlug}`,
+    },
+    twitter: {
+      card: "summary",
+      title: `${place} AQI · AirMitra`,
+      description: `Live AQI for ${place}${
+        state ? `, ${state.name}` : ""
+      } with household guidance.`,
+    },
   };
 }
 

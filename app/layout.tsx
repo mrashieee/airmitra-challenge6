@@ -15,7 +15,12 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  "https://sonic-redwood-usesmgf-rashinova8055-8355.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "AirMitra — Household Air Coach",
     template: "%s · AirMitra",
