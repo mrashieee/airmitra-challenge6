@@ -1,0 +1,360 @@
+"use client";
+
+import type { Reading } from "@/lib/aqi";
+import type { Brief } from "@/lib/ai/types";
+import { BAND_STYLES, cn } from "@/lib/ui";
+import type { Tab } from "@/lib/nav";
+import {
+  AlertIcon,
+  ChatIcon,
+  HomeIcon,
+  MaskIcon,
+  PinIcon,
+  SparkIcon,
+  WindIcon,
+} from "./icons";
+import { WeatherScene, weatherLabel } from "./weather-scene";
+
+type Props = {
+  reading: Reading;
+  onNavigate: (tab: Tab) => void;
+  brief?: Brief | null;
+  briefLoading?: boolean;
+};
+
+function SectionCard({
+  icon,
+  title,
+  subtitle,
+  children,
+  delay = 0,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  delay?: number;
+}) {
+  return (
+    <section
+      className="animate-rise rounded-2xl bg-card p-5 ring-1 ring-black/5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className="flex items-start gap-3">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-paper text-brand ring-1 ring-line">
+          {icon}
+        </span>
+        <div>
+          <h2 className="text-sm font-semibold text-ink">{title}</h2>
+          {subtitle ? <p className="mt-0.5 text-xs text-muted">{subtitle}</p> : null}
+        </div>
+      </div>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+export function HomeView({
+  reading,
+  onNavigate,
+  brief,
+  briefLoading,
+}: Props) {
+  const styles = BAND_STYLES[reading.band.key];
+  const pollutantOrder = ["PM2.5", "PM10", "NO₂", "SO₂", "O₃", "NH₃"];
+  const displayPollutants = [...reading.pollutants]
+    .filter((p) => p.label !== "CO")
+    .sort(
+      (a, b) =>
+        pollutantOrder.indexOf(a.label) - pollutantOrder.indexOf(b.label),
+    )
+    .slice(0, 6);
+
+  return (
+    <div className="space-y-4">
+      {/* Hero */}
+      <section className="animate-rise relative overflow-hidden rounded-3xl ring-1 ring-black/5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+        <WeatherScene
+          condition={reading.weather.condition}
+          isDay={reading.weather.isDay}
+          aqi={reading.aqi}
+        />
+        <div className="relative z-10 p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 text-xs text-muted">
+              <PinIcon className="h-3.5 w-3.5" />
+              <span className="truncate">
+                {reading.area}, {reading.state.name}
+              </span>
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-end gap-3">
+              <span className="tabular text-[64px] font-semibold leading-none tracking-[-0.04em] text-ink">
+                {reading.aqi}
+              </span>
+              <span
+                className={cn(
+                  "mb-1.5 rounded-full px-3 py-1 text-xs font-semibold ring-1",
+                  styles.soft,
+                  styles.text,
+                  styles.ring,
+                )}
+              >
+                {reading.band.label}
+              </span>
+            </div>
+
+            <p className="mt-2 text-sm text-muted">
+              <span className="font-medium text-ink">{reading.dominant}</span> is the dominant pollutant
+              {reading.basis ? (
+                <span className="ml-1 text-[10px] text-muted">(AQI from {reading.basis})</span>
+              ) : null}
+            </p>
+            <p className="mt-1 text-[11px] text-muted sm:hidden">
+              {weatherLabel(reading.weather.condition, reading.weather.isDay)} ·{" "}
+              {reading.weather.tempC ?? "—"}°C · wind {reading.weather.windKph ?? "—"} km/h
+            </p>
+          </div>
+
+          <div className="hidden shrink-0 text-right text-[11px] leading-5 text-muted sm:block">
+            <div className="text-[10px] font-medium uppercase tracking-wide text-muted">
+              {weatherLabel(reading.weather.condition, reading.weather.isDay)}
+            </div>
+            <div className="text-sm font-semibold text-ink">
+              {reading.weather.tempC ?? "—"}°C
+            </div>
+            <div>wind {reading.weather.windKph ?? "—"} km/h</div>
+            <div>{reading.weather.rain ? "rain" : "no rain"}</div>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-muted">
+          <span
+            className={cn(
+              "h-1.5 w-1.5 rounded-full",
+              reading.source.type === "ground" ? "bg-emerald-500" : "bg-amber-500",
+            )}
+          />
+          <span className="font-medium text-ink">{reading.source.station}</span>
+          {reading.source.distanceKm > 0 ? <span>· {reading.source.distanceKm} km</span> : null}
+          <span>· {reading.source.updated}</span>
+          {reading.source.type === "model" && reading.nearestStationKm ? (
+            <span>· nearest CPCB {Math.round(reading.nearestStationKm)} km</span>
+          ) : null}
+          <span className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm">
+            {reading.source.type === "ground" ? "ground monitor" : "model estimate"}
+          </span>
+          {reading.demo ? (
+            <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700 ring-1 ring-amber-200">
+              demo data
+            </span>
+          ) : reading.degraded ? (
+            <span className="rounded-full bg-red-50 px-2 py-0.5 font-medium text-red-700 ring-1 ring-red-200">
+              CPCB unavailable
+            </span>
+          ) : reading.stale ? (
+            <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700 ring-1 ring-amber-200">
+              cached
+            </span>
+          ) : (
+            <span className="rounded-full bg-teal-50 px-2 py-0.5 font-medium text-teal-700 ring-1 ring-teal-100">
+              live
+            </span>
+          )}
+        </div>
+
+        <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-6">
+          {displayPollutants.map((p) => (
+            <div
+              key={p.label}
+              className={cn(
+                "rounded-xl px-2.5 py-2 ring-1 backdrop-blur-sm",
+                p.label === "PM2.5"
+                  ? cn(styles.soft, styles.ring)
+                  : "bg-white/55 ring-white/60",
+              )}
+            >
+              <div className="text-[10px] font-medium uppercase tracking-wide text-muted">{p.label}</div>
+              <div className="tabular mt-1 text-sm font-semibold text-ink">
+                {p.value}
+                <span className="ml-1 text-[9px] font-normal text-muted">{p.unit}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        </div>
+      </section>
+
+      {/* Today's brief: AI when available, rules otherwise */}
+      {brief ? (
+        <SectionCard
+          icon={<SparkIcon className="h-4 w-4" />}
+          title={"Today's brief"}
+          subtitle={
+            brief.source === "ai"
+              ? `AI · ${brief.model ?? "Gemini"}`
+              : "Rule-based fallback"
+          }
+          delay={40}
+        >
+          <p className="text-sm font-medium leading-6 text-ink">
+            {brief.directive}
+          </p>
+          <p className="mt-2 text-sm leading-6 text-muted">{brief.why}</p>
+          <div className="mt-3 rounded-xl bg-paper p-3 text-xs leading-5 text-ink/80 ring-1 ring-line">
+            <span className="font-semibold text-ink">If you must go out:</span>{" "}
+            {brief.mustGoOut}
+          </div>
+          {brief.doNow.length ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {brief.doNow.slice(0, 3).map((item) => (
+                <span
+                  key={item}
+                  className="rounded-full bg-paper px-2.5 py-1 text-[10px] text-muted ring-1 ring-line"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          <p className="mt-3 text-[11px] text-muted">
+            Generated for your household. Not medical advice.
+          </p>
+        </SectionCard>
+      ) : (
+        <SectionCard
+          icon={<WindIcon className="h-4 w-4" />}
+          title="General guideline"
+          subtitle={
+            briefLoading
+              ? "Personalising for your household…"
+              : "For anyone at this AQI"
+          }
+          delay={40}
+        >
+          <ul className="space-y-2.5">
+            {reading.guidelines.map((g) => (
+              <li key={g} className="flex gap-2.5 text-sm leading-6 text-ink/90">
+                <span className={cn("mt-2 h-1.5 w-1.5 shrink-0 rounded-full", styles.dot)} />
+                <span>{g}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-[11px] text-muted">
+            General guidance, not medical advice.
+          </p>
+        </SectionCard>
+      )}
+
+      {/* Family */}
+      <SectionCard
+        icon={<HomeIcon className="h-4 w-4" />}
+        title="For your family"
+        subtitle={`${reading.family.length} ${reading.family.length === 1 ? "person" : "people"} you care for`}
+        delay={80}
+      >
+        <div className="space-y-2">
+          {reading.family.map((person) => (
+            <div
+              key={person.name}
+              className={cn(
+                "flex items-start gap-3 rounded-xl p-3 ring-1",
+                person.tone === "warn"
+                  ? "bg-red-50/70 ring-red-100"
+                  : "bg-paper ring-line",
+              )}
+            >
+              <span
+                className={cn(
+                  "grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-semibold",
+                  person.tone === "warn"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-teal-50 text-teal-700",
+                )}
+              >
+                {person.name.slice(0, 1)}
+              </span>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-baseline gap-2">
+                  <span className="text-sm font-semibold text-ink">{person.name}</span>
+                  <span className="text-[11px] text-muted">{person.meta}</span>
+                </div>
+                <p className="mt-1 text-sm leading-5 text-ink/85">{person.advice}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      {/* If you must go out */}
+      <SectionCard
+        icon={<MaskIcon className="h-4 w-4" />}
+        title="If someone must go out"
+        subtitle="Never a dead-end restriction"
+        delay={120}
+      >
+        <div className="space-y-2">
+          {reading.mustGoOut.map((row) => (
+            <div key={row.name} className="rounded-xl bg-paper p-3 ring-1 ring-line">
+              <div className="text-xs font-semibold text-ink">{row.name}</div>
+              <p className="mt-1 text-sm leading-5 text-ink/85">{row.advice}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted">
+          <AlertIcon className="h-3.5 w-3.5" />
+          Early morning is worst. Prefer 11am–4pm.
+        </p>
+      </SectionCard>
+
+      {/* Do now */}
+      <SectionCard
+        icon={<HomeIcon className="h-4 w-4" />}
+        title="Do now at home"
+        subtitle="Based on what your home has"
+        delay={160}
+      >
+        <div className="space-y-2">
+          {reading.doNow.map((item) => (
+            <div key={item.title} className="rounded-xl border border-line p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="text-sm font-semibold text-ink">{item.title}</div>
+                <span className="shrink-0 rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-medium text-teal-700 ring-1 ring-teal-100">
+                  {item.impact}
+                </span>
+              </div>
+              <p className="mt-1 text-sm leading-5 text-muted">{item.body}</p>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      {/* Impact */}
+      <section
+        className="animate-rise overflow-hidden rounded-2xl bg-[#083d39] p-5 text-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+        style={{ animationDelay: "200ms" }}
+      >
+        <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-teal-200">
+          <SparkIcon className="h-4 w-4" />
+          Impact receipt
+        </div>
+        <div className="mt-3 text-2xl font-semibold tracking-tight">{reading.impact.value}</div>
+        <div className="mt-1 text-sm text-teal-100/90">{reading.impact.title}</div>
+        <p className="mt-2 text-xs leading-5 text-teal-100/70">{reading.impact.note}</p>
+      </section>
+
+      {/* Primary action - one CTA, nav handles the rest */}
+      <div>
+        <button
+          type="button"
+          onClick={() => onNavigate("ask")}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.99] sm:w-auto"
+        >
+          <ChatIcon className="h-4 w-4" />
+          Ask about today
+        </button>
+      </div>
+    </div>
+  );
+}

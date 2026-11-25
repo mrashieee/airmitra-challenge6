@@ -1,0 +1,212 @@
+{
+  "AP": [
+    { "name": "Amaravati", "lat": 16.5131, "lon": 80.5165 },
+    { "name": "Visakhapatnam", "lat": 17.6868, "lon": 83.2185 },
+    { "name": "Vijayawada", "lat": 16.5062, "lon": 80.648 },
+    { "name": "Guntur", "lat": 16.3067, "lon": 80.4365 },
+    { "name": "Tirupati", "lat": 13.6288, "lon": 79.4192 }
+  ],
+  "AR": [
+    { "name": "Itanagar", "lat": 27.0844, "lon": 93.6053 },
+    { "name": "Naharlagun", "lat": 27.1039, "lon": 93.696 },
+    { "name": "Pasighat", "lat": 28.0667, "lon": 95.3333 }
+  ],
+  "AS": [
+    { "name": "Dispur", "lat": 26.1433, "lon": 91.7898 },
+    { "name": "Guwahati", "lat": 26.1445, "lon": 91.7362 },
+    { "name": "Dibrugarh", "lat": 27.4728, "lon": 94.912 },
+    { "name": "Silchar", "lat": 24.8333, "lon": 92.7789 },
+    { "name": "Jorhat", "lat": 26.7509, "lon": 94.2037 }
+  ],
+  "BR": [
+    { "name": "Patna", "lat": 25.5941, "lon": 85.1376 },
+    { "name": "Gaya", "lat": 24.7955, "lon": 85.0002 },
+    { "name": "Bhagalpur", "lat": 25.2425, "lon": 86.9842 },
+    { "name": "Muzaffarpur", "lat": 26.1209, "lon": 85.3647 }
+  ],
+  "CG": [
+    { "name": "Raipur", "lat": 21.2514, "lon": 81.6296 },
+    { "name": "Bhilai", "lat": 21.1938, "lon": 81.3509 },
+    { "name": "Bilaspur", "lat": 22.0797, "lon": 82.1391 },
+    { "name": "Korba", "lat": 22.3595, "lon": 82.7501 }
+  ],
+  "GA": [
+    { "name": "Panaji", "lat": 15.4909, "lon": 73.8278 },
+    { "name": "Margao", "lat": 15.2832, "lon": 73.9862 },
+    { "name": "Vasco da Gama", "lat": 15.398, "lon": 73.8113 },
+    { "name": "Mapusa", "lat": 15.5937, "lon": 73.8142 }
+  ],
+  "GJ": [
+    { "name": "Gandhinagar", "lat": 23.2156, "lon": 72.6369 },
+    { "name": "Ahmedabad", "lat": 23.0225, "lon": 72.5714 },
+    { "name": "Surat", "lat": 21.1702, "lon": 72.8311 },
+    { "name": "Vadodara", "lat": 22.3072, "lon": 73.1812 },
+    { "name": "Rajkot", "lat": 22.3039, "lon": 70.8022 }
+  ],
+  "HR": [
+    { "name": "Chandigarh", "lat": 30.7333, "lon": 76.7794 },
+    { "name": "Gurugram", "lat": 28.4595, "lon": 77.0266 },
+    { "name": "Faridabad", "lat": 28.4089, "lon": 77.3178 },
+    { "name": "Panipat", "lat": 29.3909, "lon": 76.9635 },
+    { "name": "Ambala", "lat": 30.3752, "lon": 76.7821 }
+  ],
+  "HP": [
+    { "name": "Shimla", "lat": 31.1048, "lon": 77.1734 },
+    { "name": "Dharamshala", "lat": 32.219, "lon": 76.3234 },
+    { "name": "Solan", "lat": 30.9045, "lon": 77.0967 },
+    { "name": "Mandi", "lat": 31.708, "lon": 76.9319 }
+  ],
+  "JH": [
+    { "name": "Ranchi", "lat": 23.3441, "lon": 85.3096 },
+    { "name": "Jamshedpur", "lat": 22.8046, "lon": 86.2029 },
+    { "name": "Dhanbad", "lat": 23.7957, "lon": 86.4304 },
+    { "name": "Bokaro", "lat": 23.6693, "lon": 86.1511 }
+  ],
+  "KA": [
+    { "name": "Bengaluru", "lat": 12.9716, "lon": 77.5946 },
+    { "name": "Mysuru", "lat": 12.2958, "lon": 76.6394 },
+    { "name": "Mangaluru", "lat": 12.9141, "lon": 74.856 },
+    { "name": "Hubballi", "lat": 15.3647, "lon": 75.124 },
+    { "name": "Belagavi", "lat": 15.8497, "lon": 74.4977 }
+  ],
+  "KL": [
+    { "name": "Thiruvananthapuram", "lat": 8.5241, "lon": 76.9366 },
+    { "name": "Kochi", "lat": 9.9312, "lon": 76.2673 },
+    { "name": "Kozhikode", "lat": 11.2588, "lon": 75.7804 },
+    { "name": "Thrissur", "lat": 10.5276, "lon": 76.2144 }
+  ],
+  "MP": [
+    { "name": "Bhopal", "lat": 23.2599, "lon": 77.4126 },
+    { "name": "Indore", "lat": 22.7196, "lon": 75.8577 },
+    { "name": "Gwalior", "lat": 26.2183, "lon": 78.1828 },
+    { "name": "Jabalpur", "lat": 23.1815, "lon": 79.9864 }
+  ],
+  "MH": [
+    { "name": "Mumbai", "lat": 19.076, "lon": 72.8777 },
+    { "name": "Pune", "lat": 18.5204, "lon": 73.8567 },
+    { "name": "Nagpur", "lat": 21.1458, "lon": 79.0882 },
+    { "name": "Nashik", "lat": 19.9975, "lon": 73.7898 },
+    { "name": "Thane", "lat": 19.2183, "lon": 72.9781 }
+  ],
+  "MN": [
+    { "name": "Imphal", "lat": 24.817, "lon": 93.9368 },
+    { "name": "Thoubal", "lat": 24.6333, "lon": 94.0167 },
+    { "name": "Churachandpur", "lat": 24.3333, "lon": 93.6833 }
+  ],
+  "ML": [
+    { "name": "Shillong", "lat": 25.5788, "lon": 91.8933 },
+    { "name": "Tura", "lat": 25.514, "lon": 90.202 },
+    { "name": "Cherrapunji", "lat": 25.3, "lon": 91.7 }
+  ],
+  "MZ": [
+    { "name": "Aizawl", "lat": 23.7271, "lon": 92.7176 },
+    { "name": "Lunglei", "lat": 22.887, "lon": 92.7333 },
+    { "name": "Champhai", "lat": 23.4667, "lon": 93.3333 }
+  ],
+  "NL": [
+    { "name": "Kohima", "lat": 25.6751, "lon": 94.1086 },
+    { "name": "Dimapur", "lat": 25.9063, "lon": 93.7276 },
+    { "name": "Mokokchung", "lat": 26.3167, "lon": 94.5167 }
+  ],
+  "OD": [
+    { "name": "Bhubaneswar", "lat": 20.2961, "lon": 85.8245 },
+    { "name": "Cuttack", "lat": 20.4625, "lon": 85.883 },
+    { "name": "Rourkela", "lat": 22.2604, "lon": 84.8536 },
+    { "name": "Puri", "lat": 19.8135, "lon": 85.8312 }
+  ],
+  "PB": [
+    { "name": "Chandigarh", "lat": 30.7333, "lon": 76.7794 },
+    { "name": "Ludhiana", "lat": 30.901, "lon": 75.8573 },
+    { "name": "Amritsar", "lat": 31.634, "lon": 74.8723 },
+    { "name": "Jalandhar", "lat": 31.326, "lon": 75.5762 },
+    { "name": "Patiala", "lat": 30.3398, "lon": 76.3869 }
+  ],
+  "RJ": [
+    { "name": "Jaipur", "lat": 26.9124, "lon": 75.7873 },
+    { "name": "Jodhpur", "lat": 26.2389, "lon": 73.0243 },
+    { "name": "Udaipur", "lat": 24.5854, "lon": 73.7125 },
+    { "name": "Kota", "lat": 25.2138, "lon": 75.8648 }
+  ],
+  "SK": [
+    { "name": "Gangtok", "lat": 27.3389, "lon": 88.6065 },
+    { "name": "Namchi", "lat": 27.1667, "lon": 88.35 },
+    { "name": "Gyalshing", "lat": 27.2833, "lon": 88.2667 }
+  ],
+  "TN": [
+    { "name": "Chennai", "lat": 13.0827, "lon": 80.2707 },
+    { "name": "Coimbatore", "lat": 11.0168, "lon": 76.9558 },
+    { "name": "Madurai", "lat": 9.9252, "lon": 78.1198 },
+    { "name": "Tiruchirappalli", "lat": 10.7905, "lon": 78.7047 },
+    { "name": "Salem", "lat": 11.6643, "lon": 78.146 }
+  ],
+  "TS": [
+    { "name": "Hyderabad", "lat": 17.385, "lon": 78.4867 },
+    { "name": "Warangal", "lat": 17.9689, "lon": 79.5941 },
+    { "name": "Nizamabad", "lat": 18.6725, "lon": 78.0941 },
+    { "name": "Karimnagar", "lat": 18.4386, "lon": 79.1288 }
+  ],
+  "TR": [
+    { "name": "Agartala", "lat": 23.8315, "lon": 91.2868 },
+    { "name": "Udaipur", "lat": 23.5333, "lon": 91.4833 },
+    { "name": "Dharmanagar", "lat": 24.3667, "lon": 92.1667 }
+  ],
+  "UP": [
+    { "name": "Lucknow", "lat": 26.8467, "lon": 80.9462 },
+    { "name": "Kanpur", "lat": 26.4499, "lon": 80.3319 },
+    { "name": "Varanasi", "lat": 25.3176, "lon": 82.9739 },
+    { "name": "Agra", "lat": 27.1767, "lon": 78.0081 },
+    { "name": "Noida", "lat": 28.5355, "lon": 77.391 }
+  ],
+  "UK": [
+    { "name": "Dehradun", "lat": 30.3165, "lon": 78.0322 },
+    { "name": "Haridwar", "lat": 29.9457, "lon": 78.1642 },
+    { "name": "Rishikesh", "lat": 30.0869, "lon": 78.2676 },
+    { "name": "Haldwani", "lat": 29.2183, "lon": 79.513 }
+  ],
+  "WB": [
+    { "name": "Kolkata", "lat": 22.5726, "lon": 88.3639 },
+    { "name": "Howrah", "lat": 22.5958, "lon": 88.2636 },
+    { "name": "Durgapur", "lat": 23.5204, "lon": 87.3119 },
+    { "name": "Siliguri", "lat": 26.7271, "lon": 88.3953 }
+  ],
+  "AN": [
+    { "name": "Port Blair", "lat": 11.6234, "lon": 92.7265 },
+    { "name": "Diglipur", "lat": 13.2667, "lon": 92.9833 },
+    { "name": "Mayabunder", "lat": 12.9167, "lon": 92.9 }
+  ],
+  "CH": [
+    { "name": "Chandigarh", "lat": 30.7333, "lon": 76.7794 },
+    { "name": "Mohali", "lat": 30.7046, "lon": 76.7179 },
+    { "name": "Panchkula", "lat": 30.6942, "lon": 76.8606 }
+  ],
+  "DN": [
+    { "name": "Daman", "lat": 20.3974, "lon": 72.8328 },
+    { "name": "Diu", "lat": 20.7144, "lon": 70.9874 },
+    { "name": "Silvassa", "lat": 20.2738, "lon": 73.016 }
+  ],
+  "DL": [
+    { "name": "New Delhi", "lat": 28.6139, "lon": 77.209 },
+    { "name": "Anand Vihar", "lat": 28.6469, "lon": 77.316 },
+    { "name": "Rohini", "lat": 28.7495, "lon": 77.0565 },
+    { "name": "Dwarka", "lat": 28.5921, "lon": 77.046 }
+  ],
+  "JK": [
+    { "name": "Srinagar", "lat": 34.0837, "lon": 74.7973 },
+    { "name": "Jammu", "lat": 32.7266, "lon": 74.857 },
+    { "name": "Anantnag", "lat": 33.7311, "lon": 75.1487 }
+  ],
+  "LA": [
+    { "name": "Leh", "lat": 34.1526, "lon": 77.577 },
+    { "name": "Kargil", "lat": 34.5539, "lon": 76.1349 }
+  ],
+  "LD": [
+    { "name": "Kavaratti", "lat": 10.5669, "lon": 72.642 },
+    { "name": "Agatti", "lat": 10.85, "lon": 72.1833 }
+  ],
+  "PY": [
+    { "name": "Puducherry", "lat": 11.9416, "lon": 79.8083 },
+    { "name": "Karaikal", "lat": 10.9167, "lon": 79.8333 },
+    { "name": "Mahe", "lat": 11.7, "lon": 75.5333 },
+    { "name": "Yanam", "lat": 16.7333, "lon": 82.2167 }
+  ]
+}
