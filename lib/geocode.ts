@@ -25,7 +25,11 @@ export function nearestStateCode(lat: number, lon: number): string {
   return best.code;
 }
 
-export function stateCodeFor(result: GeoResult): string {
+export function stateCodeFor(result: {
+  admin1?: string;
+  latitude: number;
+  longitude: number;
+}): string {
   const admin = (result.admin1 ?? "").toLowerCase();
   const match = ALL_STATES.find((state) => {
     const name = state.name.toLowerCase().replace(/\s*\(.*\)$/, "");

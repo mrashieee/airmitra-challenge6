@@ -221,11 +221,36 @@ export function Onboarding({ initial, onComplete }: Props) {
     setGeoError("");
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const place = nearestPlace(
-          position.coords.latitude,
-          position.coords.longitude,
-        );
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        try {
+          const res = await fetch(`/api/reverse?lat=${lat}&lon=${lon}`);
+          if (res.ok) {
+            const data = (await res.json()) as {
+              name: string;
+              stateCode: string;
+              lat: number;
+              lon: number;
+            };
+            setDraft((d) => ({
+              ...d,
+              location: {
+                stateCode: data.stateCode,
+                city: data.name,
+                lat: data.lat,
+                lon: data.lon,
+              },
+            }));
+            setLocating(false);
+            return;
+          }
+        } catch {
+          /* fall back to nearest city */
+        }
+
+        const place = nearestPlace(lat, lon);
         if (place) setLocation(place.stateCode, place.city);
         else setGeoError("Could not match your location. Pick manually.");
         setLocating(false);
@@ -408,7 +433,7 @@ export function Onboarding({ initial, onComplete }: Props) {
                     type="search"
                     value={query}
                     onChange={(e) => onQueryChange(e.target.value)}
-                    placeholder="e.g. Palakkad, Darbhanga, Bathinda"
+                    placeholder={`Town or city in ${state.name}`}
                     className="w-full appearance-none rounded-xl border border-line bg-paper py-2.5 pl-10 pr-3 text-sm text-ink outline-none placeholder:text-muted"
                   />
                 </div>
