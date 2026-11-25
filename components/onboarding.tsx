@@ -226,7 +226,20 @@ export function Onboarding({ initial, onComplete }: Props) {
       async (position) => {
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
-        setGeoAccuracy(position.coords.accuracy ?? null);
+        const accuracy = position.coords.accuracy ?? Number.POSITIVE_INFINITY;
+
+        // A phone GPS is usually < 100 m. Anything above 15 km is a network/IP
+        // guess and would put the user in the wrong district or state.
+        if (!Number.isFinite(accuracy) || accuracy > 15000) {
+          setGeoAccuracy(null);
+          setGeoError(
+            "Couldn't get a reliable location. Search for your town above instead.",
+          );
+          setLocating(false);
+          return;
+        }
+
+        setGeoAccuracy(accuracy);
 
         try {
           const res = await fetch(`/api/reverse?lat=${lat}&lon=${lon}`);
