@@ -8,7 +8,7 @@ _22 Nov 2026. Method: code inspection, live endpoint tests, Chrome installabilit
 
 | # | Area | Status | Score |
 |---|---|---|---|
-| 1 | Live AQI data (CPCB/CAMS) | Working | **8/10** |
+| 1 | Live AQI data (CPCB/OpenAQ/CAMS) | Working | **9/10** |
 | 2 | Location + city search | Working | **8/10** |
 | 3 | Onboarding + profile | Working | **7/10** |
 | 4 | Home guidance | Working | **7/10** |
@@ -28,6 +28,7 @@ _22 Nov 2026. Method: code inspection, live endpoint tests, Chrome installabilit
 | 18 | Error handling | Working | **7/10** |
 | 19 | Automated tests | Ad-hoc only | **6/10** |
 | 20 | Security | Partial | **6/10** |
+| 21 | Public city pages + SEO | Working | **8/10** |
 
 **Overall MVP readiness: ~7.2/10.** Strong shell and data; the intelligence layer is now real, with fallbacks.
 
@@ -37,7 +38,9 @@ _22 Nov 2026. Method: code inspection, live endpoint tests, Chrome installabilit
 
 ### 1. Live data — 8/10
 - CPCB ground stations, nearest-station selection, 30 km cutoff.
+- OpenAQ ground monitors when CPCB is unreachable (Vercel blocks data.gov.in).
 - CAMS fallback at the selected city.
+- Public `/aqi/<state>/<city>` pages with canonical/OG metadata, `sitemap.xml`, and `robots.txt`.
 - CPCB NAQI computed from PM2.5/PM10.
 - Cache + stale-ground fallback + degraded flags.
 - City-level queries verified: Mumbai (Kurla), Pune (Shivajinagar), Kozhikode (CAMS, nearest CPCB 82 km).

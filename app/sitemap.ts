@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { slugify } from "@/lib/city-page";
+import { slugify } from "@/lib/slug";
 import { ALL_STATES, citiesFor } from "@/lib/states";
 
 const BASE =

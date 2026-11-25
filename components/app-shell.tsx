@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
+import { slugify } from "@/lib/slug";
 import { mockReading, readingFromAir } from "@/lib/aqi";
 import { useAirReading } from "@/lib/air/use-reading";
 import { useBrief } from "@/lib/ai/use-brief";
@@ -467,6 +469,18 @@ function AppShellInner({
             </div>
 
             {content}
+
+            <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-[11px] text-muted">
+              <span>
+                India AQI uses CPCB NAQI · general guidance, not medical advice
+              </span>
+              <Link
+                href={`/aqi/${slugify(state.name)}/${slugify(city.name)}`}
+                className="font-medium text-brand hover:underline"
+              >
+                Public page for {city.name} →
+              </Link>
+            </footer>
           </main>
 
           {/* Right rail */}
@@ -495,7 +509,7 @@ function AppShellInner({
               <ul className="mt-2 space-y-2 text-[11px] leading-5 text-muted">
                 <li>Family: father (asthma), daughter (6).</li>
                 <li>Home: no purifier, gas stove, agarbatti.</li>
-                <li>Source: CPCB / CAMS, with freshness shown.</li>
+                <li>Source: CPCB / OpenAQ / CAMS, with freshness shown.</li>
               </ul>
             </div>
           </aside>

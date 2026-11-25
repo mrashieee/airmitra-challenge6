@@ -1,14 +1,8 @@
 import { stateCodeFor } from "./geocode";
+import { slugify } from "./slug";
 import { ALL_STATES, citiesFor, type CityEntry } from "./states";
 
-export function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[()]/g, "")
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+export { slugify };
 
 const STATE_ALIASES: Record<string, string> = {
   delhi: "DL",
