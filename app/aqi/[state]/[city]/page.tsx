@@ -1,0 +1,238 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { resolveAirReading } from "@/lib/air/resolve";
+import { readingFromAir } from "@/lib/aqi";
+import { cityBySlug, citiesForStatePage, slugify, stateBySlug } from "@/lib/city-page";
+import { createDefaultProfile } from "@/lib/profile";
+import { BAND_STYLES, cn } from "@/lib/ui";
+import { PinIcon, SparkIcon, WindIcon } from "@/components/icons";
+import { WeatherScene, weatherLabel } from "@/components/weather-scene";
+
+type Params = { params: Promise<{ state: string; city: string }> };
+
+export const instant = false;
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const { state: stateSlug, city: citySlug } = await params;
+  const state = stateBySlug(stateSlug);
+  const city = state ? await cityBySlug(state.code, citySlug) : null;
+  const place = city?.name ?? citySlug.replace(/-/g, " ");
+
+  return {
+    title: `${place} Air Quality (AQI) — AirMitra`,
+    description: `Live air quality for ${place}${
+      state ? `, ${state.name}` : ""
+    }: AQI, pollutants, station freshness, and household guidance.`,
+  };
+}
+
+export default async function CityPage({ params }: Params) {
+  const { state: stateSlug, city: citySlug } = await params;
+  const state = stateBySlug(stateSlug);
+  if (!state) notFound();
+
+  const city = await cityBySlug(state.code, citySlug);
+  if (!city) notFound();
+
+  const air = await resolveAirReading(state, {
+    target: { lat: city.lat, lon: city.lon, city: city.name },
+  }).catch(() => null);
+
+  if (!air) notFound();
+
+  const profile = createDefaultProfile();
+  profile.location = {
+    stateCode: state.code,
+    city: city.name,
+    lat: city.lat,
+    lon: city.lon,
+  };
+
+  const reading = readingFromAir(state, air, undefined, false, profile);
+  const styles = BAND_STYLES[reading.band.key];
+
+  const nearby = citiesForStatePage(state.code).filter(
+    (entry) => entry.name !== city.name,
+  );
+
+  const shareText = encodeURIComponent(
+    `${city.name}, ${state.name}: AQI ${reading.aqi} (${reading.band.label}). ${reading.guidelines[0]} — via AirMitra`,
+  );
+
+  return (
+    <div className="min-h-dvh bg-paper">
+      <header className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-5">
+        <Link href="/" className="flex items-center gap-2.5">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-white">
+            <WindIcon className="h-5 w-5" />
+          </span>
+          <span className="leading-tight">
+            <span className="block text-sm font-semibold tracking-tight text-ink">
+              AirMitra
+            </span>
+            <span className="block text-[10px] text-muted">
+              Household Air Coach
+            </span>
+          </span>
+        </Link>
+        <Link
+          href="/"
+          className="rounded-full bg-ink px-3.5 py-2 text-xs font-medium text-white"
+        >
+          Open app
+        </Link>
+      </header>
+
+      <main className="mx-auto w-full max-w-3xl px-4 pb-16">
+        <section className="relative overflow-hidden rounded-3xl ring-1 ring-black/5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+          <WeatherScene
+            condition={reading.weather.condition}
+            isDay={reading.weather.isDay}
+            aqi={reading.aqi}
+          />
+          <div className="relative z-10 p-5">
+            <div className="flex items-center gap-1.5 text-xs text-muted">
+              <PinIcon className="h-3.5 w-3.5" />
+              <span className="truncate">
+                {city.name}, {state.name}
+              </span>
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-end gap-3">
+              <span className="tabular text-[64px] font-semibold leading-none tracking-[-0.04em] text-ink">
+                {reading.aqi}
+              </span>
+              <span
+                className={cn(
+                  "mb-1.5 rounded-full px-3 py-1 text-xs font-semibold ring-1",
+                  styles.soft,
+                  styles.text,
+                  styles.ring,
+                )}
+              >
+                {reading.band.label}
+              </span>
+            </div>
+
+            <p className="mt-2 text-sm text-muted">
+              <span className="font-medium text-ink">{reading.dominant}</span> is
+              the dominant pollutant
+              {reading.basis ? (
+                <span className="ml-1 text-[10px] text-muted">
+                  (AQI from {reading.basis})
+                </span>
+              ) : null}
+            </p>
+            <p className="mt-1 text-[11px] text-muted">
+              {weatherLabel(reading.weather.condition, reading.weather.isDay)} ·{" "}
+              {reading.weather.tempC ?? "—"}°C · wind{" "}
+              {reading.weather.windKph ?? "—"} km/h
+            </p>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-muted">
+              <span
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  reading.source.type === "ground"
+                    ? "bg-emerald-500"
+                    : "bg-amber-500",
+                )}
+              />
+              <span className="font-medium text-ink">
+                {reading.source.station}
+              </span>
+              {reading.source.distanceKm > 0 ? (
+                <span>· {reading.source.distanceKm} km</span>
+              ) : null}
+              <span>· {reading.source.updated}</span>
+              <span className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm">
+                {reading.source.type === "ground"
+                  ? "ground monitor"
+                  : "model estimate"}
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-4 rounded-2xl bg-card p-5 ring-1 ring-black/5">
+          <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+            <WindIcon className="h-4 w-4 text-brand" />
+            What this means today
+          </div>
+          <ul className="mt-3 space-y-2.5">
+            {reading.guidelines.map((guideline) => (
+              <li
+                key={guideline}
+                className="flex gap-2.5 text-sm leading-6 text-ink/90"
+              >
+                <span
+                  className={cn(
+                    "mt-2 h-1.5 w-1.5 shrink-0 rounded-full",
+                    styles.dot,
+                  )}
+                />
+                <span>{guideline}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-[11px] text-muted">
+            General guidance, not medical advice.
+          </p>
+        </section>
+
+        <section className="mt-4 rounded-2xl bg-card p-5 ring-1 ring-black/5">
+          <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+            <SparkIcon className="h-4 w-4 text-brand" />
+            For your household
+          </div>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            AirMitra goes beyond the city number. Add your family, health
+            conditions, home inventory, and routine to get one clear action for
+            today.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/"
+              className="rounded-xl bg-ink px-4 py-2.5 text-sm font-medium text-white"
+            >
+              Set up your household
+            </Link>
+            <a
+              href={`https://wa.me/?text=${shareText}`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-xl bg-card px-4 py-2.5 text-sm font-medium text-ink ring-1 ring-line"
+            >
+              Share this AQI
+            </a>
+          </div>
+        </section>
+
+        {nearby.length > 0 ? (
+          <section className="mt-4 rounded-2xl bg-card p-5 ring-1 ring-black/5">
+            <div className="text-sm font-semibold text-ink">
+              Other cities in {state.name}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {nearby.map((entry) => (
+                <Link
+                  key={entry.name}
+                  href={`/aqi/${stateSlug}/${slugify(entry.name)}`}
+                  className="rounded-full bg-paper px-3 py-1.5 text-xs font-medium text-ink ring-1 ring-line hover:bg-white"
+                >
+                  {entry.name}
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <p className="mt-6 text-[11px] leading-5 text-muted">
+          Source: {reading.source.station}. India AQI uses CPCB NAQI, not the US
+          EPA scale. AirMitra is not a medical service.
+        </p>
+      </main>
+    </div>
+  );
+}
