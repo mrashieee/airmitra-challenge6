@@ -1,6 +1,7 @@
 import type { StateEntry } from "@/lib/states";
 import { cacheGet, cacheGetStale, cacheSet } from "./cache";
 import { fetchCpcb } from "./providers/cpcb";
+import { fetchOpenAQ } from "./providers/openaq";
 import { fetchOpenMeteoAir, fetchWeather } from "./providers/openmeteo";
 import type { AirReading, Target } from "./types";
 
@@ -39,15 +40,16 @@ export async function resolveAirReading(
   }
 
   // Ground station + weather in parallel. Weather never blocks the reading.
-  const [cpcb, weather] = await Promise.all([
+  const [cpcb, openaq, weather] = await Promise.all([
     withTimeout(fetchCpcb(state, process.env.DATA_GOV_API_KEY, place), 6500, {
       sample: null,
       failed: true,
     }),
+    withTimeout(fetchOpenAQ(state, place), 7000, null),
     fetchWeather(place),
   ]);
 
-  let sample = cpcb.sample;
+  let sample = cpcb.sample ?? openaq;
   let fallbackReason: AirReading["fallbackReason"];
   let nearestStationKm: number | undefined;
 
