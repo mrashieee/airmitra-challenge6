@@ -17,7 +17,8 @@ export type HomeProfile = {
   cooling: string[];
   purifiers: string;
   indoorSmoke: string[];
-  cleaning: string;
+  cleaning: string[];
+  cleaningFrequency: string;
   pets: boolean;
   plants: boolean;
   carpet: boolean;
@@ -87,7 +88,8 @@ export function createDefaultProfile(): Profile {
       cooling: ["Fans only"],
       purifiers: "None",
       indoorSmoke: ["Agarbatti"],
-      cleaning: "Dry sweeping",
+      cleaning: ["Dry sweeping"],
+      cleaningFrequency: "2-3x/week",
       pets: false,
       plants: true,
       carpet: false,
@@ -116,15 +118,17 @@ export function parseProfile(raw: string | null): Profile | null {
       return null;
     }
 
-    // Migrate older single-choice cooking/cooling values.
-    const home = parsed.home as HomeProfile & {
-      cooking?: string | string[];
-      cooling?: string | string[];
-    };
+    // Migrate older single-choice cooking/cooling/cleaning values.
+    const home = parsed.home as unknown as Record<string, unknown>;
     if (typeof home.cooking === "string") home.cooking = [home.cooking];
     if (typeof home.cooling === "string") home.cooling = [home.cooling];
+    if (typeof home.cleaning === "string") home.cleaning = [home.cleaning];
     if (!Array.isArray(home.cooking)) home.cooking = ["LPG"];
     if (!Array.isArray(home.cooling)) home.cooling = ["Fans only"];
+    if (!Array.isArray(home.cleaning)) home.cleaning = ["Dry sweeping"];
+    if (typeof home.cleaningFrequency !== "string") {
+      home.cleaningFrequency = "2-3x/week";
+    }
 
     return parsed;
   } catch {

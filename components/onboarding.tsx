@@ -349,6 +349,21 @@ export function Onboarding({ initial, onComplete }: Props) {
     });
   }
 
+  function toggleCleaning(value: string) {
+    setDraft((d) => {
+      const has = d.home.cleaning.includes(value);
+      return {
+        ...d,
+        home: {
+          ...d.home,
+          cleaning: has
+            ? d.home.cleaning.filter((v) => v !== value)
+            : [...d.home.cleaning, value],
+        },
+      };
+    });
+  }
+
   function toggleSmoke(value: string) {
     setDraft((d) => {
       const has = d.home.indoorSmoke.includes(value);
@@ -725,17 +740,31 @@ export function Onboarding({ initial, onComplete }: Props) {
               </div>
 
               <div>
-                <Label>Cleaning</Label>
+                <Label>Cleaning methods</Label>
                 <div className="flex flex-wrap gap-2">
                   {["Dry sweeping", "Wet mopping", "Vacuum"].map((v) => (
                     <Chip
                       key={v}
-                      active={draft.home.cleaning === v}
-                      onClick={() => setHome({ cleaning: v })}
+                      active={draft.home.cleaning.includes(v)}
+                      onClick={() => toggleCleaning(v)}
                     >
                       {v}
                     </Chip>
                   ))}
+                </div>
+                <div className="mt-3">
+                  <Label>How often?</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {["Daily", "2-3x/week", "Weekly", "Rarely"].map((v) => (
+                      <Chip
+                        key={v}
+                        active={draft.home.cleaningFrequency === v}
+                        onClick={() => setHome({ cleaningFrequency: v })}
+                      >
+                        {v}
+                      </Chip>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -852,7 +881,17 @@ export function Onboarding({ initial, onComplete }: Props) {
               <div>
                 <Label>Outdoor exercise</Label>
                 <div className="flex flex-wrap gap-2">
-                  {["Morning walk", "Evening walk", "Gym indoors", "None"].map((v) => (
+                  {[
+                    "Morning walk",
+                    "Evening walk",
+                    "Both",
+                    "Run/jog",
+                    "Cycle",
+                    "Sports",
+                    "Gym indoors",
+                    "Yoga indoors",
+                    "None",
+                  ].map((v) => (
                     <Chip
                       key={v}
                       active={draft.routine.exercise === v}

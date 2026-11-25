@@ -230,7 +230,10 @@ function doNowFor(state: StateEntry, profile?: Profile) {
     items.push(fallback[2]);
   }
 
-  if (home.cleaning === "Dry sweeping") {
+  if (
+    home.cleaning.includes("Dry sweeping") &&
+    home.cleaningFrequency !== "Rarely"
+  ) {
     items.push({
       title: "Damp-mop instead of sweeping",
       body: "Dry sweeping lifts settled dust back into the air you breathe.",
