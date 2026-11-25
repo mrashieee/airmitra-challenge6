@@ -448,6 +448,24 @@ export function Onboarding({ initial, onComplete }: Props) {
                 </p>
               ) : null}
 
+              <div className="space-y-3">
+                <div>
+                  <Label>State or union territory</Label>
+                  <Select
+                    ariaLabel="State or union territory"
+                    value={draft.location.stateCode}
+                    onChange={(code) => setLocation(code, citiesFor(code)[0].name)}
+                    options={[
+                      ...STATES.map((s) => ({ value: s.code, label: s.name })),
+                      ...UNION_TERRITORIES.map((s) => ({
+                        value: s.code,
+                        label: s.name,
+                      })),
+                    ]}
+                  />
+                </div>
+              </div>
+
               <div>
                 <Label>Search in {state.name}</Label>
                 <div className="relative">
@@ -490,24 +508,6 @@ export function Onboarding({ initial, onComplete }: Props) {
                     ))}
                   </div>
                 ) : null}
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <Label>State or union territory</Label>
-                  <Select
-                    ariaLabel="State or union territory"
-                    value={draft.location.stateCode}
-                    onChange={(code) => setLocation(code, citiesFor(code)[0].name)}
-                    options={[
-                      ...STATES.map((s) => ({ value: s.code, label: s.name })),
-                      ...UNION_TERRITORIES.map((s) => ({
-                        value: s.code,
-                        label: s.name,
-                      })),
-                    ]}
-                  />
-                </div>
               </div>
 
               <div className="rounded-xl bg-paper p-3 text-xs leading-5 text-muted ring-1 ring-line">
