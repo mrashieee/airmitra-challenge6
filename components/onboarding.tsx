@@ -138,6 +138,7 @@ export function Onboarding({ initial, onComplete }: Props) {
   const [draft, setDraft] = useState<Profile>(initial ?? createDefaultProfile());
   const [locating, setLocating] = useState(false);
   const [geoError, setGeoError] = useState("");
+  const [geoAccuracy, setGeoAccuracy] = useState<number | null>(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<GeoResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -219,11 +220,13 @@ export function Onboarding({ initial, onComplete }: Props) {
 
     setLocating(true);
     setGeoError("");
+    setGeoAccuracy(null);
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
+        setGeoAccuracy(position.coords.accuracy ?? null);
 
         try {
           const res = await fetch(`/api/reverse?lat=${lat}&lon=${lon}`);
@@ -259,7 +262,7 @@ export function Onboarding({ initial, onComplete }: Props) {
         setGeoError("Location permission denied. Pick manually.");
         setLocating(false);
       },
-      { timeout: 8000, maximumAge: 600000 },
+      { timeout: 15000, maximumAge: 0, enableHighAccuracy: true },
     );
   }
 
@@ -424,6 +427,13 @@ export function Onboarding({ initial, onComplete }: Props) {
               {geoError ? (
                 <p className="text-xs leading-5 text-red-700">{geoError}</p>
               ) : null}
+              {geoAccuracy !== null && geoAccuracy > 1000 ? (
+                <p className="text-xs leading-5 text-amber-700">
+                  Your device location is approximate (±
+                  {(geoAccuracy / 1000).toFixed(1)} km). Search your town above
+                  for accuracy.
+                </p>
+              ) : null}
 
               <div>
                 <Label>Search in {state.name}</Label>
@@ -490,6 +500,10 @@ export function Onboarding({ initial, onComplete }: Props) {
               <div className="rounded-xl bg-paper p-3 text-xs leading-5 text-muted ring-1 ring-line">
                 Watching <span className="font-medium text-ink">{draft.location.city}</span>,{" "}
                 {state.name}. Nearest CPCB station will be used first.
+                <p className="mt-1 text-[10px]">
+                  Detected from your device. Not right? Search for your town
+                  above.
+                </p>
               </div>
             </div>
           ) : null}
