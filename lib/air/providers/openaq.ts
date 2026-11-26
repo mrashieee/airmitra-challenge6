@@ -61,12 +61,18 @@ function normalise(
   return null;
 }
 
+export type OpenAQResult = {
+  sample: AirSample | null;
+  failed: boolean;
+  nearestKm?: number;
+};
+
 export async function fetchOpenAQ(
   state: StateEntry,
   target?: Target,
-): Promise<AirSample | null> {
+): Promise<OpenAQResult> {
   const key = process.env.OPENAQ_API_KEY;
-  if (!key) return null;
+  if (!key) return { sample: null, failed: false };
 
   const place = target ?? {
     lat: state.lat,
@@ -84,7 +90,7 @@ export async function fetchOpenAQ(
       headers: { "X-API-Key": key },
       signal: AbortSignal.timeout(6000),
     });
-    if (!res.ok) return null;
+    if (!res.ok) return { sample: null, failed: true };
 
     const data = (await res.json()) as { results?: OpenAQLocation[] };
     const locations = (data.results ?? []).filter(
@@ -106,7 +112,7 @@ export async function fetchOpenAQ(
       if (!best || distance < best.distance) best = { location, distance };
     }
 
-    if (!best) return null;
+    if (!best) return { sample: null, failed: false };
 
     const latestRes = await fetch(
       `${BASE}/locations/${best.location.id}/latest`,
@@ -115,7 +121,13 @@ export async function fetchOpenAQ(
         signal: AbortSignal.timeout(6000),
       },
     );
-    if (!latestRes.ok) return null;
+    if (!latestRes.ok) {
+      return {
+        sample: null,
+        failed: true,
+        nearestKm: Math.round(best.distance * 10) / 10,
+      };
+    }
 
     const latest = (await latestRes.json()) as { results?: OpenAQLatest[] };
     const sensorMap = new Map(
@@ -151,27 +163,37 @@ export async function fetchOpenAQ(
       (p) => p.key === "pm25" || p.key === "pm10",
     );
     const result = computeAqi(pm.length ? pm : pollutants);
-    if (!result) return null;
+    if (!result) {
+      return {
+        sample: null,
+        failed: false,
+        nearestKm: Math.round(best.distance * 10) / 10,
+      };
+    }
 
     const band = bandFor(result.aqi);
     const latestTime = latest.results?.[0]?.datetime?.utc;
 
     return {
-      area: place.city,
-      aqi: result.aqi,
-      band: band.key,
-      bandLabel: band.label,
-      dominant: result.dominant,
-      basis: pm.length ? "PM2.5/PM10" : "mixed",
-      pollutants,
-      source: {
-        type: "ground",
-        station: `${best.location.name} · OpenAQ`,
-        distanceKm: Math.round(best.distance * 10) / 10,
-        updatedAt: latestTime ?? new Date().toISOString(),
+      failed: false,
+      nearestKm: Math.round(best.distance * 10) / 10,
+      sample: {
+        area: place.city,
+        aqi: result.aqi,
+        band: band.key,
+        bandLabel: band.label,
+        dominant: result.dominant,
+        basis: pm.length ? "PM2.5/PM10" : "mixed",
+        pollutants,
+        source: {
+          type: "ground",
+          station: `${best.location.name} · OpenAQ`,
+          distanceKm: Math.round(best.distance * 10) / 10,
+          updatedAt: latestTime ?? new Date().toISOString(),
+        },
       },
     };
   } catch {
-    return null;
+    return { sample: null, failed: true };
   }
 }

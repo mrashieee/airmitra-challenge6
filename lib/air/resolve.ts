@@ -45,20 +45,25 @@ export async function resolveAirReading(
       sample: null,
       failed: true,
     }),
-    withTimeout(fetchOpenAQ(state, place), 7000, null),
+    withTimeout(fetchOpenAQ(state, place), 7000, {
+      sample: null,
+      failed: true,
+    }),
     fetchWeather(place),
   ]);
 
-  let sample = cpcb.sample ?? openaq;
+  let sample = cpcb.sample ?? openaq.sample;
   let fallbackReason: AirReading["fallbackReason"];
   let nearestStationKm: number | undefined;
 
   if (!sample) {
-    if (cpcb.failed) {
+    const nearest = cpcb.nearestKm ?? openaq.nearestKm;
+
+    if (cpcb.failed && openaq.failed) {
       fallbackReason = "cpcb_unavailable";
-    } else if (cpcb.tooFar) {
+    } else if (cpcb.tooFar || typeof nearest === "number") {
       fallbackReason = "station_too_far";
-      nearestStationKm = cpcb.nearestKm;
+      nearestStationKm = nearest;
     } else {
       fallbackReason = "no_station";
     }

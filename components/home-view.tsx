@@ -150,8 +150,8 @@ export function HomeView({
               demo data
             </span>
           ) : reading.degraded ? (
-            <span className="rounded-full bg-red-50 px-2 py-0.5 font-medium text-red-700 ring-1 ring-red-200">
-              CPCB unavailable
+            <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700 ring-1 ring-amber-200">
+              ground feed down
             </span>
           ) : reading.stale ? (
             <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700 ring-1 ring-amber-200">

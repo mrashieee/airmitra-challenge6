@@ -162,6 +162,11 @@ export default async function CityPage({ params }: Params) {
                 <span>· {reading.source.distanceKm} km</span>
               ) : null}
               <span>· {reading.source.updated}</span>
+              {reading.source.type === "model" && reading.nearestStationKm ? (
+                <span>
+                  · nearest CPCB {Math.round(reading.nearestStationKm)} km
+                </span>
+              ) : null}
               <span className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm">
                 {reading.source.type === "ground"
                   ? "ground monitor"
