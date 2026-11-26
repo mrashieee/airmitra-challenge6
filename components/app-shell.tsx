@@ -270,7 +270,7 @@ function AppShellInner({
   return (
     <div className="min-h-dvh bg-paper">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[264px] flex-col border-r border-line bg-[#efeadd]/90 px-5 py-6 backdrop-blur lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[264px] flex-col border-r border-line bg-[color:var(--sidebar)] px-5 py-6 backdrop-blur lg:flex">
         <Brand />
         <LocationSelect
           code={code}
@@ -313,7 +313,7 @@ function AppShellInner({
       {/* Main column */}
       <div className="lg:pl-[264px]">
         {/* Mobile header */}
-        <header className="sticky top-0 z-30 border-b border-line bg-[#f5f2e9]/95 px-4 pb-3 pt-3 backdrop-blur lg:hidden">
+        <header className="sticky top-0 z-30 border-b border-line bg-paper/95 px-4 pb-3 pt-3 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between">
             <Brand />
             <button

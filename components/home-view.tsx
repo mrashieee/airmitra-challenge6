@@ -88,7 +88,7 @@ export function HomeView({
       {/* Hero */}
       <section
         className={cn(
-          "animate-rise relative overflow-hidden rounded-3xl ring-1 ring-black/5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]",
+          "weather-hero animate-rise relative overflow-hidden rounded-3xl ring-1 ring-black/5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]",
           !reading.weather.isDay && "hero-night",
         )}
       >
@@ -511,19 +511,19 @@ export function HomeView({
 export function TodaySkeleton({ city }: { city: string }) {
   return (
     <div className="space-y-4" aria-busy="true" aria-live="polite">
-      <div className="animate-soft relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 p-5 ring-1 ring-black/5">
-        <div className="h-3 w-28 rounded-full bg-white/70" />
+      <div className="animate-soft relative overflow-hidden rounded-3xl bg-line/30 p-5 ring-1 ring-black/5">
+        <div className="h-3 w-28 rounded-full bg-card/70" />
         <div className="mt-4 flex items-end gap-3">
-          <div className="h-14 w-28 rounded-2xl bg-white/80" />
-          <div className="mb-2 h-6 w-20 rounded-full bg-white/60" />
+          <div className="h-14 w-28 rounded-2xl bg-card/80" />
+          <div className="mb-2 h-6 w-20 rounded-full bg-card/60" />
         </div>
-        <div className="mt-4 h-3 w-64 max-w-full rounded-full bg-white/60" />
-        <div className="mt-2 h-3 w-44 rounded-full bg-white/50" />
+        <div className="mt-4 h-3 w-64 max-w-full rounded-full bg-card/60" />
+        <div className="mt-2 h-3 w-44 rounded-full bg-card/50" />
         <div className="mt-6 flex gap-2">
-          <div className="h-8 w-24 rounded-full bg-white/60" />
-          <div className="h-8 w-24 rounded-full bg-white/50" />
+          <div className="h-8 w-24 rounded-full bg-card/60" />
+          <div className="h-8 w-24 rounded-full bg-card/50" />
         </div>
-        <p className="mt-5 text-[11px] font-medium text-slate-600">
+        <p className="mt-5 text-[11px] font-medium text-muted">
           Loading live air quality for {city}…
         </p>
       </div>

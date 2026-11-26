@@ -11,6 +11,10 @@ import {
 } from "@/lib/motion";
 import { ProfileEditor } from "./profile-editor";
 import { WindIcon } from "./icons";
+import {
+  setThemePreference,
+  useThemePreference,
+} from "@/lib/theme";
 
 export function SettingsPanel({
   profile,
@@ -32,6 +36,7 @@ export function SettingsPanel({
   const motion = useMotionPreference();
   const systemReduced = useSystemReducedMotion();
   const darkReader = useDarkReaderDetected();
+  const theme = useThemePreference();
 
   return (
     <div className="space-y-4">
@@ -85,6 +90,34 @@ export function SettingsPanel({
             />
           </span>
         </button>
+      </section>
+
+      <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
+        <h3 className="text-sm font-semibold text-ink">Appearance</h3>
+        <p className="mt-1 text-xs leading-5 text-muted">
+          System follows your device. Dark applies to the whole app.
+        </p>
+        <div className="mt-3 grid grid-cols-3 gap-1.5">
+          {(["light", "dark", "system"] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setThemePreference(option)}
+              className={cn(
+                "rounded-xl px-2 py-2 text-[11px] font-medium ring-1 transition",
+                theme === option
+                  ? "bg-brand text-white ring-brand"
+                  : "bg-paper text-ink ring-line hover:bg-white",
+              )}
+            >
+              {option === "light"
+                ? "Light"
+                : option === "dark"
+                  ? "Dark"
+                  : "System"}
+            </button>
+          ))}
+        </div>
       </section>
 
       <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">

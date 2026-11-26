@@ -63,24 +63,19 @@ export function WeatherScene({
     <div
       aria-hidden
       className={cn(
-        "animate-scene pointer-events-none absolute inset-0 overflow-hidden bg-gradient-to-br transition-colors duration-1000",
+        "weather-scene animate-scene pointer-events-none absolute inset-0 overflow-hidden bg-gradient-to-br transition-colors duration-1000",
         night ? NIGHT_GRADIENTS[condition] : DAY_GRADIENTS[condition],
       )}
     >
       {/* Day: sun with rotating rays + breathing halo */}
       {showSun ? (
         <>
-          <div className="animate-glow absolute -right-20 -top-24 h-72 w-72 rounded-full bg-amber-200/60 blur-3xl" />
-          <div className="animate-sun absolute -right-14 -top-16 h-56 w-56 rounded-full bg-amber-300/50 blur-2xl" />
-          <div
-            className="animate-spin-slow absolute -right-6 -top-6 h-48 w-48 opacity-70 blur-[1px]"
-            style={{
-              background:
-                "repeating-conic-gradient(from 0deg, rgba(251,191,36,0.55) 0deg 6deg, transparent 6deg 28deg)",
-            }}
-          />
-          <div className="animate-float absolute right-8 top-5 h-16 w-16 rounded-full bg-amber-200 shadow-[0_0_80px_rgba(251,191,36,0.85)]" />
-          <div className="absolute -right-24 top-10 h-40 w-[60%] rotate-[24deg] bg-gradient-to-b from-amber-100/45 to-transparent blur-2xl" />
+          <div className="absolute -right-4 -top-6 h-64 w-64 sm:-right-8 sm:-top-8">
+            <div className="animate-glow absolute inset-6 rounded-full bg-amber-200/60 blur-3xl" />
+            <div className="sun-rays animate-spin-slow absolute inset-0 rounded-full opacity-80" />
+            <div className="animate-float absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-200 shadow-[0_0_80px_rgba(251,191,36,0.85)]" />
+          </div>
+          <div className="absolute -right-24 top-12 h-40 w-[60%] rotate-[24deg] bg-gradient-to-b from-amber-100/40 to-transparent blur-2xl" />
         </>
       ) : null}
 

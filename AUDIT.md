@@ -21,7 +21,7 @@ _22 Nov 2026. Method: code inspection, live endpoint tests, Chrome installabilit
 | 11 | PWA | Working | **8/10** |
 | 12 | Rules engine | **Partial** | **5/10** |
 | 13 | Travel mode | **Missing** | **0/10** |
-| 14 | Dark mode | **Missing** | **0/10** |
+| 14 | Dark mode | Working (light / dark / system) | **8/10** |
 | 15 | Accessibility | Partial | **6/10** |
 | 16 | Data trust / transparency | Working | **9/10** |
 | 17 | Performance | Working | **8/10** |

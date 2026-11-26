@@ -112,7 +112,7 @@ export default async function CityPage({ params }: Params) {
         </h1>
         <section
           className={cn(
-            "relative overflow-hidden rounded-3xl ring-1 ring-black/5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]",
+            "weather-hero relative overflow-hidden rounded-3xl ring-1 ring-black/5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]",
             !reading.weather.isDay && "hero-night",
           )}
         >

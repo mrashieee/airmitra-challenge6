@@ -51,7 +51,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f6f7f4",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f5f2e9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d1411" },
+  ],
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -73,7 +76,7 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html:
-              'try{var m=localStorage.getItem("airmitra.motion.v1");if(m==="on")document.documentElement.classList.add("motion-on");if(m==="off")document.documentElement.classList.add("motion-off");}catch(e){}',
+              'try{var t=localStorage.getItem("airmitra.theme.v1")||"system";var d=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.classList.add("dark");var m=localStorage.getItem("airmitra.motion.v1");if(m==="on")document.documentElement.classList.add("motion-on");if(m==="off")document.documentElement.classList.add("motion-off");}catch(e){}',
           }}
         />
       </head>
