@@ -236,29 +236,56 @@ html.large-text {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-rise,
-  .animate-soft,
-  .animate-drift,
-  .animate-rain,
-  .animate-cloud,
-  .animate-fog,
-  .animate-snow,
-  .animate-twinkle,
-  .animate-flash,
-  .animate-sun,
-  .animate-spin-slow,
-  .animate-float {
+  html:not(.motion-on) .animate-rise,
+  html:not(.motion-on) .animate-soft,
+  html:not(.motion-on) .animate-drift,
+  html:not(.motion-on) .animate-rain,
+  html:not(.motion-on) .animate-cloud,
+  html:not(.motion-on) .animate-fog,
+  html:not(.motion-on) .animate-snow,
+  html:not(.motion-on) .animate-twinkle,
+  html:not(.motion-on) .animate-flash,
+  html:not(.motion-on) .animate-sun,
+  html:not(.motion-on) .animate-spin-slow,
+  html:not(.motion-on) .animate-float,
+  html:not(.motion-on) .animate-aqi-pop,
+  html:not(.motion-on) .animate-scene,
+  html:not(.motion-on) .animate-glow,
+  html:not(.motion-on) .animate-sheen,
+  html:not(.motion-on) .animate-aurora,
+  html:not(.motion-on) .animate-shoot {
     animation: none !important;
   }
-  * {
+  html:not(.motion-on) * {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
 }
 
-:focus-visible {
-  outline: 2px solid var(--brand);
-  outline-offset: 2px;
+html.motion-off .animate-rise,
+html.motion-off .animate-soft,
+html.motion-off .animate-drift,
+html.motion-off .animate-rain,
+html.motion-off .animate-cloud,
+html.motion-off .animate-fog,
+html.motion-off .animate-snow,
+html.motion-off .animate-twinkle,
+html.motion-off .animate-flash,
+html.motion-off .animate-sun,
+html.motion-off .animate-spin-slow,
+html.motion-off .animate-float,
+html.motion-off .animate-aqi-pop,
+html.motion-off .animate-scene,
+html.motion-off .animate-glow,
+html.motion-off .animate-sheen,
+html.motion-off .animate-aurora,
+html.motion-off .animate-shoot {
+  animation: none !important;
+}
+
+html.motion-off * {
+  scroll-behavior: auto !important;
+  transition-duration: 0.01ms !important;
 }
 
 @keyframes aqi-pop {
@@ -307,14 +334,6 @@ html.large-text {
   animation: glow-drift 9s ease-in-out infinite;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .animate-aqi-pop,
-  .animate-scene,
-  .animate-glow {
-    animation: none !important;
-  }
-}
-
 @keyframes sheen {
   0% {
     transform: translateX(-140%) skewX(-14deg);
@@ -334,12 +353,6 @@ html.large-text {
 
 .animate-sheen {
   animation: sheen 11s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-sheen {
-    animation: none !important;
-  }
 }
 
 @keyframes aurora {
@@ -396,13 +409,6 @@ html.large-text {
 
 .hero-night .ring-white\/60 {
   --tw-ring-color: rgb(255 255 255 / 0.22);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-aurora,
-  .animate-shoot {
-    animation: none !important;
-  }
 }
 
 /* Night hero pollutant tiles: keep the highlighted tile readable. */

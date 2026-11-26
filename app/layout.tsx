@@ -62,6 +62,14 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'try{var m=localStorage.getItem("airmitra.motion.v1");if(m==="on")document.documentElement.classList.add("motion-on");if(m==="off")document.documentElement.classList.add("motion-off");}catch(e){}',
+          }}
+        />
+      </head>
       <body className="min-h-dvh bg-paper text-ink">
         <PwaRegister />
         {children}

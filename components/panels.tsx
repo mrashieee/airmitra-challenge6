@@ -6,6 +6,11 @@ import type { Profile } from "@/lib/profile";
 import type { Tab } from "@/lib/nav";
 import { BAND_STYLES, cn } from "@/lib/ui";
 import { LANGUAGES } from "@/lib/profile-options";
+import {
+  setMotionPreference,
+  useMotionPreference,
+  useSystemReducedMotion,
+} from "@/lib/motion";
 import { ProfileEditor } from "./profile-editor";
 import {
   AlertIcon,
@@ -554,6 +559,9 @@ export function SettingsPanel({
   setLargeText: (v: boolean) => void;
   onEdit: () => void;
 }) {
+  const motion = useMotionPreference();
+  const systemReduced = useSystemReducedMotion();
+
   return (
     <div className="space-y-4">
       <ProfileEditor profile={profile} onSave={onSaveProfile} />
@@ -606,6 +614,37 @@ export function SettingsPanel({
             />
           </span>
         </button>
+      </section>
+
+      <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
+        <h3 className="text-sm font-semibold text-ink">Animations</h3>
+        <p className="mt-1 text-xs leading-5 text-muted">
+          Weather scene, AQI number, and card motion. Auto follows your
+          device&apos;s Reduce Motion setting.
+        </p>
+        <div className="mt-3 grid grid-cols-3 gap-1.5">
+          {(["auto", "on", "off"] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setMotionPreference(option)}
+              className={cn(
+                "rounded-xl px-2 py-2 text-[11px] font-medium ring-1 transition",
+                motion === option
+                  ? "bg-ink text-white ring-ink"
+                  : "bg-paper text-ink ring-line hover:bg-white",
+              )}
+            >
+              {option === "auto" ? "Auto" : option === "on" ? "On" : "Off"}
+            </button>
+          ))}
+        </div>
+        {motion === "auto" && systemReduced ? (
+          <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-5 text-amber-800 ring-1 ring-amber-200">
+            Your laptop reports Reduce Motion, so animations are paused. Choose
+            On to see them anyway.
+          </p>
+        ) : null}
       </section>
 
       <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
