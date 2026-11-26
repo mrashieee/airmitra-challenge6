@@ -21,7 +21,7 @@ import {
   type Profile,
 } from "@/lib/profile";
 import { Onboarding } from "./onboarding";
-import { stateCodeFor, type GeoResult } from "@/lib/geocode";
+import type { CitySuggestion } from "@/lib/search-types";
 import type { Tab } from "@/lib/nav";
 import { cn } from "@/lib/ui";
 import { HomeView } from "./home-view";
@@ -84,7 +84,7 @@ function LocationSelect({
   compact?: boolean;
 }) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<GeoResult[]>([]);
+  const [results, setResults] = useState<CitySuggestion[]>([]);
   const [searching, setSearching] = useState(false);
   const stateName = findState(code).name;
 
@@ -96,11 +96,11 @@ function LocationSelect({
     const timer = setTimeout(() => {
       setSearching(true);
       fetch(
-        `/api/geocode?q=${encodeURIComponent(q)}&state=${encodeURIComponent(code)}`,
+        `/api/search?q=${encodeURIComponent(q)}&state=${encodeURIComponent(code)}`,
         { signal: controller.signal },
       )
         .then((res) => res.json())
-        .then((data: { results?: GeoResult[] }) =>
+        .then((data: { results?: CitySuggestion[] }) =>
           setResults(data.results ?? []),
         )
         .catch((reason: unknown) => {
@@ -125,9 +125,9 @@ function LocationSelect({
     }
   }
 
-  function choose(result: GeoResult) {
+  function choose(result: CitySuggestion) {
     onSelectLocation({
-      stateCode: stateCodeFor(result),
+      stateCode: code,
       city: result.name,
       lat: result.latitude,
       lon: result.longitude,
@@ -189,14 +189,20 @@ function LocationSelect({
               <button
                 key={result.id}
                 type="button"
-                aria-label={`${result.name}${result.admin1 ? `, ${result.admin1}` : ""}`}
+                aria-label={`${result.name}${result.monitor ? ", ground monitor available" : ", model estimate only"}`}
                 onClick={() => choose(result)}
-                className="flex w-full items-center justify-between px-3 py-2 text-left text-xs text-ink transition hover:bg-paper"
+                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs text-ink transition hover:bg-paper"
               >
-                <span>{result.name}</span>
-                <span className="text-[10px] text-muted">
-                  {result.admin1 ?? "India"}
-                  {result.feature_code === "approximate" ? " · approx." : ""}
+                <span className="truncate">{result.name}</span>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium ring-1",
+                    result.monitor
+                      ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                      : "bg-amber-50 text-amber-700 ring-amber-200",
+                  )}
+                >
+                  {result.monitor ? "monitor" : "model"}
                 </span>
               </button>
             ))}

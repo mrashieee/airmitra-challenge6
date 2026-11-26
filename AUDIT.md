@@ -9,7 +9,7 @@ _22 Nov 2026. Method: code inspection, live endpoint tests, Chrome installabilit
 | # | Area | Status | Score |
 |---|---|---|---|
 | 1 | Live AQI data (CPCB/OpenAQ/CAMS) | Working | **9/10** |
-| 2 | Location + city search | Working | **8/10** |
+| 2 | Location + city search | Working | **9/10** |
 | 3 | Onboarding + profile | Working | **7/10** |
 | 4 | Home guidance | Working | **7/10** |
 | 5 | Weather visuals | Working | **9/10** |

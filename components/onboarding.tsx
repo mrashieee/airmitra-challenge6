@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { distanceKm } from "@/lib/air/geo";
-import { stateCodeFor, type GeoResult } from "@/lib/geocode";
+import type { CitySuggestion } from "@/lib/search-types";
+import { cn } from "@/lib/ui";
 import { SearchIcon } from "./icons";
 import {
   ALL_STATES,
@@ -140,8 +141,30 @@ export function Onboarding({ initial, onComplete }: Props) {
   const [geoError, setGeoError] = useState("");
   const [geoAccuracy, setGeoAccuracy] = useState<number | null>(null);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<GeoResult[]>([]);
+  const [results, setResults] = useState<CitySuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
   const [searching, setSearching] = useState(false);
+  const [fromGeocode, setFromGeocode] = useState(false);
+
+  // Popular, station-backed places for the selected state (no typing needed).
+  useEffect(() => {
+    if (step !== 0 || query.trim().length >= 2) return;
+
+    const controller = new AbortController();
+    fetch(
+      `/api/search?state=${encodeURIComponent(draft.location.stateCode)}&limit=6`,
+      { signal: controller.signal },
+    )
+      .then((res) => res.json())
+      .then((data: { results?: CitySuggestion[] }) => {
+        if (!controller.signal.aborted) setSuggestions(data.results ?? []);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setSuggestions([]);
+      });
+
+    return () => controller.abort();
+  }, [step, query, draft.location.stateCode]);
 
   useEffect(() => {
     const q = query.trim();
@@ -151,22 +174,24 @@ export function Onboarding({ initial, onComplete }: Props) {
     const timer = setTimeout(() => {
       setSearching(true);
       fetch(
-        `/api/geocode?q=${encodeURIComponent(q)}&state=${encodeURIComponent(
+        `/api/search?q=${encodeURIComponent(q)}&state=${encodeURIComponent(
           draft.location.stateCode,
         )}`,
         { signal: controller.signal },
       )
         .then((res) => res.json())
-        .then((data: { results?: GeoResult[] }) =>
-          setResults(data.results ?? []),
-        )
+        .then((data: { results?: CitySuggestion[]; fallback?: string | null }) => {
+          setResults(data.results ?? []);
+          setFromGeocode(data.fallback === "geocode");
+        })
         .catch((reason: unknown) => {
           if (!(reason instanceof DOMException && reason.name === "AbortError")) {
             setResults([]);
+            setFromGeocode(false);
           }
         })
         .finally(() => setSearching(false));
-    }, 300);
+    }, 250);
 
     return () => {
       clearTimeout(timer);
@@ -178,15 +203,16 @@ export function Onboarding({ initial, onComplete }: Props) {
     setQuery(value);
     if (value.trim().length < 2) {
       setResults([]);
+      setFromGeocode(false);
       setSearching(false);
     }
   }
 
-  function setSearchedLocation(result: GeoResult) {
+  function setSearchedLocation(result: CitySuggestion) {
     setDraft((d) => ({
       ...d,
       location: {
-        stateCode: stateCodeFor(result),
+        stateCode: d.location.stateCode,
         city: result.name,
         lat: result.latitude,
         lon: result.longitude,
@@ -494,7 +520,8 @@ export function Onboarding({ initial, onComplete }: Props) {
                   />
                 </div>
                 <p className="mt-1 text-[10px] text-muted">
-                  Results are limited to {state.name}.
+                  Searches {state.name} only. Places with a ground monitor are
+                  listed first.
                 </p>
                 {searching ? (
                   <p className="mt-2 text-[11px] text-muted">Searching…</p>
@@ -504,30 +531,65 @@ export function Onboarding({ initial, onComplete }: Props) {
                     No place found in {state.name}. Try another spelling or state.
                   </p>
                 ) : null}
+                {fromGeocode && results.length ? (
+                  <p className="mt-2 text-[10px] leading-4 text-muted">
+                    No monitored city matched. These results use the CAMS model,
+                    not a ground station.
+                  </p>
+                ) : null}
                 {results.length ? (
                   <div className="mt-2 overflow-hidden rounded-xl border border-line">
                     {results.slice(0, 6).map((result) => (
                       <button
                         key={result.id}
                         type="button"
-                        aria-label={`${result.name}${result.admin1 ? `, ${result.admin1}` : ""}`}
+                        aria-label={`${result.name}${result.monitor ? ", ground monitor available" : ", model estimate only"}`}
                         onClick={() => setSearchedLocation(result)}
-                        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-ink transition hover:bg-paper"
+                        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm text-ink transition hover:bg-paper"
                       >
-                        <span>{result.name}</span>
-                        <span className="text-[11px] text-muted">
-                          {result.admin1 ?? "India"}
-                          {result.feature_code === "approximate" ? " · approx." : ""}
+                        <span className="truncate">{result.name}</span>
+                        <span
+                          className={cn(
+                            "shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium ring-1",
+                            result.monitor
+                              ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                              : "bg-amber-50 text-amber-700 ring-amber-200",
+                          )}
+                        >
+                          {result.monitor ? "ground monitor" : "model only"}
                         </span>
                       </button>
                     ))}
+                  </div>
+                ) : null}
+                {!searching && !query.trim() && suggestions.length ? (
+                  <div className="mt-2">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-muted">
+                      Popular in {state.name}
+                    </p>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {suggestions.map((suggestion) => (
+                        <button
+                          key={suggestion.id}
+                          type="button"
+                          onClick={() => setSearchedLocation(suggestion)}
+                          className="flex items-center gap-1 rounded-full bg-paper px-2.5 py-1 text-[11px] font-medium text-ink ring-1 ring-line transition hover:bg-white"
+                        >
+                          {suggestion.name}
+                          {suggestion.monitor ? (
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                          ) : null}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 ) : null}
               </div>
 
               <div className="rounded-xl bg-paper p-3 text-xs leading-5 text-muted ring-1 ring-line">
                 Watching <span className="font-medium text-ink">{draft.location.city}</span>,{" "}
-                {state.name}. Nearest CPCB station will be used first.
+                {state.name}. A ground monitor is used when one is nearby;
+                otherwise CAMS model data, labelled clearly.
                 <p className="mt-1 text-[10px]">
                   Detected from your device. Not right? Search for your town
                   above.
