@@ -1,4 +1,4 @@
-import { BANDS, bandFor } from "@/lib/air/naqi";
+import { BANDS, bandFor, comfortWindows } from "@/lib/air/naqi";
 import type { Band, BandKey } from "@/lib/air/naqi";
 import type { AirReading, NearbyStation } from "@/lib/air/types";
 import type { FamilyMember, Profile } from "./profile";
@@ -32,6 +32,7 @@ export type Reading = {
   nearby?: NearbyStation[];
   stations?: NearbyStation[];
   aqiRange?: { min: number; max: number };
+  windows: { best: string; avoid: string };
   demo: boolean;
   guidelines: string[];
   family: { name: string; meta: string; advice: string; tone: "warn" | "calm" }[];
@@ -81,8 +82,11 @@ function adviceForMember(
   const hasResp = member.conditions.some((c) =>
     ["Asthma", "COPD", "Heart"].includes(c),
   );
-  const isSenior = member.ageBand === "60+";
-  const isChild = member.ageBand === "0-5" || member.ageBand === "6-12";
+  const ageStart = Number.parseInt(member.ageBand, 10);
+  const isSenior = Number.isFinite(ageStart) ? ageStart >= 60 : false;
+  const isChild = Number.isFinite(ageStart)
+    ? ageStart <= 12
+    : member.ageBand === "0-5";
   const pregnant = member.conditions.includes("Pregnant");
   const severe = member.severity === "Severe";
   const moderateCondition = member.severity === "Moderate";
@@ -102,7 +106,7 @@ function adviceForMember(
   if (hasResp) {
     return high
       ? {
-          advice: "No outdoor exercise before 11am. N95 + inhaler if they go.",
+          advice: "No outdoor exercise before 11 AM. N95 + inhaler if they go.",
           tone: "warn",
         }
       : {
@@ -120,7 +124,7 @@ function adviceForMember(
   }
   if (isSenior) {
     return high
-      ? { advice: "Shift the morning walk to after 11am.", tone: "warn" }
+      ? { advice: "Shift the morning walk to 11 AM–4 PM.", tone: "warn" }
       : { advice: "Morning walk is fine; keep it short.", tone: "calm" };
   }
   if (pregnant) {
@@ -149,8 +153,8 @@ function familyFor(aqi: number, key: BandKey, profile?: Profile) {
           aqi > 300
             ? "Stay in. If he must go out: N95 + inhaler, under 15 min."
             : aqi > 150
-              ? "No walk before 11am. N95 + inhaler if he goes."
-              : "Walk is fine after 10am. Keep inhaler handy.",
+              ? "No walk before 11 AM. N95 + inhaler if he goes."
+              : "Walk is fine 10 AM–4 PM. Keep inhaler handy.",
         tone: aqi > 150 ? ("warn" as const) : ("calm" as const),
       },
       {
@@ -195,12 +199,12 @@ function doNowFor(state: StateEntry, profile?: Profile) {
     },
     {
       title: "Skip agarbatti or coil today",
-      body: "If you must, light it after 8pm with a window cracked open.",
+      body: "If you must, light it 8–10 PM with a window cracked open.",
       impact: "Avoids a 3-5x indoor spike",
     },
     {
       title: "Keep the road-side windows shut",
-      body: "Ventilate the courtyard side when wind picks up after 11am.",
+      body: "Ventilate the courtyard side 11 AM–4 PM when wind picks up.",
       impact: "Less traffic dust indoors",
     },
   ];
@@ -286,10 +290,10 @@ function mustGoOutFor(profile?: Profile) {
   }
 
   return profile.family.slice(0, 3).map((member) => {
+    const ageStart = Number.parseInt(member.ageBand, 10);
     const sensitive =
       member.conditions.length > 0 ||
-      member.ageBand === "0-5" ||
-      member.ageBand === "60+";
+      (Number.isFinite(ageStart) && (ageStart <= 12 || ageStart >= 60));
     const severe = member.severity === "Severe";
     return {
       name: member.relation,
@@ -358,6 +362,7 @@ export function readingFromAir(
     nearby: air.nearby,
     stations: air.stations,
     aqiRange: air.aqiRange,
+    windows: comfortWindows(band.key),
     demo,
     guidelines: guidelinesFor(air.band),
     family: familyFor(air.aqi, air.band, profile),
@@ -370,7 +375,7 @@ export function readingFromAir(
           note: "Estimate for a 20-minute walk. Fit matters more than the label.",
         }
       : {
-          title: "Open windows this hour",
+          title: `Open windows ${comfortWindows(band.key).best}`,
           value: "~30% lower indoor CO₂",
           note: "When outdoor air is cleaner than indoor, a short cross-breeze helps.",
         },

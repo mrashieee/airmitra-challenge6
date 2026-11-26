@@ -29,7 +29,7 @@ export type RoutineProfile = {
   wake: string;
   sleep: string;
   work: string;
-  commute: string;
+  commute: string[];
   schoolRun: boolean;
   exercise: string;
   cookingTimes: string[];
@@ -69,7 +69,7 @@ export function createDefaultProfile(): Profile {
       {
         id: "father",
         relation: "Father",
-        ageBand: "60+",
+        ageBand: "60-74",
         conditions: ["Asthma"],
         severity: "Moderate",
       },
@@ -99,7 +99,7 @@ export function createDefaultProfile(): Profile {
       wake: "6:00 AM",
       sleep: "10:00 PM",
       work: "Office",
-      commute: "Metro",
+      commute: ["Metro"],
       schoolRun: true,
       exercise: "Morning walk",
       cookingTimes: ["Morning", "Evening"],
@@ -129,6 +129,26 @@ export function parseProfile(raw: string | null): Profile | null {
     if (typeof home.cleaningFrequency !== "string") {
       home.cleaningFrequency = "2-3x/week";
     }
+
+    const routine = parsed.routine as unknown as Record<string, unknown>;
+    if (typeof routine.commute === "string") {
+      const value = routine.commute;
+      routine.commute =
+        value === "Mixed" ? ["Bus", "Metro"] : value === "None" ? [] : [value];
+    }
+    if (!Array.isArray(routine.commute)) routine.commute = ["Metro"];
+
+    // Older age bands -> the wider, more granular set.
+    const legacyAge: Record<string, string> = {
+      "0-5": "2-5",
+      "19-59": "30-44",
+      "60+": "60-74",
+    };
+    parsed.family = parsed.family.map((member) => ({
+      ...member,
+      ageBand: legacyAge[member.ageBand] ?? member.ageBand,
+      conditions: Array.isArray(member.conditions) ? member.conditions : [],
+    }));
 
     return parsed;
   } catch {

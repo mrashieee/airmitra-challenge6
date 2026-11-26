@@ -13,6 +13,7 @@ Rules:
 - Write for a family, not a generic user.
 - If someone is severe, be stricter.
 - Prefer actions the household can actually do today.
+- Use explicit clock windows from CONTEXT (e.g. "6–9 AM", "11 AM–4 PM"). Never say "this hour" or leave time vague.
 
 Return JSON only with this exact shape:
 {"directive":"...","why":"...","mustGoOut":"...","doNow":["...","...","..."]}
@@ -29,6 +30,7 @@ Rules:
 - Answer in plain text, max 70 words.
 - Do NOT return JSON. Do not use markdown.
 - Be specific to the person, room, or time they asked about.
+- Use explicit clock windows (e.g. "6–9 AM"), never "this hour".
 - If they ask about going out, include what to do if they must.`;
 
 function models(): string[] {

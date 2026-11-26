@@ -363,7 +363,7 @@ export function HomeView({
         </div>
         <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted">
           <AlertIcon className="h-3.5 w-3.5" />
-          Early morning is worst. Prefer 11am–4pm.
+          Early morning is worst. Prefer 11 AM–4 PM.
         </p>
       </SectionCard>
 

@@ -58,7 +58,7 @@ export function templateAnswer(
   }
 
   if (q.includes("agarbatti") || q.includes("incense") || q.includes("coil")) {
-    return "Skip incense or mosquito coil today. If you must, light it after 8pm with a window open. Indoors, these can push PM2.5 up 3-5x for an hour.";
+    return "Skip incense or mosquito coil today. If you must, light it 8–10 PM with a window open. Indoors, these can push PM2.5 up 3–5x for 1–2 hours.";
   }
 
   if (q.includes("window") || q.includes("open")) {

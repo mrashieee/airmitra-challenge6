@@ -1,4 +1,5 @@
 import type { AirReading } from "@/lib/air/types";
+import { comfortWindows } from "@/lib/air/naqi";
 import type { Profile } from "@/lib/profile";
 import type { StateEntry } from "@/lib/states";
 
@@ -31,6 +32,7 @@ export type AiContext = {
   home: Profile["home"];
   routine: Profile["routine"];
   time: { hour: number; part: string; date: string };
+  windows: { best: string; avoid: string };
 };
 
 export function buildContext(
@@ -82,6 +84,7 @@ export function buildContext(
     })),
     home: profile.home,
     routine: profile.routine,
+    windows: comfortWindows(air.band),
     time: {
       hour,
       part,

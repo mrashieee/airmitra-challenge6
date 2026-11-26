@@ -24,6 +24,23 @@ import {
   type RoutineProfile,
   type Severity,
 } from "@/lib/profile";
+import {
+  AGE_BANDS,
+  CLEANING_FREQUENCIES,
+  CLEANING_METHODS,
+  CONDITIONS,
+  COOKING_FUELS,
+  COOLING,
+  COMMUTES,
+  EXERCISE,
+  HOME_TYPES,
+  INDOOR_SMOKE,
+  LANGUAGES,
+  PURIFIERS,
+  RELATIONS,
+  WINDOW_STATES,
+  WORK,
+} from "@/lib/profile-options";
 
 type Props = {
   initial?: Profile | null;
@@ -31,33 +48,7 @@ type Props = {
 };
 
 const STEPS = ["Location", "Family", "Home", "Routine", "Health", "Finish"];
-const AGES = ["0-5", "6-12", "13-18", "19-59", "60+"];
-const CONDITIONS = ["Asthma", "COPD", "Heart", "Pregnant", "Allergies"];
-const RELATIONS = [
-  "You",
-  "Father",
-  "Mother",
-  "Partner",
-  "Son",
-  "Daughter",
-  "Grandparent",
-  "Other",
-];
-const LANGUAGES = [
-  "English",
-  "Hindi",
-  "Bengali",
-  "Marathi",
-  "Telugu",
-  "Tamil",
-  "Gujarati",
-  "Urdu",
-  "Kannada",
-  "Odia",
-  "Malayalam",
-  "Punjabi",
-  "Assamese",
-];
+
 
 function uid() {
   return Math.random().toString(36).slice(2, 9);
@@ -389,6 +380,21 @@ export function Onboarding({ initial, onComplete }: Props) {
     });
   }
 
+  function toggleCommute(value: string) {
+    setDraft((d) => {
+      const has = d.routine.commute.includes(value);
+      return {
+        ...d,
+        routine: {
+          ...d.routine,
+          commute: has
+            ? d.routine.commute.filter((v) => v !== value)
+            : [...d.routine.commute, value],
+        },
+      };
+    });
+  }
+
   function toggleCleaning(value: string) {
     setDraft((d) => {
       const has = d.home.cleaning.includes(value);
@@ -659,7 +665,7 @@ export function Onboarding({ initial, onComplete }: Props) {
                         ariaLabel="Age band"
                         value={member.ageBand}
                         onChange={(v) => updateMember(member.id, { ageBand: v })}
-                        options={AGES.map((a) => ({ value: a, label: a }))}
+                        options={AGE_BANDS.map((a) => ({ value: a, label: a }))}
                       />
                     </div>
                     <div className="mt-3">
@@ -711,7 +717,7 @@ export function Onboarding({ initial, onComplete }: Props) {
                         {
                           id: uid(),
                           relation: "Other",
-                          ageBand: "19-59",
+                          ageBand: "19-29",
                           conditions: [],
                           severity: "None",
                         },
@@ -740,7 +746,7 @@ export function Onboarding({ initial, onComplete }: Props) {
               <div>
                 <Label>Home type</Label>
                 <div className="flex flex-wrap gap-2">
-                  {["Apartment", "Independent", "Ground floor", "Top floor", "Hostel/PG"].map(
+                  {HOME_TYPES.map(
                     (v) => (
                       <Chip
                         key={v}
@@ -757,7 +763,7 @@ export function Onboarding({ initial, onComplete }: Props) {
               <div>
                 <Label>Cooking</Label>
                 <div className="flex flex-wrap gap-2">
-                  {["LPG", "Electric", "Wood/coal", "Community kitchen", "None"].map((v) => (
+                  {COOKING_FUELS.map((v) => (
                     <Chip
                       key={v}
                       active={
@@ -775,7 +781,7 @@ export function Onboarding({ initial, onComplete }: Props) {
               <div>
                 <Label>Windows</Label>
                 <div className="flex flex-wrap gap-2">
-                  {["Mostly closed", "Mostly open", "Mixed"].map((v) => (
+                  {WINDOW_STATES.map((v) => (
                     <Chip
                       key={v}
                       active={draft.home.windows === v}
@@ -790,7 +796,7 @@ export function Onboarding({ initial, onComplete }: Props) {
               <div>
                 <Label>Cooling</Label>
                 <div className="flex flex-wrap gap-2">
-                  {["AC", "Cooler", "Fans only", "None"].map((v) => (
+                  {COOLING.map((v) => (
                     <Chip
                       key={v}
                       active={
@@ -808,7 +814,7 @@ export function Onboarding({ initial, onComplete }: Props) {
               <div>
                 <Label>Air purifier</Label>
                 <div className="flex flex-wrap gap-2">
-                  {["None", "1", "2+", "Not sure"].map((v) => (
+                  {PURIFIERS.map((v) => (
                     <Chip
                       key={v}
                       active={draft.home.purifiers === v}
@@ -823,7 +829,7 @@ export function Onboarding({ initial, onComplete }: Props) {
               <div>
                 <Label>Indoor smoke</Label>
                 <div className="flex flex-wrap gap-2">
-                  {["No smoking", "Smoking indoors", "Agarbatti", "Karpooram/havan", "Mosquito coil"].map(
+                  {INDOOR_SMOKE.map(
                     (v) => (
                       <Chip
                         key={v}
@@ -840,7 +846,7 @@ export function Onboarding({ initial, onComplete }: Props) {
               <div>
                 <Label>Cleaning methods</Label>
                 <div className="flex flex-wrap gap-2">
-                  {["Dry sweeping", "Wet mopping", "Vacuum"].map((v) => (
+                  {CLEANING_METHODS.map((v) => (
                     <Chip
                       key={v}
                       active={draft.home.cleaning.includes(v)}
@@ -853,7 +859,7 @@ export function Onboarding({ initial, onComplete }: Props) {
                 <div className="mt-3">
                   <Label>How often?</Label>
                   <div className="flex flex-wrap gap-2">
-                    {["Daily", "2-3x/week", "Weekly", "Rarely"].map((v) => (
+                    {CLEANING_FREQUENCIES.map((v) => (
                       <Chip
                         key={v}
                         active={draft.home.cleaningFrequency === v}
@@ -931,7 +937,7 @@ export function Onboarding({ initial, onComplete }: Props) {
               <div>
                 <Label>Work</Label>
                 <div className="flex flex-wrap gap-2">
-                  {["Office", "WFH", "Outdoor job", "Student", "Retired"].map((v) => (
+                  {WORK.map((v) => (
                     <Chip
                       key={v}
                       active={draft.routine.work === v}
@@ -946,11 +952,11 @@ export function Onboarding({ initial, onComplete }: Props) {
               <div>
                 <Label>Commute</Label>
                 <div className="flex flex-wrap gap-2">
-                  {["Walk", "Bus", "Metro", "Car", "Two-wheeler", "Mixed"].map((v) => (
+                  {COMMUTES.map((v) => (
                     <Chip
                       key={v}
-                      active={draft.routine.commute === v}
-                      onClick={() => setRoutine({ commute: v })}
+                      active={draft.routine.commute.includes(v)}
+                      onClick={() => toggleCommute(v)}
                     >
                       {v}
                     </Chip>
@@ -959,7 +965,10 @@ export function Onboarding({ initial, onComplete }: Props) {
               </div>
 
               <div>
-                <Label>School run</Label>
+                <Label>School drop-off / pickup</Label>
+                <p className="mb-2 text-[10px] leading-4 text-muted">
+                  Do you take a child to or from school on most weekdays?
+                </p>
                 <div className="flex flex-wrap gap-2">
                   <Chip
                     active={draft.routine.schoolRun}
@@ -979,17 +988,7 @@ export function Onboarding({ initial, onComplete }: Props) {
               <div>
                 <Label>Outdoor exercise</Label>
                 <div className="flex flex-wrap gap-2">
-                  {[
-                    "Morning walk",
-                    "Evening walk",
-                    "Both",
-                    "Run/jog",
-                    "Cycle",
-                    "Sports",
-                    "Gym indoors",
-                    "Yoga indoors",
-                    "None",
-                  ].map((v) => (
+                  {EXERCISE.map((v) => (
                     <Chip
                       key={v}
                       active={draft.routine.exercise === v}

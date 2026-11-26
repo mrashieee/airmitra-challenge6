@@ -231,3 +231,14 @@ export function usAqiForPollutants(
   if (!candidates.length) return null;
   return candidates.reduce((best, next) => (next.aqi > best.aqi ? next : best));
 }
+
+/** Explicit clock windows people can copy into a status or story. */
+export function comfortWindows(key: BandKey): { best: string; avoid: string } {
+  if (key === "good" || key === "satisfactory") {
+    return { best: "6–9 AM", avoid: "12–4 PM" };
+  }
+  if (key === "moderate") {
+    return { best: "11 AM–4 PM", avoid: "6–9 AM" };
+  }
+  return { best: "11 AM–4 PM", avoid: "6–10 AM and 5–9 PM" };
+}

@@ -5,6 +5,8 @@ import type { Reading } from "@/lib/aqi";
 import type { Profile } from "@/lib/profile";
 import type { Tab } from "@/lib/nav";
 import { BAND_STYLES, cn } from "@/lib/ui";
+import { LANGUAGES } from "@/lib/profile-options";
+import { ProfileEditor } from "./profile-editor";
 import {
   AlertIcon,
   CheckIcon,
@@ -14,21 +16,7 @@ import {
   WindIcon,
 } from "./icons";
 
-const LANGUAGES = [
-  "English",
-  "Hindi",
-  "Bengali",
-  "Marathi",
-  "Telugu",
-  "Tamil",
-  "Gujarati",
-  "Urdu",
-  "Kannada",
-  "Odia",
-  "Malayalam",
-  "Punjabi",
-  "Assamese",
-];
+
 
 /* ------------------------------------------------------------------ */
 /* Ask                                                                 */
@@ -43,16 +31,16 @@ type ChatMessage = {
 function demoAnswer(question: string, reading: Reading): string {
   const q = question.toLowerCase();
   if (q.includes("father") || q.includes("asthma") || q.includes("walk")) {
-    return `Not for your father right now. AQI ${reading.aqi} + asthma = high risk before 11am. If he must go: fitted N95, under 15 min, and carry the inhaler. Indoors, keep him in the room with the purifier.`;
+    return `Not for your father right now. AQI ${reading.aqi} + asthma = high risk before 11 AM. If he must go: fitted N95, under 15 min, and carry the inhaler. Indoors, keep him in the room with the purifier.`;
   }
   if (q.includes("daughter") || q.includes("child") || q.includes("school")) {
     return `For your daughter: keep play indoors today. If she has to go out, a fitted N95 and a short route. AQI ${reading.aqi} is above the safe range for a 6-year-old.`;
   }
   if (q.includes("agarbatti") || q.includes("incense") || q.includes("coil")) {
-    return "Skip agarbatti or mosquito coil today. If you must, light it after 8pm with a window cracked open. Indoors, these can push PM2.5 up 3-5x for an hour.";
+    return "Skip agarbatti or mosquito coil today. If you must, light it 8–10 PM with a window cracked open. Indoors, these can push PM2.5 up 3–5x for 1–2 hours.";
   }
   if (q.includes("window") || q.includes("open")) {
-    return "Keep windows closed while outdoor air is worse than indoor. Ventilate the courtyard side when wind picks up after 11am.";
+    return "Keep windows closed while outdoor air is worse than indoor. Ventilate the courtyard side 11 AM–4 PM when wind picks up.";
   }
   return `At AQI ${reading.aqi} (${reading.band.label}), the short answer: ${reading.guidelines[0]} Ask me about a person, a room, or a time and I'll get specific.`;
 }
@@ -83,7 +71,7 @@ export function AskPanel({
 
   const suggestions = [
     "Can my father walk at 6am?",
-    "Is 4pm safe for my daughter?",
+    "Is 4 PM safe for my daughter?",
     "What about agarbatti today?",
   ];
 
@@ -422,13 +410,27 @@ function legacyCopy(text: string) {
 }
 
 export function CardsPanel({ reading }: { reading: Reading }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"status" | "full" | null>(null);
+
+  const statusText = useMemo(() => {
+    const lines = [
+      `${reading.area} · AQI ${reading.aqi} (${reading.band.label})`,
+      reading.aqi <= 150
+        ? `Best time out: ${reading.windows.best}`
+        : `Best time out: ${reading.windows.best} — mask still advised`,
+      `Avoid outdoors: ${reading.windows.avoid}`,
+      "If you must go: N95, short route",
+      "— AirMitra",
+    ];
+    return lines.join("\n");
+  }, [reading]);
 
   const text = useMemo(
     () =>
       [
         `AirMitra advisory — ${reading.area}, ${reading.state.name}`,
         `AQI ${reading.aqi} (${reading.band.label}), ${reading.dominant} dominant.`,
+        `Best time out: ${reading.windows.best}. Avoid: ${reading.windows.avoid}.`,
         reading.guidelines[0],
         reading.guidelines[1],
         `Do now: ${reading.doNow.map((d) => d.title).join("; ")}.`,
@@ -437,22 +439,22 @@ export function CardsPanel({ reading }: { reading: Reading }) {
     [reading],
   );
 
-  async function copy() {
+  async function copyValue(value: string, kind: "status" | "full") {
     try {
       if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(value);
       } else {
-        legacyCopy(text);
+        legacyCopy(value);
       }
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
+      setCopied(kind);
+      window.setTimeout(() => setCopied(null), 2000);
     } catch {
       try {
-        legacyCopy(text);
-        setCopied(true);
-        window.setTimeout(() => setCopied(false), 2000);
+        legacyCopy(value);
+        setCopied(kind);
+        window.setTimeout(() => setCopied(null), 2000);
       } catch {
-        setCopied(false);
+        setCopied(null);
       }
     }
   }
@@ -460,12 +462,12 @@ export function CardsPanel({ reading }: { reading: Reading }) {
   async function share() {
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
-        await navigator.share({ title: "AirMitra advisory", text });
+        await navigator.share({ title: "AirMitra status", text: statusText });
       } catch {
         /* cancelled */
       }
     } else {
-      await copy();
+      await copyValue(statusText, "status");
     }
   }
 
@@ -483,20 +485,37 @@ export function CardsPanel({ reading }: { reading: Reading }) {
 
       <ShareCardPreview reading={reading} />
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
+        <div className="text-sm font-semibold text-ink">Status / story text</div>
+        <p className="mt-1 text-xs leading-5 text-muted">
+          Short enough for WhatsApp status or an Instagram story, with the hours
+          spelled out.
+        </p>
+        <pre className="mt-3 whitespace-pre-wrap rounded-xl bg-paper p-3 text-[11px] leading-5 text-ink ring-1 ring-line">
+          {statusText}
+        </pre>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => copyValue(statusText, "status")}
+            className="rounded-xl bg-ink px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.99]"
+          >
+            {copied === "status" ? "Copied" : "Copy status"}
+          </button>
+          <button
+            type="button"
+            onClick={share}
+            className="rounded-xl bg-card px-4 py-3 text-sm font-medium text-ink ring-1 ring-line transition hover:bg-paper active:scale-[0.99]"
+          >
+            Share
+          </button>
+        </div>
         <button
           type="button"
-          onClick={copy}
-          className="rounded-xl bg-ink px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.99]"
+          onClick={() => copyValue(text, "full")}
+          className="mt-2 text-[11px] font-medium text-muted hover:text-ink"
         >
-          {copied ? "Copied" : "Copy text"}
-        </button>
-        <button
-          type="button"
-          onClick={share}
-          className="rounded-xl bg-card px-4 py-3 text-sm font-medium text-ink ring-1 ring-line transition hover:bg-paper active:scale-[0.99]"
-        >
-          Share
+          {copied === "full" ? "Copied full advisory" : "Copy full advisory"}
         </button>
       </div>
 
@@ -519,12 +538,16 @@ export function CardsPanel({ reading }: { reading: Reading }) {
 /* ------------------------------------------------------------------ */
 
 export function SettingsPanel({
+  profile,
+  onSaveProfile,
   language,
   setLanguage,
   largeText,
   setLargeText,
   onEdit,
 }: {
+  profile: Profile;
+  onSaveProfile: (next: Profile) => void;
   language: string;
   setLanguage: (v: string) => void;
   largeText: boolean;
@@ -533,19 +556,14 @@ export function SettingsPanel({
 }) {
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h3 className="text-sm font-semibold text-ink">Your setup</h3>
-        <p className="mt-1 text-xs text-muted">
-          Change your location, family, home, or routine.
-        </p>
-        <button
-          type="button"
-          onClick={onEdit}
-          className="mt-3 w-full rounded-xl bg-ink px-3 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
-        >
-          Edit setup
-        </button>
-      </section>
+      <ProfileEditor profile={profile} onSave={onSaveProfile} />
+      <button
+        type="button"
+        onClick={onEdit}
+        className="w-full rounded-xl bg-paper px-3 py-2 text-[11px] font-medium text-muted ring-1 ring-line transition hover:text-ink"
+      >
+        Prefer the step-by-step setup? Open guided setup
+      </button>
       <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
         <h3 className="text-sm font-semibold text-ink">Preferred language</h3>
         <p className="mt-1 text-xs leading-5 text-muted">
