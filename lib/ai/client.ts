@@ -11,6 +11,7 @@ Rules:
 - Always include a practical "if you must go out" fallback.
 - Never moralize about crackers, incense, or farming.
 - Write for a family, not a generic user.
+- If the family list is empty, give general household advice and suggest adding family members.
 - If someone is severe, be stricter.
 - Prefer actions the household can actually do today.
 - Use explicit clock windows from CONTEXT (e.g. "6–9 AM", "11 AM–4 PM"). Never say "this hour" or leave time vague.

@@ -146,33 +146,7 @@ function adviceForMember(
 }
 
 function familyFor(aqi: number, key: BandKey, profile?: Profile) {
-  if (!profile?.family.length) {
-    return [
-      {
-        name: "Father",
-        meta: "60+ · asthma",
-        advice:
-          aqi > 300
-            ? "Stay in. If he must go out: N95 + inhaler, under 15 min."
-            : aqi > 150
-              ? "No walk before 11 AM. N95 + inhaler if he goes."
-              : "Walk is fine 10 AM–4 PM. Keep inhaler handy.",
-        tone: aqi > 150 ? ("warn" as const) : ("calm" as const),
-      },
-      {
-        name: "Daughter",
-        meta: "6-12 · school",
-        advice:
-          key === "good" || key === "satisfactory"
-            ? "Outdoor play is fine today."
-            : "Indoor play today. N95 on the school run.",
-        tone:
-          key === "good" || key === "satisfactory"
-            ? ("calm" as const)
-            : ("warn" as const),
-      },
-    ];
-  }
+  if (!profile?.family.length) return [];
 
   return profile.family.map((member) => {
     const result = adviceForMember(member, aqi, key);
@@ -281,12 +255,9 @@ function mustGoOutFor(profile?: Profile) {
   if (!profile?.family.length) {
     return [
       {
-        name: "Father",
-        advice: "Fitted N95 + inhaler, under 15 min, avoid main roads.",
-      },
-      {
-        name: "Daughter",
-        advice: "Avoid if possible; if not, N95 and a short route.",
+        name: "Anyone going out",
+        advice:
+          "Fitted N95, short trips, avoid main roads. Add your family for tailored advice.",
       },
     ];
   }

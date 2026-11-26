@@ -318,6 +318,22 @@ export function Onboarding({ initial, onComplete }: Props) {
     }));
   }
 
+  function addMember(relation: string) {
+    setDraft((d) => ({
+      ...d,
+      family: [
+        ...d.family,
+        {
+          id: uid(),
+          relation,
+          ageBand: "30-44",
+          conditions: [],
+          severity: "None",
+        },
+      ],
+    }));
+  }
+
   function toggleCondition(id: string, condition: string) {
     setDraft((d) => ({
       ...d,
@@ -666,6 +682,33 @@ export function Onboarding({ initial, onComplete }: Props) {
               </div>
 
               <div className="space-y-3">
+                {draft.family.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-line p-4 text-center">
+                    <p className="text-sm font-medium text-ink">
+                      Add the people you care for
+                    </p>
+                    <p className="mt-1 text-[11px] leading-5 text-muted">
+                      Start with yourself, then add anyone else. You can skip
+                      this and add them later in Settings.
+                    </p>
+                    <div className="mt-3 flex flex-wrap justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => addMember("You")}
+                        className="rounded-full bg-ink px-3 py-1.5 text-[11px] font-medium text-white"
+                      >
+                        Add yourself
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => addMember("Other")}
+                        className="rounded-full bg-card px-3 py-1.5 text-[11px] font-medium text-ink ring-1 ring-line"
+                      >
+                        Add a family member
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
                 {draft.family.map((member) => (
                   <div key={member.id} className="rounded-2xl border border-line p-3">
                     <div className="flex items-center gap-2">
@@ -723,21 +766,7 @@ export function Onboarding({ initial, onComplete }: Props) {
               {draft.family.length < 4 ? (
                 <button
                   type="button"
-                  onClick={() =>
-                    setDraft((d) => ({
-                      ...d,
-                      family: [
-                        ...d.family,
-                        {
-                          id: uid(),
-                          relation: "Other",
-                          ageBand: "19-29",
-                          conditions: [],
-                          severity: "None",
-                        },
-                      ],
-                    }))
-                  }
+                  onClick={() => addMember("Other")}
                   className="w-full rounded-xl border border-dashed border-line px-3 py-2.5 text-xs font-medium text-muted hover:bg-paper"
                 >
                   + Add another person

@@ -327,10 +327,29 @@ export function HomeView({
       <SectionCard
         icon={<HomeIcon className="h-4 w-4" />}
         title="For your family"
-        subtitle={`${reading.family.length} ${reading.family.length === 1 ? "person" : "people"} you care for`}
+        subtitle={
+          reading.family.length
+            ? `${reading.family.length} ${reading.family.length === 1 ? "person" : "people"} you care for`
+            : "No one added yet"
+        }
         delay={80}
       >
         <div className="space-y-2">
+          {reading.family.length === 0 ? (
+            <div className="rounded-xl bg-paper p-3 ring-1 ring-line">
+              <p className="text-sm leading-6 text-muted">
+                Add yourself or your family to get advice for each person
+                instead of generic guidance.
+              </p>
+              <button
+                type="button"
+                onClick={() => onNavigate("settings")}
+                className="mt-2 rounded-full bg-ink px-3 py-1.5 text-[11px] font-medium text-white"
+              >
+                Add your family
+              </button>
+            </div>
+          ) : null}
           {reading.family.map((person) => (
             <div
               key={person.name}
@@ -380,7 +399,7 @@ export function HomeView({
         </div>
         <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted">
           <AlertIcon className="h-3.5 w-3.5" />
-          Early morning is worst. Prefer 11 AM–4 PM.
+          Best time out: {reading.windows.best}. Avoid {reading.windows.avoid}.
         </p>
       </SectionCard>
 

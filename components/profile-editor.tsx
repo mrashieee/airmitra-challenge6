@@ -278,6 +278,22 @@ export function ProfileEditor({ profile, onSave }: Props) {
     }));
   }
 
+  function addMember(relation: string) {
+    setDraft((current) => ({
+      ...current,
+      family: [
+        ...current.family,
+        {
+          id: uid(),
+          relation,
+          ageBand: "30-44",
+          conditions: [],
+          severity: "None",
+        },
+      ],
+    }));
+  }
+
   function updateMember(id: string, patch: Partial<FamilyMember>) {
     setDraft((current) => ({
       ...current,
@@ -345,6 +361,29 @@ export function ProfileEditor({ profile, onSave }: Props) {
           Family ({draft.family.length})
         </summary>
         <div className="mt-2 space-y-2">
+          {draft.family.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-line p-3 text-center">
+              <p className="text-[11px] leading-5 text-muted">
+                No one added yet. Start with yourself.
+              </p>
+              <div className="mt-2 flex justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => addMember("You")}
+                  className="rounded-full bg-ink px-3 py-1.5 text-[11px] font-medium text-white"
+                >
+                  Add yourself
+                </button>
+                <button
+                  type="button"
+                  onClick={() => addMember("Other")}
+                  className="rounded-full bg-paper px-3 py-1.5 text-[11px] font-medium text-ink ring-1 ring-line"
+                >
+                  Add someone
+                </button>
+              </div>
+            </div>
+          ) : null}
           {draft.family.map((member, index) => (
             <MemberEditor
               key={member.id}
