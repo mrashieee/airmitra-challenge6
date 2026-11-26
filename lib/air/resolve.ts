@@ -39,7 +39,16 @@ export async function resolveAirReading(
 
   if (!options.fresh) {
     const cached = cacheGet<AirReading>(cacheKey);
-    if (cached) return { ...cached, cached: true, stale: false };
+    if (cached) {
+      // Weather changes faster than the station reading. Refresh only the
+      // scene inputs so a cached AQI never freezes yesterday's sky.
+      const weather = await withTimeout(
+        fetchWeather(place),
+        3500,
+        cached.weather,
+      );
+      return { ...cached, weather, cached: true, stale: false };
+    }
   }
 
   // Ground station + weather in parallel. Weather never blocks the reading.
