@@ -589,7 +589,14 @@ export function Onboarding({ initial, onComplete }: Props) {
                         onClick={() => setSearchedLocation(result)}
                         className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm text-ink transition hover:bg-paper"
                       >
-                        <span className="truncate">{result.name}</span>
+                        <span className="min-w-0">
+                          <span className="block truncate">{result.name}</span>
+                          {result.near || result.admin2 ? (
+                            <span className="block truncate text-[9px] text-muted">
+                              near {result.near ?? result.admin2}
+                            </span>
+                          ) : null}
+                        </span>
                         <span
                           className={cn(
                             "shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium ring-1",

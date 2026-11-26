@@ -1,11 +1,14 @@
 import { ALL_STATES } from "./states";
 import { stateCodeFor } from "./geocode";
+import { nearestCityName } from "./city-index";
 import type { CitySuggestion } from "./search-types";
 
 type OpenMeteoResult = {
   id: number;
   name: string;
   admin1?: string;
+  admin2?: string;
+  population?: number;
   country_code: string;
   latitude: number;
   longitude: number;
@@ -78,6 +81,8 @@ async function fromOpenMeteo(query: string): Promise<CitySuggestion[]> {
         id: result.id,
         name: result.name,
         admin1: result.admin1,
+        admin2: result.admin2,
+        population: result.population,
         latitude: result.latitude,
         longitude: result.longitude,
         feature_code: result.feature_code,
@@ -123,6 +128,8 @@ async function fromPhoton(query: string): Promise<CitySuggestion[]> {
             hash(`${name}:${latitude.toFixed(4)}:${longitude.toFixed(4)}`),
           name,
           admin1,
+          admin2:
+            feature.properties.district ?? feature.properties.county ?? undefined,
           latitude,
           longitude,
           feature_code: feature.properties.osm_value,
@@ -166,13 +173,77 @@ export async function geocodeCities(
       id: hash(query.toLowerCase()),
       name: query,
       admin1: others[0].admin1,
+      admin2: others[0].admin2,
       latitude: others[0].latitude,
       longitude: others[0].longitude,
       approximate: true,
     });
   }
 
-  return settlements.slice(0, limit);
+  // Geocoders return the same village under several transliterations
+  // (Nattukkal / Nattukal / Nattakal). Keep the best one and attach a
+  // human "near X" label so two different Nattukals are distinguishable.
+  const normalise = (value: string) =>
+    value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+
+  const ranked = [...settlements].sort(
+    (a, b) => (b.population ?? 0) - (a.population ?? 0),
+  );
+
+  const kept: CitySuggestion[] = [];
+  for (const place of ranked) {
+    const name = normalise(place.name);
+    const duplicate = kept.some((existing) => {
+      const gap = Math.abs(existing.latitude - place.latitude) +
+        Math.abs(existing.longitude - place.longitude);
+      if (gap > 0.08) return false; // ~8 km
+      const other = normalise(existing.name);
+      return (
+        other === name ||
+        other.startsWith(name) ||
+        name.startsWith(other) ||
+        editDistance(other, name, 2) <= 2
+      );
+    });
+    if (duplicate) continue;
+
+    kept.push({
+      ...place,
+      near:
+        place.admin2 ??
+        nearestCityName(place.latitude, place.longitude) ??
+        place.admin1,
+    });
+  }
+
+  return kept
+    .slice(0, Math.min(limit, 4))
+    .map((place) => ({ ...place, name: asciiName(place.name) }));
+}
+
+/** "Nāttukal" -> "Nattukal" so results read cleanly. */
+function asciiName(value: string): string {
+  return value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function editDistance(a: string, b: string, max: number): number {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  const previous = new Array(b.length + 1);
+  const current = new Array(b.length + 1);
+  for (let j = 0; j <= b.length; j += 1) previous[j] = j;
+  for (let i = 1; i <= a.length; i += 1) {
+    current[0] = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      current[j] = Math.min(
+        previous[j] + 1,
+        current[j - 1] + 1,
+        previous[j - 1] + cost,
+      );
+    }
+    for (let j = 0; j <= b.length; j += 1) previous[j] = current[j];
+  }
+  return previous[b.length];
 }
 
 export function knownState(code: string): boolean {

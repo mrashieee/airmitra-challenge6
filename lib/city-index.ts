@@ -1,6 +1,7 @@
 import cityIndex from "@/data/city-index.json";
 import type { CitySuggestion, CrossStateSuggestion } from "./search-types";
 import { findState } from "./states";
+import { distanceKm } from "./air/geo";
 
 type RawEntry = {
   s: string;
@@ -223,4 +224,25 @@ export function topCities(stateCode: string, limit = 6): CitySuggestion[] {
 export function stationCount(stateCode: string): number {
   const state = stateCode.toUpperCase();
   return entries.filter((entry) => entry.s === state && entry.m).length;
+}
+
+/** Nearest sizeable city, used to disambiguate common village names. */
+export function nearestCityName(
+  lat: number,
+  lon: number,
+  maxKm = 80,
+): string | null {
+  let best: RawEntry | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
+
+  for (const entry of entries) {
+    if (entry.p < 50_000) continue;
+    const distance = distanceKm({ lat, lon }, { lat: entry.lat, lon: entry.lon });
+    if (distance < bestDistance) {
+      best = entry;
+      bestDistance = distance;
+    }
+  }
+
+  return best && bestDistance <= maxKm ? best.n : null;
 }
