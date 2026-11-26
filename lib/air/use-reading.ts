@@ -21,7 +21,10 @@ export function useAirReading(
       city,
     });
 
-    fetch(`/api/aqi?${params.toString()}`, { signal: controller.signal })
+    fetch(`/api/aqi?${params.toString()}`, {
+      signal: controller.signal,
+      cache: "no-store",
+    })
       .then(async (response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return (await response.json()) as AirReading;

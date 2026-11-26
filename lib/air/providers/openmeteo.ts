@@ -171,9 +171,14 @@ export async function fetchWeather(target: Target): Promise<AirWeather> {
     const cloudCover =
       typeof current?.cloud_cover === "number" ? current.cloud_cover : 0;
 
-    // Models often flag a trace (0.1 mm) as drizzle at a coarse grid point.
-    // That should not turn the whole scene into raining weather.
-    const meaningfulRain = precipitation >= 0.2 || rainAmount >= 0.2;
+    // Weather models flag light drizzle/showers at a coarse grid point long
+    // before anything reaches the ground where the user is standing. Only
+    // show a rain scene for rain that is actually meaningful.
+    const showers = [80, 81, 82].includes(code ?? -1);
+    const rainThreshold =
+      condition === "drizzle" ? 1 : showers ? 1 : 0.5;
+    const meaningfulRain =
+      precipitation >= rainThreshold || rainAmount >= rainThreshold;
     if (!meaningfulRain && (condition === "drizzle" || condition === "rain")) {
       condition =
         cloudCover >= 75 ? "cloudy" : cloudCover >= 35 ? "partly" : "clear";
