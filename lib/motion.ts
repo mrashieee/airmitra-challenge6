@@ -64,3 +64,27 @@ export function useSystemReducedMotion(): boolean {
     () => false,
   );
 }
+
+export function useDarkReaderDetected(): boolean {
+  return useSyncExternalStore(
+    (callback) => {
+      if (typeof document === "undefined") return () => {};
+      const observer = new MutationObserver(callback);
+      observer.observe(document.documentElement, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+      });
+      return () => observer.disconnect();
+    },
+    () => {
+      if (typeof document === "undefined") return false;
+      return (
+        document.documentElement.hasAttribute("data-darkreader-scheme") ||
+        document.documentElement.hasAttribute("data-darkreader-mode") ||
+        Boolean(document.querySelector("style.darkreader"))
+      );
+    },
+    () => false,
+  );
+}

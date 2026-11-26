@@ -8,6 +8,7 @@ import { BAND_STYLES, cn } from "@/lib/ui";
 import { LANGUAGES } from "@/lib/profile-options";
 import {
   setMotionPreference,
+  useDarkReaderDetected,
   useMotionPreference,
   useSystemReducedMotion,
 } from "@/lib/motion";
@@ -561,6 +562,7 @@ export function SettingsPanel({
 }) {
   const motion = useMotionPreference();
   const systemReduced = useSystemReducedMotion();
+  const darkReader = useDarkReaderDetected();
 
   return (
     <div className="space-y-4">
@@ -639,6 +641,12 @@ export function SettingsPanel({
             </button>
           ))}
         </div>
+        {darkReader ? (
+          <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-5 text-amber-800 ring-1 ring-amber-200">
+            Dark Reader is on. It replaces the weather colours and can hide the
+            background animation. Pause Dark Reader for this site to see it.
+          </p>
+        ) : null}
         {motion === "auto" && systemReduced ? (
           <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-5 text-amber-800 ring-1 ring-amber-200">
             Your laptop reports Reduce Motion, so animations are paused. Choose
