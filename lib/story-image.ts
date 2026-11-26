@@ -259,11 +259,7 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
   );
 
   // Source line above the footer
-  const weatherWord =
-    reading.weather.condition.charAt(0).toUpperCase() +
-    reading.weather.condition.slice(1);
-  const weather = `${weatherWord} ${reading.weather.tempC ?? "—"}°C`;
-  const source = `${weather} · ${
+  const source = `${
     reading.source.type === "ground" ? "Ground monitor" : "CAMS model estimate"
   } · ${reading.source.updated}`;
   ctx.fillStyle = "rgba(204,251,241,0.55)";

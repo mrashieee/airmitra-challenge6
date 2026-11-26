@@ -8,7 +8,7 @@ import { createDefaultProfile } from "@/lib/profile";
 import { BAND_STYLES, cn } from "@/lib/ui";
 import { PinIcon, SparkIcon, WindIcon } from "@/components/icons";
 import { BrandMark } from "@/components/brand-mark";
-import { WeatherScene, weatherLabel } from "@/components/weather-scene";
+import { WeatherScene } from "@/components/weather-scene";
 import { AqiNumber } from "@/components/aqi-number";
 
 type Params = { params: Promise<{ state: string; city: string }> };
@@ -163,11 +163,6 @@ export default async function CityPage({ params }: Params) {
                   (AQI from {reading.basis})
                 </span>
               ) : null}
-            </p>
-            <p className="mt-1 text-[11px] text-muted">
-              {weatherLabel(reading.weather.condition, reading.weather.isDay)} ·{" "}
-              {reading.weather.tempC ?? "—"}°C · wind{" "}
-              {reading.weather.windKph ?? "—"} km/h
             </p>
 
             <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-muted">

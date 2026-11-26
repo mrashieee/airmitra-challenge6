@@ -14,7 +14,7 @@ import {
   SparkIcon,
   WindIcon,
 } from "./icons";
-import { WeatherScene, weatherLabel } from "./weather-scene";
+import { WeatherScene } from "./weather-scene";
 import { AqiNumber } from "./aqi-number";
 
 type Props = {
@@ -139,22 +139,9 @@ export function HomeView({
                 <span className="ml-1 text-[10px] text-muted">(AQI from {reading.basis})</span>
               ) : null}
             </p>
-            <p className="mt-1 text-[11px] text-muted sm:hidden">
-              {weatherLabel(reading.weather.condition, reading.weather.isDay)} ·{" "}
-              {reading.weather.tempC ?? "—"}°C · wind {reading.weather.windKph ?? "—"} km/h
-            </p>
           </div>
 
-          <div className="hidden shrink-0 text-right text-[11px] leading-5 text-muted sm:block">
-            <div className="text-[10px] font-medium uppercase tracking-wide text-muted">
-              {weatherLabel(reading.weather.condition, reading.weather.isDay)}
-            </div>
-            <div className="text-sm font-semibold text-ink">
-              {reading.weather.tempC ?? "—"}°C
-            </div>
-            <div>wind {reading.weather.windKph ?? "—"} km/h</div>
-            <div>{reading.weather.rain ? "rain" : "no rain"}</div>
-          </div>
+
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-muted">

@@ -3,7 +3,6 @@
 import type { Reading } from "@/lib/aqi";
 import { BAND_STYLES, cn } from "@/lib/ui";
 import { slugify } from "@/lib/slug";
-import { weatherLabel } from "./weather-scene";
 
 export function ShareCardPreview({ reading }: { reading: Reading }) {
   const styles = BAND_STYLES[reading.band.key];
@@ -107,11 +106,6 @@ export function StoryPreview({ reading }: { reading: Reading }) {
                   .value
               } µg/m³`
             : ""}
-        </div>
-        <div className="mt-0.5 text-[8px] text-teal-100/55">
-          {weatherLabel(reading.weather.condition, reading.weather.isDay)} ·{" "}
-          {reading.weather.tempC ?? "—"}°C · wind {reading.weather.windKph ?? "—"}{" "}
-          km/h
         </div>
 
         <div className="mt-4 border-t border-white/15 pt-3">

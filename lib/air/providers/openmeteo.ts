@@ -164,10 +164,20 @@ export async function fetchWeather(target: Target): Promise<AirWeather> {
     const code =
       typeof current?.weather_code === "number" ? current.weather_code : null;
     const isDay = current?.is_day !== 0;
-    const condition = conditionFor(code);
+    let condition = conditionFor(code);
     const precipitation =
       typeof current?.precipitation === "number" ? current.precipitation : 0;
     const rainAmount = typeof current?.rain === "number" ? current.rain : 0;
+    const cloudCover =
+      typeof current?.cloud_cover === "number" ? current.cloud_cover : 0;
+
+    // Models often flag a trace (0.1 mm) as drizzle at a coarse grid point.
+    // That should not turn the whole scene into raining weather.
+    const meaningfulRain = precipitation >= 0.2 || rainAmount >= 0.2;
+    if (!meaningfulRain && (condition === "drizzle" || condition === "rain")) {
+      condition =
+        cloudCover >= 75 ? "cloudy" : cloudCover >= 35 ? "partly" : "clear";
+    }
 
     return {
       tempC:
@@ -179,8 +189,7 @@ export async function fetchWeather(target: Target): Promise<AirWeather> {
           ? Math.round(current.wind_speed_10m)
           : null,
       rain:
-        precipitation > 0 ||
-        rainAmount > 0 ||
+        meaningfulRain ||
         condition === "rain" ||
         condition === "drizzle" ||
         condition === "thunder",
