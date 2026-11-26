@@ -370,7 +370,11 @@ export function readingFromAir(
     doNow: doNowFor(state, profile),
     impact: high
       ? {
-          title: "N95 on the school run",
+          title: (profile?.family ?? []).some(
+            (member) => Number.parseInt(member.ageBand, 10) <= 12,
+          )
+            ? "N95 on the school run"
+            : "N95 for outdoor errands",
           value: "~85% less PM2.5 dose",
           note: "Estimate for a 20-minute walk. Fit matters more than the label.",
         }

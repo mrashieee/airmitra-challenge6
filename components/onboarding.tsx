@@ -965,27 +965,6 @@ export function Onboarding({ initial, onComplete }: Props) {
               </div>
 
               <div>
-                <Label>School drop-off / pickup</Label>
-                <p className="mb-2 text-[10px] leading-4 text-muted">
-                  Do you take a child to or from school on most weekdays?
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Chip
-                    active={draft.routine.schoolRun}
-                    onClick={() => setRoutine({ schoolRun: true })}
-                  >
-                    Yes
-                  </Chip>
-                  <Chip
-                    active={!draft.routine.schoolRun}
-                    onClick={() => setRoutine({ schoolRun: false })}
-                  >
-                    No
-                  </Chip>
-                </div>
-              </div>
-
-              <div>
                 <Label>Outdoor exercise</Label>
                 <div className="flex flex-wrap gap-2">
                   {EXERCISE.map((v) => (

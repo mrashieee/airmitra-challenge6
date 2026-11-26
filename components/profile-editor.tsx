@@ -527,26 +527,6 @@ export function ProfileEditor({ profile, onSave }: Props) {
             />
           </Field>
 
-          <Field
-            label="School drop-off / pickup"
-            hint="Do you take a child to or from school on most weekdays?"
-          >
-            <div className="flex gap-1.5">
-              <Option
-                active={draft.routine.schoolRun}
-                onClick={() => setRoutine({ schoolRun: true })}
-              >
-                Yes
-              </Option>
-              <Option
-                active={!draft.routine.schoolRun}
-                onClick={() => setRoutine({ schoolRun: false })}
-              >
-                No
-              </Option>
-            </div>
-          </Field>
-
           <Field label="Outdoor exercise">
             <Chips
               options={EXERCISE}

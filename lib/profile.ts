@@ -30,7 +30,6 @@ export type RoutineProfile = {
   sleep: string;
   work: string;
   commute: string[];
-  schoolRun: boolean;
   exercise: string;
   cookingTimes: string[];
 };
@@ -100,7 +99,6 @@ export function createDefaultProfile(): Profile {
       sleep: "10:00 PM",
       work: "Office",
       commute: ["Metro"],
-      schoolRun: true,
       exercise: "Morning walk",
       cookingTimes: ["Morning", "Evening"],
     },
@@ -137,6 +135,8 @@ export function parseProfile(raw: string | null): Profile | null {
         value === "Mixed" ? ["Bus", "Metro"] : value === "None" ? [] : [value];
     }
     if (!Array.isArray(routine.commute)) routine.commute = ["Metro"];
+    // Retired field: school-run relevance is inferred from children in the family.
+    delete (routine as { schoolRun?: unknown }).schoolRun;
 
     // Older age bands -> the wider, more granular set.
     const legacyAge: Record<string, string> = {
