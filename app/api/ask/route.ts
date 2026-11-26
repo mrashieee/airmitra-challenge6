@@ -1,5 +1,13 @@
 import type { NextRequest } from "next/server";
 import { ALL_STATES } from "@/lib/states";
+import {
+  cleanText,
+  indiaCoords,
+  limited,
+  rateLimit,
+  readJson,
+} from "@/lib/api-guard";
+import { sanitizeProfile } from "@/lib/profile-sanitize";
 import { resolveAirReading } from "@/lib/air/resolve";
 import { cacheGet, cacheSet } from "@/lib/air/cache";
 import { buildContext, contextJson } from "@/lib/ai/context";
@@ -19,45 +27,38 @@ type Body = {
 };
 
 export async function POST(request: NextRequest) {
-  let body: Body;
-  try {
-    body = (await request.json()) as Body;
-  } catch {
-    return Response.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+  const gate = rateLimit("ask", request, 20, 60_000);
+  if (!gate.ok) return limited(gate.retryAfter);
 
-  const question = (body.question ?? "").trim();
-  if (question.length < 2 || question.length > 300) {
+  const parsed = await readJson<Body>(request);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
+
+  const question = cleanText(body.question, 300);
+  if (question.length < 2) {
     return Response.json(
       { error: "Question must be 2-300 characters" },
       { status: 400 },
     );
   }
 
-  const code = (body.state ?? "DL").toUpperCase();
+  const code = cleanText(body.state, 4).toUpperCase() || "DL";
   const state = ALL_STATES.find((s) => s.code === code);
   if (!state) {
     return Response.json({ error: "Unknown state" }, { status: 400 });
   }
 
-  const profile = body.profile;
-  if (
-    !profile ||
-    !Array.isArray(profile.family) ||
-    !profile.home ||
-    !profile.routine
-  ) {
+  const profile = sanitizeProfile(body.profile);
+  if (!profile) {
     return Response.json({ error: "Missing profile" }, { status: 400 });
   }
 
-  const city = body.city ?? state.capital;
-  const target =
-    typeof body.lat === "number" &&
-    Number.isFinite(body.lat) &&
-    typeof body.lon === "number" &&
-    Number.isFinite(body.lon)
-      ? { lat: body.lat, lon: body.lon, city }
-      : undefined;
+  const city = cleanText(body.city, 80) || state.capital;
+  const coords = indiaCoords(body.lat, body.lon);
+  if (body.lat !== undefined && body.lon !== undefined && !coords) {
+    return Response.json({ error: "Invalid coordinates" }, { status: 400 });
+  }
+  const target = coords ? { ...coords, city } : undefined;
 
   try {
     const air = await resolveAirReading(state, { target });

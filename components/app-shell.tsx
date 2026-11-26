@@ -20,13 +20,9 @@ import type { Tab } from "@/lib/nav";
 import { cn } from "@/lib/ui";
 import { HomeView, TodaySkeleton } from "./home-view";
 import { LocationSelect } from "./location-picker";
-import {
-  AskPanel,
-  CardsPanel,
-  ReportPanel,
-  SettingsPanel,
-  ShareCardPreview,
-} from "./panels";
+import { AskPanel, CardsPanel, ReportPanel } from "./panels";
+import { SettingsPanel } from "./settings-panel";
+import { ShareCardPreview } from "./share-cards";
 import {
   ArrowIcon,
   CardsIcon,
@@ -236,7 +232,7 @@ function AppShellInner({
         lon={city.lon}
       />
     ) : tab === "report" ? (
-      <ReportPanel />
+      <ReportPanel reading={reading} />
     ) : tab === "cards" ? (
       <CardsPanel reading={reading} />
     ) : (
@@ -318,6 +314,9 @@ function AppShellInner({
 
         <div className="mx-auto flex w-full max-w-6xl gap-6 px-4 pb-28 pt-4 lg:px-8 lg:pb-10 lg:pt-8">
           <main className="min-w-0 flex-1">
+            <h1 className="sr-only lg:hidden">
+              AirMitra — today&apos;s air advice
+            </h1>
             <div className="mb-4 hidden items-end justify-between lg:flex">
               <div>
                 <h1 className="text-lg font-semibold tracking-tight text-ink">

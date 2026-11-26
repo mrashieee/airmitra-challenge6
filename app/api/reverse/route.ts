@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { stateCodeFor } from "@/lib/geocode";
+import { indiaCoords, limited, rateLimit } from "@/lib/api-guard";
 
 type PhotonFeature = {
   properties: {
@@ -25,12 +26,17 @@ type NominatimResponse = {
 };
 
 export async function GET(request: NextRequest) {
-  const lat = Number(request.nextUrl.searchParams.get("lat"));
-  const lon = Number(request.nextUrl.searchParams.get("lon"));
+  const gate = rateLimit("reverse", request, 60, 60_000);
+  if (!gate.ok) return limited(gate.retryAfter);
 
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return Response.json({ error: "lat and lon required" }, { status: 400 });
+  const coords = indiaCoords(
+    request.nextUrl.searchParams.get("lat"),
+    request.nextUrl.searchParams.get("lon"),
+  );
+  if (!coords) {
+    return Response.json({ error: "Valid lat and lon required" }, { status: 400 });
   }
+  const { lat, lon } = coords;
 
   // Photon reverse (OSM) — good for villages and small towns.
   try {

@@ -53,7 +53,7 @@ const ALIASES: Record<string, string> = {
   vizag: "visakhapatnam",
 };
 
-export function normaliseCity(value: string): string {
+function normaliseCity(value: string): string {
   return value
     .toLowerCase()
     .replace(/\(.*?\)/g, "")
@@ -222,10 +222,6 @@ export function topCities(stateCode: string, limit = 6): CitySuggestion[] {
   return [...monitored, ...filler].map(toSuggestion);
 }
 
-export function stationCount(stateCode: string): number {
-  const state = stateCode.toUpperCase();
-  return entries.filter((entry) => entry.s === state && entry.m).length;
-}
 
 /** Nearest sizeable city, used to disambiguate common village names. */
 export function nearestCityName(

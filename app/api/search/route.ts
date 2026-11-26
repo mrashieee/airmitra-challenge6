@@ -5,6 +5,7 @@ import {
   topCities,
 } from "@/lib/city-index";
 import { geocodeCities, knownState } from "@/lib/geocode-search";
+import { cleanText, limited, rateLimit } from "@/lib/api-guard";
 import {
   MIN_SEARCH_CHARS,
   type CitySuggestion,
@@ -12,12 +13,17 @@ import {
 } from "@/lib/search-types";
 
 export async function GET(request: NextRequest) {
-  const state = (request.nextUrl.searchParams.get("state") ?? "DL").toUpperCase();
+  const gate = rateLimit("search", request, 120, 60_000);
+  if (!gate.ok) return limited(gate.retryAfter);
+
+  const state =
+    cleanText(request.nextUrl.searchParams.get("state"), 4).toUpperCase() ||
+    "DL";
   if (!knownState(state)) {
     return Response.json({ error: "Unknown state code", state }, { status: 400 });
   }
 
-  const query = (request.nextUrl.searchParams.get("q") ?? "").trim();
+  const query = cleanText(request.nextUrl.searchParams.get("q"), 60);
   const limit = Math.min(
     10,
     Math.max(1, Number(request.nextUrl.searchParams.get("limit") ?? 8) || 8),

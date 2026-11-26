@@ -1,20 +1,91 @@
 # AirMitra — Household Air Coach
 
-> **Working title.** Trademark check deferred until after the challenge.
+> **Live:** https://airmitra-app.vercel.app  
+> **Built for:** PromptWars Virtual · Main Challenge 06 (Urban Air Quality Assistant)
 
-AirMitra tells a household what to do about the air today — for their people, their home, and their routine — and why it matters.
+AirMitra tells an Indian household what to do about the air today — for their
+people, their home, and their routine — and why it matters. It is a data-first
+PWA with a grounded GenAI brief, not a chat-only app.
 
-Built for **PromptWars Virtual · Main Challenge 06**.
+## What it does
 
-## Status
+- **Live AQI** from CPCB ground stations, then OpenAQ monitors, then CAMS model
+  data. Cities with 2+ official monitors use the **median** and show the range.
+- **Where the data comes from** is always visible: station name, distance,
+  freshness, and a `ground monitor` / `model estimate` label.
+- **City pages** at `/aqi/<state>/<city>` with canonical metadata and a sitemap.
+- **Household profile** — you, family, conditions, home inventory, routine.
+  Starts with **You**; no invented family members.
+- **Grounded GenAI brief and ask** (`gemini-3.1-flash-lite` → lite fallback →
+  deterministic templates). The model writes; the data layer decides.
+- **Status / story cards** — 1080×1920 PNG with time windows, actions and the
+  impact payoff, shareable to WhatsApp, X, Telegram, Facebook, LinkedIn, or
+  Instagram (download + caption).
+- **Inline settings** — every field editable without the setup wizard.
+- **Weather-aware hero** with day/night sun, moon, stars, clouds, rain and fog.
+- **PWA** — installable, responsive, reduced-motion aware.
 
-Walking skeleton: responsive web + mobile PWA shell with **demo data**. The layout, tabs, and interactions are in place; live CPCB / OpenAQ / CAMS data and Gemini plug in next.
+## Data chain
+
+```
+CPCB (data.gov.in) ─┐
+OpenAQ (<=25 km) ───┼─> median of official stations (<=15 km)
+CAMS (Open-Meteo) ──┘        │
+                             └─> else CAMS at the city coordinates
+```
+
+- AQI uses **CPCB NAQI**, not US AQI. The US equivalent is shown for comparison.
+- Stale OpenAQ sensor rows are discarded (freshness window relative to the
+  station's newest reading).
+- If no monitor is nearby, the page lists the **nearest live monitors** with
+  distance and freshness — context, not a fake local reading.
+
+## Architecture
+
+```
+app/
+  page.tsx                     app shell entry
+  aqi/[state]/[city]/page.tsx  public city pages
+  api/{aqi,search,geocode,reverse,ask,brief,health}/
+components/
+  app-shell, home-view, panels, settings-panel, profile-editor,
+  location-picker, onboarding, share-cards, weather-scene, aqi-number
+lib/
+  air/            providers (CPCB, OpenAQ, CAMS, nearby), resolve, cache, NAQI
+  ai/             context, prompts, client, templates, cache keys
+  city-index.ts   curated + GeoNames city index with monitor tags
+  profile*.ts     types, defaults, migrations, server allow-list
+  api-guard.ts    body limits, validation, rate limiting
+  story-image.ts  canvas story renderer
+data/
+  states.json, cities.json, city-index.json
+scripts/
+  build-city-index.mjs         regenerate the city/monitor index
+```
+
+## Security & privacy
+
+- **No accounts, no PII, no analytics.** The profile and reports stay in
+  `localStorage` and are never uploaded.
+- **Secrets are server-side only** (`.env`, gitignored). No secret is exposed to
+  the browser.
+- **Allow-listed inputs** on AI routes: profile fields are sanitised and capped
+  server-side before they enter the prompt; question text is length- and
+  control-character-limited.
+- **Rate limits** on AI and data routes (per IP, in-memory).
+- **CSP and security headers** in production: `default-src 'self'`,
+  `frame-ancestors 'none'`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`,
+  HSTS, no `X-Powered-By`.
+- **Prompt-injection guardrail:** context and questions are treated as data, not
+  instructions.
+- **No diagnosis or prescriptions.** If symptoms look urgent, the UI says to see
+  a doctor.
 
 ## Run locally
 
 ```bash
 npm install
-cp .env.example .env   # then fill in keys (already present locally)
+cp .env.example .env   # add keys (see below)
 npm run dev
 ```
 
@@ -24,59 +95,32 @@ Open http://localhost:3000.
 npm run typecheck   # tsc --noEmit
 npm run lint
 npm run build
+npm run index:cities   # rebuild data/city-index.json
 ```
 
 ## Environment
 
-Secrets live in `.env` (gitignored). See `.env.example`.
-
 | Variable | Purpose |
 |---|---|
 | `GEMINI_API_KEY` | Gemini, server-side only |
+| `GEMINI_MODEL` | Primary model (default `gemini-3.1-flash-lite`) |
+| `GEMINI_MODEL_FALLBACK` | Fallback lite model |
 | `DATA_GOV_API_KEY` | CPCB real-time AQI (data.gov.in) |
-| `XKDR_API_KEY` | India Air Quality DB |
-| `OPENAQ_API_KEY` | Optional fallback |
-| `OPEN_METEO_*_BASE_URL` | Forecast + weather, no key |
+| `OPENAQ_API_KEY` | OpenAQ ground fallback |
+| `OPEN_METEO_*` | CAMS + weather endpoints (no key) |
+| `AQI_CACHE_TTL_SECONDS` | Air cache TTL (default 900) |
+| `LLM_CACHE_TTL_SECONDS` | AI response cache TTL |
 
-`NEXT_PUBLIC_*` values are public. Never put a key there.
+## Known limitations
 
-## Structure
+- `data.gov.in` is unreachable from Vercel's network, so production uses
+  OpenAQ → CAMS. CPCB remains first when reachable.
+- Some towns have no continuous monitor; they show CAMS model data and nearby
+  monitor context.
+- Manual NAMP samples are not used live (they can be months old).
+- English UI; the language selector is a saved preference.
 
-```
-app/
-  layout.tsx        root layout, metadata, fonts
-  page.tsx          renders the app shell
-  manifest.ts       PWA manifest
-  globals.css       design tokens + motion
-components/
-  app-shell.tsx     mobile + desktop layouts, nav, state
-  home-view.tsx     data-first home: AQI, guideline, family, must-go, do-now
-  panels.tsx        Ask, Report, Cards, Settings
-  icons.tsx         inline SVG icons
-lib/
-  aqi.ts            bands, mock reading, advice rules
-  states.ts         all 36 states/UTs
-  nav.ts            tab types
-  ui.ts             band styles + cn
-data/
-  states.json       28 states + 8 UTs with capitals/coords
-```
+## Data credits
 
-## Product rules
-
-- **Data-first home.** Live location data + general guidance render even if AI fails.
-- **Never restrict without a fallback.** "If you must go out" always follows "stay in".
-- **One user, one household.** No accounts, groups, or shared state.
-- **Community = share cards**, not a social feature.
-- **English default**, with a language switcher for India's most-spoken languages.
-- **All 36 states/UTs**, with an honest ground vs model source label.
-
-## Docs
-
-Product and build decisions live one level up:
-
-- `../build-plan.md`
-- `../product-brainstorm.md`
-- `../plan.md`
-- `../india-user-research.md`
-- `../hack2skill-research.md`
+CPCB / data.gov.in, OpenAQ, Open-Meteo (CAMS), GeoNames (CC BY 4.0), and
+OpenStreetMap/Photon for geocoding.

@@ -2,25 +2,15 @@
 
 import { useMemo, useState } from "react";
 import type { Reading } from "@/lib/aqi";
+import { StoryPreview } from "./share-cards";
 import type { Profile } from "@/lib/profile";
-import type { Tab } from "@/lib/nav";
-import { BAND_STYLES, cn } from "@/lib/ui";
-import { LANGUAGES } from "@/lib/profile-options";
+import { cn } from "@/lib/ui";
 import { slugify } from "@/lib/slug";
-import { renderStoryImage } from "@/lib/story-image";
-import {
-  setMotionPreference,
-  useDarkReaderDetected,
-  useMotionPreference,
-  useSystemReducedMotion,
-} from "@/lib/motion";
-import { ProfileEditor } from "./profile-editor";
 import {
   AlertIcon,
   CheckIcon,
   ShareIcon,
   SparkIcon,
-  WindIcon,
 } from "./icons";
 
 
@@ -231,11 +221,12 @@ const ISSUES = [
   "Idling traffic",
 ];
 
-export function ReportPanel() {
+export function ReportPanel({ reading }: { reading: Reading }) {
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [severity, setSeverity] = useState("Mild");
   const [issues, setIssues] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const redFlag =
     severity === "Severe" &&
@@ -252,8 +243,9 @@ export function ReportPanel() {
           <AlertIcon className="h-4 w-4 text-brand" />
           Tell us what is going on
         </div>
-        <p className="mt-1 text-xs text-muted">
-          Optional. It changes today&apos;s advice. It is never a diagnosis.
+        <p className="mt-1 text-xs leading-5 text-muted">
+          Optional and private to this device. It is never a diagnosis and is
+          not sent to a doctor or agency.
         </p>
       </div>
 
@@ -265,6 +257,7 @@ export function ReportPanel() {
               key={s}
               type="button"
               onClick={() => toggle(symptoms, s, setSymptoms)}
+              aria-pressed={symptoms.includes(s)}
               className={cn(
                 "rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition",
                 symptoms.includes(s)
@@ -284,6 +277,7 @@ export function ReportPanel() {
               key={s}
               type="button"
               onClick={() => setSeverity(s)}
+              aria-pressed={severity === s}
               className={cn(
                 "rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition",
                 severity === s
@@ -306,8 +300,9 @@ export function ReportPanel() {
 
       <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
         <h3 className="text-sm font-semibold text-ink">Report a local issue</h3>
-        <p className="mt-1 text-xs text-muted">
-          Private to your device. We use it to adjust advice and draft a complaint.
+        <p className="mt-1 text-xs leading-5 text-muted">
+          Save it here, then copy a complaint draft you can send to your
+          municipality or society.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {ISSUES.map((s) => (
@@ -315,6 +310,7 @@ export function ReportPanel() {
               key={s}
               type="button"
               onClick={() => toggle(issues, s, setIssues)}
+              aria-pressed={issues.includes(s)}
               className={cn(
                 "rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition",
                 issues.includes(s)
@@ -330,18 +326,72 @@ export function ReportPanel() {
 
       <button
         type="button"
-        onClick={() => setSaved(true)}
+        onClick={async () => {
+          const record = {
+            date: new Date().toISOString(),
+            symptoms,
+            severity,
+            issues,
+          };
+          try {
+            window.localStorage.setItem(
+              "airmitra.report.v1",
+              JSON.stringify(record),
+            );
+          } catch {
+            // storage blocked — still show the saved state for this session
+          }
+          setSaved(true);
+        }}
         className="w-full rounded-xl bg-ink px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.99]"
       >
-        Save for today
+        Save on this device
       </button>
 
       {saved ? (
-        <div className="flex items-start gap-2 rounded-xl bg-teal-50 p-3 text-sm text-teal-900 ring-1 ring-teal-100">
-          <CheckIcon className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>
-            Saved. Today&apos;s advice now reflects this. No diagnosis, no data shared.
-          </span>
+        <div className="rounded-xl bg-teal-50 p-3 text-sm text-teal-900 ring-1 ring-teal-100">
+          <div className="flex items-start gap-2">
+            <CheckIcon className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>
+              Saved on this device. Nothing is uploaded and it is not a medical
+              record.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={async () => {
+              const draft = [
+                `Air quality complaint — ${new Date().toLocaleDateString("en-IN")}`,
+                `${reading.area}, ${reading.state.name} · AQI ${reading.aqi} (${reading.band.label})`,
+                `Monitor: ${reading.source.station}`,
+                issues.length ? `Local issues: ${issues.join(", ")}` : "",
+                symptoms.length
+                  ? `Health noted: ${symptoms.join(", ")} (${severity})`
+                  : "",
+                "Requested action: please inspect the source and reduce exposure.",
+                "Reported via AirMitra",
+              ]
+                .filter(Boolean)
+                .join("\n");
+
+              try {
+                if (navigator.clipboard?.writeText) {
+                  await navigator.clipboard.writeText(draft);
+                } else {
+                  legacyCopy(draft);
+                }
+                setCopied(true);
+                window.setTimeout(() => setCopied(false), 2000);
+              } catch {
+                legacyCopy(draft);
+                setCopied(true);
+                window.setTimeout(() => setCopied(false), 2000);
+              }
+            }}
+            className="mt-2 rounded-full bg-white px-3 py-1.5 text-[11px] font-medium text-teal-900 ring-1 ring-teal-200"
+          >
+            {copied ? "Copied complaint draft" : "Copy complaint draft"}
+          </button>
         </div>
       ) : null}
     </div>
@@ -351,55 +401,6 @@ export function ReportPanel() {
 /* ------------------------------------------------------------------ */
 /* Cards                                                               */
 /* ------------------------------------------------------------------ */
-
-export function ShareCardPreview({ reading }: { reading: Reading }) {
-  const styles = BAND_STYLES[reading.band.key];
-  return (
-    <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-sm">
-      <div className="bg-[#083d39] px-5 py-4 text-white">
-        <div className="flex items-center justify-between">
-          <div className="text-sm font-semibold">AirMitra</div>
-          <div className="text-[10px] uppercase tracking-[0.14em] text-teal-200">
-            air advisory
-          </div>
-        </div>
-        <div className="mt-1 text-[11px] text-teal-100/80">
-          {reading.area}, {reading.state.name} · {reading.source.updated}
-        </div>
-      </div>
-
-      <div className="px-5 py-4">
-        <div className="flex items-end gap-2">
-          <span className="tabular text-4xl font-semibold tracking-tight text-ink">
-            {reading.aqi}
-          </span>
-          <span className={cn("mb-1 rounded-full px-2.5 py-0.5 text-[10px] font-semibold ring-1", styles.soft, styles.text, styles.ring)}>
-            {reading.band.label}
-          </span>
-        </div>
-        <p className="mt-1 text-[11px] text-muted">{reading.dominant} dominant</p>
-
-        <div className="mt-3 space-y-2 text-sm leading-6 text-ink/85">
-          <p className="font-medium text-ink">{reading.guidelines[0]}</p>
-          <p className="text-xs text-muted">{reading.guidelines[1]}</p>
-        </div>
-
-        <div className="mt-3 rounded-xl bg-paper p-3 text-xs leading-5 text-ink/80 ring-1 ring-line">
-          <span className="font-semibold text-ink">Do now:</span> {reading.doNow[0].title}.{" "}
-          {reading.doNow[1].title}.
-        </div>
-
-        <div className="mt-3 flex items-center justify-between text-[10px] text-muted">
-          <span>
-            {reading.source.type === "ground" ? "Ground monitor" : "Model estimate"} ·{" "}
-            {reading.source.station}
-          </span>
-          <span>via AirMitra</span>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function legacyCopy(text: string) {
   const area = document.createElement("textarea");
@@ -414,112 +415,6 @@ function legacyCopy(text: string) {
   } finally {
     document.body.removeChild(area);
   }
-}
-
-export function StoryPreview({ reading }: { reading: Reading }) {
-  const styles = BAND_STYLES[reading.band.key];
-  const date = new Date().toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-  });
-
-  return (
-    <div className="relative mx-auto aspect-[9/16] w-full max-w-[300px] overflow-hidden rounded-[26px] bg-gradient-to-br from-[#052a26] via-[#0a3b36] to-[#0f2b29] text-white shadow-xl ring-1 ring-black/10">
-      <div
-        className={cn(
-          "absolute -right-12 -top-12 h-52 w-52 rounded-full opacity-40 blur-3xl",
-          styles.dot,
-        )}
-      />
-      <div className="relative flex h-full flex-col p-5">
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="text-sm font-semibold">AirMitra</div>
-            <div className="text-[7px] uppercase tracking-[0.18em] text-teal-200/70">
-              Household air coach
-            </div>
-          </div>
-          <div className="text-[9px] text-teal-100/70">{date}</div>
-        </div>
-
-        <div className="mt-5">
-          <div className="text-lg font-semibold leading-tight">
-            {reading.area}
-          </div>
-          <div className="text-[9px] text-teal-100/70">{reading.state.name}</div>
-        </div>
-
-        <div className="mt-3 flex items-end gap-2">
-          <span className="tabular text-[58px] font-semibold leading-none tracking-[-0.04em]">
-            {reading.aqi}
-          </span>
-          <span className="mb-1 rounded-full bg-white/15 px-2 py-0.5 text-[9px] font-semibold text-white ring-1 ring-white/25">
-            {reading.band.label}
-          </span>
-        </div>
-        <div className="mt-1 text-[9px] text-teal-100/70">
-          {reading.dominant} dominant
-        </div>
-
-        <div className="mt-4 border-t border-white/15 pt-3">
-          <div className="text-[7px] font-semibold uppercase tracking-[0.18em] text-teal-200/70">
-            {reading.aqi > 150 ? "Least-bad time out" : "Best time out"}
-          </div>
-          <div className="mt-0.5 text-base font-semibold leading-tight">
-            {reading.windows.best}
-          </div>
-          <div className="mt-2 text-[7px] font-semibold uppercase tracking-[0.18em] text-teal-200/70">
-            Avoid outdoors
-          </div>
-          <div className="text-[11px] text-white/80">{reading.windows.avoid}</div>
-        </div>
-
-        <div className="mt-3">
-          <div className="text-[7px] font-semibold uppercase tracking-[0.18em] text-teal-200/70">
-            Do now
-          </div>
-          <ul className="mt-1 space-y-1">
-            {reading.doNow.slice(0, 2).map((item) => (
-              <li
-                key={item.title}
-                className="flex gap-1.5 text-[9px] leading-4 text-white/85"
-              >
-                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-current" />
-                <span>{item.title}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="mt-3 rounded-xl bg-white/[0.07] px-3 py-2 ring-1 ring-white/15">
-          <div className="text-[7px] font-semibold uppercase tracking-[0.18em] text-teal-200/70">
-            Impact
-          </div>
-          <div className="mt-0.5 text-sm font-semibold leading-tight">
-            {reading.impact.value}
-          </div>
-          <div className="text-[8px] text-white/75">{reading.impact.title}</div>
-        </div>
-
-        <div className="mt-auto">
-          <div className="text-[7px] text-teal-100/50">
-            {reading.source.type === "ground"
-              ? "Ground monitor"
-              : "CAMS model estimate"}{" "}
-            · {reading.source.updated}
-          </div>
-          <div className="mt-1 border-t border-white/15 pt-2">
-            <div className="text-[9px] font-medium">
-              Check the air before you go out
-            </div>
-            <div className="text-[8px] text-teal-100/60">
-              airmitra-app.vercel.app
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export function CardsPanel({ reading }: { reading: Reading }) {
@@ -587,6 +482,7 @@ export function CardsPanel({ reading }: { reading: Reading }) {
   }
 
   async function storyBlob(): Promise<Blob> {
+    const { renderStoryImage } = await import("@/lib/story-image");
     return renderStoryImage(reading);
   }
 
@@ -754,138 +650,3 @@ export function CardsPanel({ reading }: { reading: Reading }) {
 /* ------------------------------------------------------------------ */
 /* Settings                                                            */
 /* ------------------------------------------------------------------ */
-
-export function SettingsPanel({
-  profile,
-  onSaveProfile,
-  language,
-  setLanguage,
-  largeText,
-  setLargeText,
-  onEdit,
-}: {
-  profile: Profile;
-  onSaveProfile: (next: Profile) => void;
-  language: string;
-  setLanguage: (v: string) => void;
-  largeText: boolean;
-  setLargeText: (v: boolean) => void;
-  onEdit: () => void;
-}) {
-  const motion = useMotionPreference();
-  const systemReduced = useSystemReducedMotion();
-  const darkReader = useDarkReaderDetected();
-
-  return (
-    <div className="space-y-4">
-      <ProfileEditor profile={profile} onSave={onSaveProfile} />
-      <button
-        type="button"
-        onClick={onEdit}
-        className="w-full rounded-xl bg-paper px-3 py-2 text-[11px] font-medium text-muted ring-1 ring-line transition hover:text-ink"
-      >
-        Prefer the step-by-step setup? Open guided setup
-      </button>
-      <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h3 className="text-sm font-semibold text-ink">Preferred language</h3>
-        <p className="mt-1 text-xs leading-5 text-muted">
-          UI is English for now. Your choice will apply to generated advice when
-          Gemini is enabled.
-        </p>
-        <select
-          value={language}
-          onChange={(e) => setLanguage(e.target.value)}
-          className="mt-3 w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm outline-none"
-        >
-          {LANGUAGES.map((l) => (
-            <option key={l}>{l}</option>
-          ))}
-        </select>
-      </section>
-
-      <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h3 className="text-sm font-semibold text-ink">Text size</h3>
-        <button
-          type="button"
-          onClick={() => setLargeText(!largeText)}
-          className={cn(
-            "mt-3 flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm ring-1 transition",
-            largeText ? "bg-ink text-white ring-ink" : "bg-paper text-ink ring-line",
-          )}
-        >
-          <span>Larger text</span>
-          <span
-            className={cn(
-              "relative h-5 w-9 rounded-full transition",
-              largeText ? "bg-teal-400" : "bg-slate-300",
-            )}
-          >
-            <span
-              className={cn(
-                "absolute top-0.5 h-4 w-4 rounded-full bg-white transition",
-                largeText ? "left-[18px]" : "left-0.5",
-              )}
-            />
-          </span>
-        </button>
-      </section>
-
-      <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h3 className="text-sm font-semibold text-ink">Animations</h3>
-        <p className="mt-1 text-xs leading-5 text-muted">
-          Weather scene, AQI number, and card motion. Auto follows your
-          device&apos;s Reduce Motion setting.
-        </p>
-        <div className="mt-3 grid grid-cols-3 gap-1.5">
-          {(["auto", "on", "off"] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => setMotionPreference(option)}
-              className={cn(
-                "rounded-xl px-2 py-2 text-[11px] font-medium ring-1 transition",
-                motion === option
-                  ? "bg-ink text-white ring-ink"
-                  : "bg-paper text-ink ring-line hover:bg-white",
-              )}
-            >
-              {option === "auto" ? "Auto" : option === "on" ? "On" : "Off"}
-            </button>
-          ))}
-        </div>
-        {darkReader ? (
-          <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-5 text-amber-800 ring-1 ring-amber-200">
-            Dark Reader is on. It replaces the weather colours and can hide the
-            background animation. Pause Dark Reader for this site to see it.
-          </p>
-        ) : null}
-        {motion === "auto" && systemReduced ? (
-          <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[11px] leading-5 text-amber-800 ring-1 ring-amber-200">
-            Your laptop reports Reduce Motion, so animations are paused. Choose
-            On to see them anyway.
-          </p>
-        ) : null}
-      </section>
-
-      <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h3 className="text-sm font-semibold text-ink">Data</h3>
-        <p className="mt-1 text-xs leading-5 text-muted">
-          The current screen uses demo data. Live CPCB, OpenAQ, and CAMS data plug into
-          the same layout.
-        </p>
-        <div className="mt-3 flex items-center gap-2 text-[11px] text-muted">
-          <WindIcon className="h-3.5 w-3.5" />
-          No accounts. No community. No data shared.
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export function PlaceholderPanel({ tab }: { tab: Tab }) {
-  return (
-    <div className="rounded-2xl bg-card p-6 text-sm text-muted ring-1 ring-black/5">
-      {tab} is next in the build.
-    </div>
-  );
-}
