@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://sonic-redwood-usesmgf-rashinova8055-8355.vercel.app";
+  "https://airmitra-app.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
