@@ -64,14 +64,23 @@ export function createDefaultProfile(): Profile {
       lat: city.lat,
       lon: city.lon,
     },
-    family: [],
+    family: [
+      {
+        id: "you",
+        relation: "You",
+        // A starting point only; the age group is editable in setup.
+        ageBand: "19-29",
+        conditions: [],
+        severity: "None",
+      },
+    ],
     home: {
       // Most Indian households: independent pucca house, LPG, fans,
       // daily sweeping, no purifier.
       type: "Independent",
       cooking: ["LPG"],
       windows: "Mixed",
-      cooling: ["Fans only"],
+      cooling: ["Fans"],
       purifiers: "None",
       indoorSmoke: ["No smoking"],
       cleaning: ["Dry sweeping", "Wet mopping"],
@@ -109,10 +118,26 @@ export function parseProfile(raw: string | null): Profile | null {
     if (typeof home.cooling === "string") home.cooling = [home.cooling];
     if (typeof home.cleaning === "string") home.cleaning = [home.cleaning];
     if (!Array.isArray(home.cooking)) home.cooking = ["LPG"];
-    if (!Array.isArray(home.cooling)) home.cooling = ["Fans only"];
+    if (!Array.isArray(home.cooling)) home.cooling = ["Fans"];
+    home.cooling = (home.cooling as string[]).map((value) =>
+      value === "Fans only" ? "Fans" : value,
+    );
     if (!Array.isArray(home.cleaning)) home.cleaning = ["Dry sweeping"];
     if (typeof home.cleaningFrequency !== "string") {
       home.cleaningFrequency = "2-3x/week";
+    }
+
+    // Older skipped profiles had no family. Start them with "You".
+    if (parsed.family.length === 0) {
+      parsed.family = [
+        {
+          id: "you",
+          relation: "You",
+          ageBand: "19-29",
+          conditions: [],
+          severity: "None",
+        },
+      ];
     }
 
     const routine = parsed.routine as unknown as Record<string, unknown>;

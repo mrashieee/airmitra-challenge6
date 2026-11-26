@@ -677,7 +677,8 @@ export function Onboarding({ initial, onComplete }: Props) {
                   Who do you care for?
                 </h1>
                 <p className="mt-1 text-xs leading-5 text-muted">
-                  Add the people whose air you manage. This changes the advice.
+                  We start with you — pick your age group. Add anyone else you
+                  care for; the advice changes per person.
                 </p>
               </div>
 

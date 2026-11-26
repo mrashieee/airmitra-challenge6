@@ -59,7 +59,7 @@ export const COOKING_FUELS = [
 
 export const WINDOW_STATES = ["Mostly closed", "Mostly open", "Mixed"];
 
-export const COOLING = ["AC", "Cooler", "Fans only", "None"];
+export const COOLING = ["AC", "Cooler", "Fans", "None"];
 
 export const PURIFIERS = ["None", "1", "2+", "Not sure"];
 
