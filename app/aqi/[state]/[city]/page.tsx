@@ -7,6 +7,7 @@ import { cityBySlug, citiesForStatePage, slugify, stateBySlug } from "@/lib/city
 import { createDefaultProfile } from "@/lib/profile";
 import { BAND_STYLES, cn } from "@/lib/ui";
 import { PinIcon, SparkIcon, WindIcon } from "@/components/icons";
+import { BrandMark } from "@/components/brand-mark";
 import { WeatherScene, weatherLabel } from "@/components/weather-scene";
 import { AqiNumber } from "@/components/aqi-number";
 
@@ -87,9 +88,7 @@ export default async function CityPage({ params }: Params) {
     <div className="min-h-dvh bg-paper">
       <header className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-5">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-white">
-            <WindIcon className="h-5 w-5" />
-          </span>
+          <BrandMark className="h-9 w-9" />
           <span className="leading-tight">
             <span className="block text-sm font-semibold tracking-tight text-ink">
               AirMitra

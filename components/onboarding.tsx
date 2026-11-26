@@ -9,6 +9,7 @@ import {
 } from "@/lib/search-types";
 import { cn } from "@/lib/ui";
 import { SearchIcon } from "./icons";
+import { BrandMark } from "./brand-mark";
 import {
   ALL_STATES,
   citiesFor,
@@ -467,9 +468,14 @@ export function Onboarding({ initial, onComplete }: Props) {
     <div className="min-h-dvh bg-paper">
       <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-4 pb-6 pt-5">
         <div className="flex items-center justify-between">
-          <div>
-            <div className="text-sm font-semibold tracking-tight text-ink">AirMitra</div>
-            <div className="text-[10px] text-muted">Household Air Coach</div>
+          <div className="flex items-center gap-2.5">
+            <BrandMark className="h-8 w-8" />
+            <div>
+              <div className="font-display text-base font-semibold tracking-tight text-ink">
+                AirMitra
+              </div>
+              <div className="text-[10px] text-muted">Household Air Coach</div>
+            </div>
           </div>
           <button
             type="button"

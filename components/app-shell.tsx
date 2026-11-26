@@ -18,6 +18,7 @@ import {
 import { Onboarding } from "./onboarding";
 import type { Tab } from "@/lib/nav";
 import { cn } from "@/lib/ui";
+import { BrandMark } from "./brand-mark";
 import { HomeView, TodaySkeleton } from "./home-view";
 import { LocationSelect } from "./location-picker";
 import { AskPanel, CardsPanel, ReportPanel } from "./panels";
@@ -45,9 +46,7 @@ const NAV: { tab: Tab; label: string; icon: React.ReactNode }[] = [
 function Brand() {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-white shadow-sm">
-        <WindIcon className="h-5 w-5" />
-      </span>
+      <BrandMark className="h-9 w-9 shadow-sm" />
       <div className="leading-tight">
         <div className="font-display text-base font-semibold tracking-tight text-ink">AirMitra</div>
         <div className="text-[10px] text-muted">Household Air Coach</div>

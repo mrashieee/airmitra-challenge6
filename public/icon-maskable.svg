@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="AirMitra">
-  <rect width="512" height="512" fill="#0B3B36" />
-  <path d="M150 286 256 194l106 92" fill="none" stroke="#F3EFE5" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
-  <path d="M184 320h146c18 0 32 14 32 30s-14 30-32 30" fill="none" stroke="#7DD3C7" stroke-width="21" stroke-linecap="round" />
-  <path d="M208 358h90" fill="none" stroke="#F3EFE5" stroke-width="16" stroke-linecap="round" opacity=".75" />
+  <rect width="512" height="512" fill="#0C5B4C" />
+  <g transform="translate(256 256) scale(0.76) translate(-256 -256)">
+    <path d="M144 392 256 120l112 272" fill="none" stroke="#F5F2E9" stroke-width="44" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M188 302c42-24 94-24 136 0" fill="none" stroke="#A7D8C9" stroke-width="26" stroke-linecap="round" />
+  </g>
 </svg>
