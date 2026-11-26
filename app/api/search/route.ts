@@ -5,9 +5,10 @@ import {
   topCities,
 } from "@/lib/city-index";
 import { geocodeCities, knownState } from "@/lib/geocode-search";
-import type {
-  CitySuggestion,
-  CrossStateSuggestion,
+import {
+  MIN_SEARCH_CHARS,
+  type CitySuggestion,
+  type CrossStateSuggestion,
 } from "@/lib/search-types";
 
 export async function GET(request: NextRequest) {
@@ -26,8 +27,10 @@ export async function GET(request: NextRequest) {
   let crossState: CrossStateSuggestion[] = [];
   let fallback: "geocode" | null = null;
 
-  if (query.length < 2) {
+  if (query.length === 0) {
     results = topCities(state, limit);
+  } else if (query.length < MIN_SEARCH_CHARS) {
+    results = [];
   } else {
     results = searchCities(state, query, limit);
 

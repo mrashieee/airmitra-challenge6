@@ -1,7 +1,7 @@
 import { ALL_STATES } from "./states";
 import { stateCodeFor } from "./geocode";
 import { nearestCityName } from "./city-index";
-import type { CitySuggestion } from "./search-types";
+import { MIN_SEARCH_CHARS, type CitySuggestion } from "./search-types";
 
 type OpenMeteoResult = {
   id: number;
@@ -145,7 +145,7 @@ export async function geocodeCities(
   stateCode: string | null,
   limit = 8,
 ): Promise<CitySuggestion[]> {
-  if (query.trim().length < 2) return [];
+  if (query.trim().length < MIN_SEARCH_CHARS) return [];
 
   const [openMeteo, photon] = await Promise.all([
     fromOpenMeteo(query),

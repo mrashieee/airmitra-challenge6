@@ -1,5 +1,6 @@
 import cityIndex from "@/data/city-index.json";
 import type { CitySuggestion, CrossStateSuggestion } from "./search-types";
+import { MIN_SEARCH_CHARS } from "./search-types";
 import { findState } from "./states";
 import { distanceKm } from "./air/geo";
 
@@ -122,7 +123,7 @@ function ranked(
   limit: number,
 ): RawEntry[] {
   const q = normaliseCity(query);
-  if (q.length < 2) return [];
+  if (q.length < MIN_SEARCH_CHARS) return [];
 
   const scored = pool
     .map((entry) => ({ entry, value: score(entry, q) }))

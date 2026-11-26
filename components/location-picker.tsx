@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type {
-  CitySuggestion,
-  CrossStateSuggestion,
+import {
+  MIN_SEARCH_CHARS,
+  type CitySuggestion,
+  type CrossStateSuggestion,
 } from "@/lib/search-types";
 import { findState, STATES, UNION_TERRITORIES } from "@/lib/states";
 import { cn } from "@/lib/ui";
@@ -33,7 +34,7 @@ export function LocationSelect({
 
   useEffect(() => {
     const q = query.trim();
-    if (q.length < 2) return;
+    if (q.length < MIN_SEARCH_CHARS) return;
 
     const controller = new AbortController();
     const timer = setTimeout(() => {
@@ -69,7 +70,7 @@ export function LocationSelect({
 
   function onQueryChange(value: string) {
     setQuery(value);
-    if (value.trim().length < 2) {
+    if (value.trim().length < MIN_SEARCH_CHARS) {
       setResults([]);
       setCrossState([]);
       setSearching(false);
@@ -130,7 +131,7 @@ export function LocationSelect({
         {searching ? (
           <p className="mt-1 text-[10px] text-muted">Searching…</p>
         ) : null}
-        {!searching && query.trim().length >= 2 && results.length === 0 ? (
+        {!searching && query.trim().length >= MIN_SEARCH_CHARS && results.length === 0 ? (
           <p className="mt-1 text-[10px] text-muted">
             No place found in {stateName}. Try another spelling or state.
           </p>

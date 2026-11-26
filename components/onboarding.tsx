@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { distanceKm } from "@/lib/air/geo";
-import type {
-  CitySuggestion,
-  CrossStateSuggestion,
+import {
+  MIN_SEARCH_CHARS,
+  type CitySuggestion,
+  type CrossStateSuggestion,
 } from "@/lib/search-types";
 import { cn } from "@/lib/ui";
 import { SearchIcon } from "./icons";
@@ -143,7 +144,7 @@ export function Onboarding({ initial, onComplete }: Props) {
 
   // Popular, station-backed places for the selected state (no typing needed).
   useEffect(() => {
-    if (step !== 0 || query.trim().length >= 2) return;
+    if (step !== 0 || query.trim().length >= MIN_SEARCH_CHARS) return;
 
     const controller = new AbortController();
     fetch(
@@ -163,7 +164,7 @@ export function Onboarding({ initial, onComplete }: Props) {
 
   useEffect(() => {
     const q = query.trim();
-    if (q.length < 2) return;
+    if (q.length < MIN_SEARCH_CHARS) return;
 
     const controller = new AbortController();
     const timer = setTimeout(() => {
@@ -204,7 +205,7 @@ export function Onboarding({ initial, onComplete }: Props) {
 
   function onQueryChange(value: string) {
     setQuery(value);
-    if (value.trim().length < 2) {
+    if (value.trim().length < MIN_SEARCH_CHARS) {
       setResults([]);
       setCrossState([]);
       setFromGeocode(false);
@@ -543,10 +544,16 @@ export function Onboarding({ initial, onComplete }: Props) {
                   Searches {state.name} only. Places with a ground monitor are
                   listed first.
                 </p>
+                {query.trim().length > 0 &&
+                query.trim().length < MIN_SEARCH_CHARS ? (
+                  <p className="mt-1 text-[10px] text-muted">
+                    Type at least {MIN_SEARCH_CHARS} letters.
+                  </p>
+                ) : null}
                 {searching ? (
                   <p className="mt-2 text-[11px] text-muted">Searching…</p>
                 ) : null}
-                {!searching && query.trim().length >= 2 && results.length === 0 ? (
+                {!searching && query.trim().length >= MIN_SEARCH_CHARS && results.length === 0 ? (
                   <p className="mt-2 text-[11px] text-muted">
                     No place found in {state.name}.
                   </p>

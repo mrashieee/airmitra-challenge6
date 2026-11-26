@@ -1,3 +1,5 @@
+export const MIN_SEARCH_CHARS = 3;
+
 export type CitySuggestion = {
   id: number | string;
   name: string;
