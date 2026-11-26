@@ -435,7 +435,7 @@ export function HomeView({
               Do
             </span>
             <span className="text-right text-sm font-medium text-teal-50">
-              {reading.doNow[0]?.title}
+              {reading.impact.title}
             </span>
           </div>
           <div className="flex items-baseline justify-between gap-4">
