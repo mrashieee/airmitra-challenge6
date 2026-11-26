@@ -157,3 +157,35 @@ export function computeAqi(pollutants: PollutantValue[]): {
 
   return best;
 }
+
+/**
+ * US EPA AQI for PM2.5 (24h breakpoints). Many international apps — including
+ * aqi.in — display this scale, which reads much higher than India's CPCB NAQI
+ * for the same concentration. We never use it as the primary number; it is
+ * only shown so users comparing apps understand the gap.
+ */
+const US_PM25_BREAKPOINTS: Array<[number, number, number, number]> = [
+  [0, 12.0, 0, 50],
+  [12.1, 35.4, 51, 100],
+  [35.5, 55.4, 101, 150],
+  [55.5, 150.4, 151, 200],
+  [150.5, 250.4, 201, 300],
+  [250.5, 350.4, 301, 400],
+  [350.5, 500.4, 401, 500],
+];
+
+export function usAqiForPm25(pm25: number | undefined): number | null {
+  if (typeof pm25 !== "number" || !Number.isFinite(pm25) || pm25 < 0) {
+    return null;
+  }
+
+  const value = Math.min(pm25, 500.4);
+
+  for (const [clo, chi, ilo, ihi] of US_PM25_BREAKPOINTS) {
+    if (value >= clo && value <= chi) {
+      return Math.round(((ihi - ilo) / (chi - clo)) * (value - clo) + ilo);
+    }
+  }
+
+  return 500;
+}

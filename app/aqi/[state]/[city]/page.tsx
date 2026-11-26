@@ -67,6 +67,7 @@ export default async function CityPage({ params }: Params) {
 
   const reading = readingFromAir(state, air, undefined, false, profile);
   const styles = BAND_STYLES[reading.band.key];
+  const pm25 = reading.pollutants.find((p) => p.label === "PM2.5")?.value;
 
   const nearby = citiesForStatePage(state.code).filter(
     (entry) => entry.name !== city.name,
@@ -172,6 +173,14 @@ export default async function CityPage({ params }: Params) {
                   ? "ground monitor"
                   : "model estimate"}
               </span>
+              {reading.usAqi ? (
+                <span
+                  title="US EPA scale for comparison. The two scales cross over, so this can be higher or lower than NAQI."
+                  className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm"
+                >
+                  US AQI {reading.usAqi}
+                </span>
+              ) : null}
             </div>
           </div>
         </section>
@@ -201,6 +210,32 @@ export default async function CityPage({ params }: Params) {
             General guidance, not medical advice.
           </p>
         </section>
+
+        {reading.usAqi ? (
+          <section className="mt-4 rounded-2xl bg-card p-5 ring-1 ring-black/5">
+            <div className="text-sm font-semibold text-ink">
+              Why the number differs from other apps
+            </div>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              AirMitra uses India&apos;s CPCB NAQI. Many apps use the US EPA
+              AQI. The two scales cross over:{" "}
+              {pm25 !== undefined ? (
+                <>
+                  at PM2.5 {pm25} µg/m³, the US number is about{" "}
+                  <span className="font-medium text-ink">{reading.usAqi}</span>{" "}
+                  and NAQI is{" "}
+                </>
+              ) : null}
+              <span className="font-medium text-ink">{reading.aqi}</span>. For
+              cleaner air the US number is usually higher; at very high
+              pollution NAQI can be higher. Same air, different yardstick.
+            </p>
+            <p className="mt-2 text-[11px] leading-5 text-muted">
+              We use NAQI because CPCB, GRAP, and Indian health advisories use
+              it.
+            </p>
+          </section>
+        ) : null}
 
         {reading.source.type === "model" && reading.nearby?.length ? (
           <section className="mt-4 rounded-2xl bg-card p-5 ring-1 ring-black/5">

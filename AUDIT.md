@@ -23,7 +23,7 @@ _22 Nov 2026. Method: code inspection, live endpoint tests, Chrome installabilit
 | 13 | Travel mode | **Missing** | **0/10** |
 | 14 | Dark mode | **Missing** | **0/10** |
 | 15 | Accessibility | Partial | **6/10** |
-| 16 | Data trust / transparency | Working | **8/10** |
+| 16 | Data trust / transparency | Working | **9/10** |
 | 17 | Performance | Working | **8/10** |
 | 18 | Error handling | Working | **7/10** |
 | 19 | Automated tests | Ad-hoc only | **6/10** |
@@ -43,6 +43,7 @@ _22 Nov 2026. Method: code inspection, live endpoint tests, Chrome installabilit
 - CAMS fallback at the selected city.
 - Public `/aqi/<state>/<city>` pages with canonical/OG metadata, `sitemap.xml`, and `robots.txt`.
 - Nearby-monitor card (OpenAQ bbox, fresh <= 12h) when the city itself has no station.
+- US AQI equivalent shown alongside NAQI, with a scale explainer for app-to-app comparisons.
 - CPCB NAQI computed from PM2.5/PM10.
 - Cache + stale-ground fallback + degraded flags.
 - City-level queries verified: Mumbai (Kurla), Pune (Shivajinagar), Kozhikode (CAMS, nearest CPCB 82 km).

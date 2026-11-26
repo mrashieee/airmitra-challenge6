@@ -27,6 +27,7 @@ export type Reading = {
   degraded?: boolean;
   fallbackReason?: string;
   nearestStationKm?: number;
+  usAqi?: number;
   nearby?: NearbyStation[];
   demo: boolean;
   guidelines: string[];
@@ -349,6 +350,7 @@ export function readingFromAir(
     degraded: air.degraded,
     fallbackReason: air.fallbackReason,
     nearestStationKm: air.nearestStationKm,
+    usAqi: air.usAqi,
     nearby: air.nearby,
     demo,
     guidelines: guidelinesFor(air.band),

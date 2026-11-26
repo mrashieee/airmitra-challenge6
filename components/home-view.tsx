@@ -145,6 +145,14 @@ export function HomeView({
           <span className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm">
             {reading.source.type === "ground" ? "ground monitor" : "model estimate"}
           </span>
+          {reading.usAqi ? (
+            <span
+              title="US EPA scale for comparison. The two scales cross over, so this can be higher or lower than NAQI."
+              className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm"
+            >
+              US AQI {reading.usAqi}
+            </span>
+          ) : null}
           {reading.demo ? (
             <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700 ring-1 ring-amber-200">
               demo data
