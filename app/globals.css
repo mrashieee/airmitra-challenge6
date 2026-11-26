@@ -341,3 +341,72 @@ html.large-text {
     animation: none !important;
   }
 }
+
+@keyframes aurora {
+  0%,
+  100% {
+    transform: translate3d(-8%, 0, 0) scale(1);
+    opacity: 0.18;
+  }
+  50% {
+    transform: translate3d(10%, -8%, 0) scale(1.18);
+    opacity: 0.34;
+  }
+}
+
+.animate-aurora {
+  animation: aurora 16s ease-in-out infinite;
+}
+
+@keyframes shoot {
+  0%,
+  70% {
+    transform: translate3d(0, 0, 0) rotate(28deg);
+    opacity: 0;
+  }
+  74% {
+    opacity: 0.9;
+  }
+  82% {
+    transform: translate3d(-180px, 95px, 0) rotate(28deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(-180px, 95px, 0) rotate(28deg);
+    opacity: 0;
+  }
+}
+
+.animate-shoot {
+  animation: shoot 11s linear infinite;
+}
+
+/* Night hero: keep text readable over the dark weather scene. */
+.hero-night .text-ink {
+  color: #f8fafc;
+}
+
+.hero-night .text-muted {
+  color: #cbd5e1;
+}
+
+.hero-night .bg-white\/55 {
+  background-color: rgb(255 255 255 / 0.14);
+}
+
+.hero-night .ring-white\/60 {
+  --tw-ring-color: rgb(255 255 255 / 0.22);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-aurora,
+  .animate-shoot {
+    animation: none !important;
+  }
+}
+
+/* Night hero pollutant tiles: keep the highlighted tile readable. */
+.hero-night .pollutant-grid > div {
+  background-color: rgb(255 255 255 / 0.14);
+  --tw-ring-color: rgb(255 255 255 / 0.22);
+}

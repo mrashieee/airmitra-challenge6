@@ -1,20 +1,31 @@
 import type { WeatherCondition } from "@/lib/air/types";
 import { cn } from "@/lib/ui";
 
-const GRADIENTS: Record<WeatherCondition, string> = {
-  clear: "from-amber-100 via-orange-50 to-sky-100",
-  partly: "from-sky-100 via-white to-amber-50",
-  cloudy: "from-slate-400 via-slate-300 to-slate-200",
-  fog: "from-slate-100 via-white to-slate-200",
-  drizzle: "from-slate-200 via-sky-100 to-slate-200",
-  rain: "from-slate-300 via-sky-200 to-slate-300",
-  thunder: "from-slate-400 via-indigo-200 to-slate-300",
-  snow: "from-sky-100 via-white to-slate-200",
+const DAY_GRADIENTS: Record<WeatherCondition, string> = {
+  clear: "from-[#fde68a] via-[#fef3c7] to-[#7dd3fc]",
+  partly: "from-[#bae6fd] via-[#e0f2fe] to-[#fde68a]",
+  cloudy: "from-[#cbd5e1] via-[#e2e8f0] to-[#bae6fd]",
+  fog: "from-[#e2e8f0] via-[#f1f5f9] to-[#cbd5e1]",
+  drizzle: "from-[#cbd5e1] via-[#bae6fd] to-[#cbd5e1]",
+  rain: "from-[#64748b] via-[#94a3b8] to-[#38bdf8]",
+  thunder: "from-[#475569] via-[#6366f1] to-[#64748b]",
+  snow: "from-[#e0f2fe] via-white to-[#cbd5e1]",
+};
+
+const NIGHT_GRADIENTS: Record<WeatherCondition, string> = {
+  clear: "from-[#070b18] via-[#0f1730] to-[#1e2a4a]",
+  partly: "from-[#0a1024] via-[#152040] to-[#26324f]",
+  cloudy: "from-[#0f172a] via-[#1e293b] to-[#111827]",
+  fog: "from-[#1e293b] via-[#334155] to-[#1e293b]",
+  drizzle: "from-[#0b1220] via-[#1e293b] to-[#0b1220]",
+  rain: "from-[#0b1220] via-[#1e293b] to-[#0b1220]",
+  thunder: "from-[#080c18] via-[#312e81] to-[#0f172a]",
+  snow: "from-[#0f172a] via-[#1e293b] to-[#334155]",
 };
 
 export function weatherLabel(condition: WeatherCondition, isDay: boolean) {
   if (condition === "clear") return isDay ? "Sunny" : "Clear night";
-  if (condition === "partly") return "Partly cloudy";
+  if (condition === "partly") return isDay ? "Partly cloudy" : "Partly cloudy night";
   if (condition === "cloudy") return "Cloudy";
   if (condition === "fog") return "Fog";
   if (condition === "drizzle") return "Drizzle";
@@ -23,6 +34,7 @@ export function weatherLabel(condition: WeatherCondition, isDay: boolean) {
   return "Snow";
 }
 
+/** Day/night comes from Open-Meteo's `is_day`, computed for the city. */
 export function WeatherScene({
   condition,
   isDay,
@@ -32,147 +44,251 @@ export function WeatherScene({
   isDay: boolean;
   aqi: number;
 }) {
+  const night = !isDay;
   const showSun = isDay && (condition === "clear" || condition === "partly");
-  const showMoon = !isDay && condition === "clear";
-  const showClouds = ["partly", "cloudy", "fog", "drizzle", "rain", "thunder"].includes(
-    condition,
-  );
+  const showMoon = night && (condition === "clear" || condition === "partly");
+  const showStars = night && (condition === "clear" || condition === "partly");
+  const showClouds = [
+    "partly",
+    "cloudy",
+    "fog",
+    "drizzle",
+    "rain",
+    "thunder",
+  ].includes(condition);
   const showRain = ["drizzle", "rain", "thunder"].includes(condition);
   const showFog = condition === "fog";
-  const showStars = !isDay && (condition === "clear" || condition === "partly");
 
   return (
     <div
       aria-hidden
       className={cn(
-        "animate-scene pointer-events-none absolute inset-0 overflow-hidden bg-gradient-to-br",
-        GRADIENTS[condition],
+        "animate-scene pointer-events-none absolute inset-0 overflow-hidden bg-gradient-to-br transition-colors duration-1000",
+        night ? NIGHT_GRADIENTS[condition] : DAY_GRADIENTS[condition],
       )}
     >
+      {/* Day: sun with rotating rays + breathing halo */}
       {showSun ? (
         <>
-          <div className="animate-glow absolute -right-16 -top-20 h-64 w-64 rounded-full bg-amber-200/50 blur-3xl" />
-          <div className="animate-sun absolute -right-12 -top-14 h-52 w-52 rounded-full bg-amber-300/40 blur-2xl" />
+          <div className="animate-glow absolute -right-20 -top-24 h-72 w-72 rounded-full bg-amber-200/60 blur-3xl" />
+          <div className="animate-sun absolute -right-14 -top-16 h-56 w-56 rounded-full bg-amber-300/50 blur-2xl" />
           <div
-            className="animate-spin-slow absolute -right-2 -top-4 h-40 w-40 rounded-full opacity-60 blur-[1px]"
+            className="animate-spin-slow absolute -right-6 -top-6 h-48 w-48 opacity-70 blur-[1px]"
             style={{
               background:
-                "repeating-conic-gradient(from 0deg, rgba(251,191,36,0.45) 0deg 7deg, transparent 7deg 32deg)",
+                "repeating-conic-gradient(from 0deg, rgba(251,191,36,0.55) 0deg 6deg, transparent 6deg 28deg)",
             }}
           />
-          <div className="animate-float absolute right-7 top-5 h-16 w-16 rounded-full bg-amber-200/90 shadow-[0_0_64px_rgba(251,191,36,0.55)]" />
+          <div className="animate-float absolute right-8 top-5 h-16 w-16 rounded-full bg-amber-200 shadow-[0_0_80px_rgba(251,191,36,0.85)]" />
+          <div className="absolute -right-24 top-10 h-40 w-[60%] rotate-[24deg] bg-gradient-to-b from-amber-100/45 to-transparent blur-2xl" />
         </>
       ) : null}
 
+      {/* Night: moon + halo */}
       {showMoon ? (
         <>
-          <div className="animate-sun absolute -right-10 -top-12 h-48 w-48 rounded-full bg-indigo-200/40 blur-2xl" />
-          <div className="animate-float absolute right-8 top-5 h-14 w-14 rounded-full bg-slate-50/95 shadow-[0_0_48px_rgba(226,232,240,0.8)]" />
+          <div className="animate-glow absolute -right-16 -top-20 h-64 w-64 rounded-full bg-sky-200/20 blur-3xl" />
+          <div className="animate-float absolute right-8 top-6 h-16 w-16 rounded-full bg-slate-100 shadow-[0_0_70px_rgba(226,232,240,0.55)]">
+            <span className="absolute left-4 top-5 h-2.5 w-2.5 rounded-full bg-slate-300/70" />
+            <span className="absolute right-4 top-3 h-1.5 w-1.5 rounded-full bg-slate-300/60" />
+            <span className="absolute bottom-4 left-6 h-2 w-2 rounded-full bg-slate-300/50" />
+          </div>
         </>
       ) : null}
 
-      {showStars
-        ? Array.from({ length: 10 }).map((_, index) => (
+      {/* Night: stars + one shooting star */}
+      {showStars ? (
+        <>
+          {Array.from({ length: 26 }).map((_, index) => (
             <span
-              key={index}
-              className="animate-twinkle absolute h-1 w-1 rounded-full bg-white/90"
+              key={`star-${index}`}
+              className="animate-twinkle absolute rounded-full bg-white"
               style={{
-                left: `${8 + index * 9}%`,
-                top: `${8 + (index % 4) * 12}%`,
-                animationDelay: `${index * 0.28}s`,
+                left: `${(index * 37) % 96}%`,
+                top: `${(index * 23) % 70}%`,
+                height: index % 5 === 0 ? "2.5px" : "1.5px",
+                width: index % 5 === 0 ? "2.5px" : "1.5px",
+                animationDelay: `${(index % 9) * 0.35}s`,
+                animationDuration: `${2.4 + (index % 4) * 0.7}s`,
+                opacity: index % 3 === 0 ? 0.9 : 0.55,
               }}
             />
-          ))
-        : null}
-
-      {condition === "cloudy" ? (
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-500/25 via-transparent to-transparent" />
+          ))}
+          <span className="animate-shoot absolute left-[18%] top-[12%] h-px w-16 bg-gradient-to-r from-white/0 via-white/90 to-white/0" />
+          <span className="animate-shoot absolute left-[52%] top-[4%] h-px w-10 bg-gradient-to-r from-white/0 via-white/70 to-white/0 [animation-delay:5s]" />
+        </>
       ) : null}
 
+      {/* Clouds: shared day/night, stronger at night with a moonlit edge */}
       {showClouds ? (
         <>
-          <div className="animate-cloud absolute -left-10 top-6">
-            <div className="relative h-16 w-48">
-              <div className="absolute bottom-0 h-9 w-48 rounded-full bg-white/70 blur-[2px]" />
-              <div className="absolute bottom-4 left-4 h-12 w-16 rounded-full bg-white/75 blur-[1px]" />
-              <div className="absolute bottom-3 left-20 h-10 w-16 rounded-full bg-white/65 blur-[1px]" />
+          <div className="animate-cloud absolute -left-16 top-4 scale-90">
+            <div className="relative h-20 w-56">
+              <div
+                className={cn(
+                  "absolute bottom-0 h-11 w-56 rounded-full blur-[2px]",
+                  night ? "bg-slate-300/25" : "bg-white/80",
+                )}
+              />
+              <div
+                className={cn(
+                  "absolute bottom-5 left-5 h-14 w-20 rounded-full blur-[1px]",
+                  night ? "bg-slate-200/30" : "bg-white/85",
+                )}
+              />
+              <div
+                className={cn(
+                  "absolute bottom-4 left-24 h-11 w-20 rounded-full blur-[1px]",
+                  night ? "bg-slate-200/25" : "bg-white/75",
+                )}
+              />
             </div>
           </div>
-          <div className="animate-cloud absolute -right-8 top-24 [animation-delay:2.5s] [animation-duration:18s]">
-            <div className="relative h-12 w-36">
-              <div className="absolute bottom-0 h-7 w-36 rounded-full bg-white/55 blur-[2px]" />
-              <div className="absolute bottom-3 left-4 h-9 w-14 rounded-full bg-white/60 blur-[1px]" />
+
+          <div className="animate-cloud absolute -right-12 top-24 [animation-delay:2.5s] [animation-duration:18s]">
+            <div className="relative h-14 w-44">
+              <div
+                className={cn(
+                  "absolute bottom-0 h-8 w-44 rounded-full blur-[2px]",
+                  night ? "bg-slate-300/20" : "bg-white/65",
+                )}
+              />
+              <div
+                className={cn(
+                  "absolute bottom-3 left-5 h-10 w-16 rounded-full blur-[1px]",
+                  night ? "bg-slate-200/25" : "bg-white/70",
+                )}
+              />
             </div>
           </div>
-          <div className="animate-cloud absolute -left-16 top-2 scale-75 opacity-70 [animation-delay:7s] [animation-duration:26s]">
-            <div className="relative h-10 w-40">
-              <div className="absolute bottom-0 h-6 w-40 rounded-full bg-white/45 blur-[3px]" />
-              <div className="absolute bottom-2 left-6 h-8 w-16 rounded-full bg-white/50 blur-[2px]" />
-            </div>
-          </div>
+
           {condition !== "partly" ? (
-            <div className="animate-cloud absolute left-10 top-32 [animation-delay:5s] [animation-duration:22s]">
-              <div className="relative h-10 w-28">
-                <div className="absolute bottom-0 h-6 w-28 rounded-full bg-white/45 blur-[2px]" />
-                <div className="absolute bottom-2 left-3 h-8 w-12 rounded-full bg-white/50 blur-[1px]" />
+            <>
+              <div className="animate-cloud absolute left-8 top-32 [animation-delay:5s] [animation-duration:22s]">
+                <div className="relative h-12 w-36">
+                  <div
+                    className={cn(
+                      "absolute bottom-0 h-7 w-36 rounded-full blur-[2px]",
+                      night ? "bg-slate-300/20" : "bg-white/55",
+                    )}
+                  />
+                  <div
+                    className={cn(
+                      "absolute bottom-2 left-4 h-9 w-14 rounded-full blur-[1px]",
+                      night ? "bg-slate-200/25" : "bg-white/60",
+                    )}
+                  />
+                </div>
               </div>
-            </div>
+              <div className="animate-cloud absolute -right-20 top-10 scale-75 opacity-70 [animation-delay:8s] [animation-duration:28s]">
+                <div className="relative h-10 w-40">
+                  <div
+                    className={cn(
+                      "absolute bottom-0 h-6 w-40 rounded-full blur-[3px]",
+                      night ? "bg-slate-300/15" : "bg-white/45",
+                    )}
+                  />
+                  <div
+                    className={cn(
+                      "absolute bottom-2 left-6 h-8 w-16 rounded-full blur-[2px]",
+                      night ? "bg-slate-200/20" : "bg-white/50",
+                    )}
+                  />
+                </div>
+              </div>
+            </>
           ) : null}
         </>
       ) : null}
 
+      {/* Rain */}
       {showRain ? (
         <>
           <div className="absolute inset-0">
-            {Array.from({ length: 24 }).map((_, index) => (
+            {Array.from({ length: 34 }).map((_, index) => (
               <span
-                key={index}
-                className="animate-rain absolute top-0 h-6 w-px bg-sky-800/45"
+                key={`rain-a-${index}`}
+                className={cn(
+                  "animate-rain absolute top-0 h-7 w-px",
+                  night ? "bg-sky-200/45" : "bg-sky-900/40",
+                )}
                 style={{
-                  left: `${(index * 5 + 3) % 100}%`,
-                  animationDelay: `${(index % 9) * 0.14}s`,
-                  animationDuration: `${0.55 + (index % 4) * 0.12}s`,
+                  left: `${(index * 7 + 3) % 100}%`,
+                  animationDelay: `${(index % 11) * 0.12}s`,
+                  animationDuration: `${0.5 + (index % 4) * 0.1}s`,
                 }}
               />
             ))}
           </div>
           <div className="absolute inset-0">
-            {Array.from({ length: 14 }).map((_, index) => (
+            {Array.from({ length: 18 }).map((_, index) => (
               <span
-                key={index}
-                className="animate-rain absolute top-0 h-3 w-px bg-sky-600/25"
+                key={`rain-b-${index}`}
+                className={cn(
+                  "animate-rain absolute top-0 h-4 w-px",
+                  night ? "bg-sky-300/25" : "bg-white/45",
+                )}
                 style={{
-                  left: `${(index * 8 + 9) % 100}%`,
-                  animationDelay: `${(index % 6) * 0.22}s`,
-                  animationDuration: `${0.9 + (index % 3) * 0.18}s`,
+                  left: `${(index * 11 + 9) % 100}%`,
+                  animationDelay: `${(index % 7) * 0.2}s`,
+                  animationDuration: `${0.9 + (index % 3) * 0.16}s`,
                 }}
               />
             ))}
           </div>
-          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white/35 to-transparent" />
+          <div
+            className={cn(
+              "absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t to-transparent",
+              night ? "from-black/40" : "from-white/35",
+            )}
+          />
         </>
       ) : null}
 
+      {/* Fog */}
       {showFog ? (
         <>
-          <div className="animate-fog absolute left-0 top-16 h-12 w-[140%] rounded-full bg-white/60 blur-2xl" />
-          <div className="animate-fog absolute -left-10 top-28 h-10 w-[130%] rounded-full bg-white/45 blur-2xl [animation-delay:3s]" />
+          <div
+            className={cn(
+              "animate-fog absolute left-0 top-14 h-14 w-[150%] rounded-full blur-2xl",
+              night ? "bg-slate-200/25" : "bg-white/70",
+            )}
+          />
+          <div
+            className={cn(
+              "animate-fog absolute -left-10 top-28 h-12 w-[140%] rounded-full blur-2xl [animation-delay:3s]",
+              night ? "bg-slate-200/20" : "bg-white/55",
+            )}
+          />
+          <div
+            className={cn(
+              "animate-fog absolute -left-16 top-40 h-10 w-[130%] rounded-full blur-2xl [animation-delay:6s]",
+              night ? "bg-slate-300/15" : "bg-white/40",
+            )}
+          />
         </>
       ) : null}
 
+      {/* Thunder flash */}
       {condition === "thunder" ? (
-        <div className="animate-flash absolute inset-0 bg-indigo-100/70" />
+        <div
+          className={cn(
+            "animate-flash absolute inset-0",
+            night ? "bg-indigo-200/40" : "bg-indigo-100/70",
+          )}
+        />
       ) : null}
 
+      {/* Snow */}
       {condition === "snow" ? (
         <div className="absolute inset-0">
-          {Array.from({ length: 14 }).map((_, index) => (
+          {Array.from({ length: 20 }).map((_, index) => (
             <span
-              key={index}
-              className="animate-snow absolute h-1.5 w-1.5 rounded-full bg-white/80"
+              key={`snow-${index}`}
+              className="animate-snow absolute h-1.5 w-1.5 rounded-full bg-white/85"
               style={{
                 left: `${(index * 8 + 6) % 100}%`,
-                animationDelay: `${(index % 5) * 0.4}s`,
+                animationDelay: `${(index % 6) * 0.35}s`,
                 animationDuration: `${2.4 + (index % 3) * 0.6}s`,
               }}
             />
@@ -180,14 +296,28 @@ export function WeatherScene({
         </div>
       ) : null}
 
-      {/* AQI haze: subtle, never overpowers the weather */}
-      {aqi > 300 ? <div className="absolute inset-0 bg-red-900/10" /> : null}
-      {aqi > 200 && aqi <= 300 ? (
-        <div className="absolute inset-0 bg-orange-900/5" />
+      {/* Night aurora wash */}
+      {night ? (
+        <div className="animate-aurora absolute -left-1/4 top-1/3 h-40 w-[90%] rounded-full bg-indigo-400/20 blur-3xl" />
       ) : null}
 
-      {/* Readability veil */}
-      <div className="absolute inset-0 bg-white/15" />
+      {/* AQI tint */}
+      {aqi > 300 ? (
+        <div className={cn("absolute inset-0", night ? "bg-red-900/25" : "bg-red-900/10")} />
+      ) : null}
+      {aqi > 200 && aqi <= 300 ? (
+        <div className={cn("absolute inset-0", night ? "bg-orange-900/20" : "bg-orange-900/5")} />
+      ) : null}
+
+      {/* Readability veil: light on day, dark on night */}
+      <div
+        className={cn(
+          "absolute inset-0",
+          night
+            ? "bg-gradient-to-b from-black/10 via-transparent to-black/35"
+            : "bg-white/15",
+        )}
+      />
     </div>
   );
 }

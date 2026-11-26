@@ -74,7 +74,12 @@ export function HomeView({
   return (
     <div className="space-y-4">
       {/* Hero */}
-      <section className="animate-rise relative overflow-hidden rounded-3xl ring-1 ring-black/5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+      <section
+        className={cn(
+          "animate-rise relative overflow-hidden rounded-3xl ring-1 ring-black/5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]",
+          !reading.weather.isDay && "hero-night",
+        )}
+      >
         <WeatherScene
           condition={reading.weather.condition}
           isDay={reading.weather.isDay}
@@ -196,7 +201,7 @@ export function HomeView({
           )}
         </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-6">
+        <div className="pollutant-grid mt-5 grid grid-cols-3 gap-2 sm:grid-cols-6">
           {displayPollutants.map((p) => (
             <div
               key={p.label}

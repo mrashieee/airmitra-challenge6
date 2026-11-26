@@ -108,7 +108,12 @@ export default async function CityPage({ params }: Params) {
       </header>
 
       <main className="mx-auto w-full max-w-3xl px-4 pb-16">
-        <section className="relative overflow-hidden rounded-3xl ring-1 ring-black/5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
+        <section
+          className={cn(
+            "relative overflow-hidden rounded-3xl ring-1 ring-black/5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]",
+            !reading.weather.isDay && "hero-night",
+          )}
+        >
           <WeatherScene
             condition={reading.weather.condition}
             isDay={reading.weather.isDay}
