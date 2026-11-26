@@ -29,6 +29,7 @@ _22 Nov 2026. Method: code inspection, live endpoint tests, Chrome installabilit
 | 19 | Automated tests | Ad-hoc only | **6/10** |
 | 20 | Security | Partial | **6/10** |
 | 21 | Public city pages + SEO | Working | **8/10** |
+| 22 | Nearby-monitor context for station-less cities | Working | **7/10** |
 
 **Overall MVP readiness: ~7.2/10.** Strong shell and data; the intelligence layer is now real, with fallbacks.
 
@@ -41,6 +42,7 @@ _22 Nov 2026. Method: code inspection, live endpoint tests, Chrome installabilit
 - OpenAQ ground monitors when CPCB is unreachable (Vercel blocks data.gov.in).
 - CAMS fallback at the selected city.
 - Public `/aqi/<state>/<city>` pages with canonical/OG metadata, `sitemap.xml`, and `robots.txt`.
+- Nearby-monitor card (OpenAQ bbox, fresh <= 12h) when the city itself has no station.
 - CPCB NAQI computed from PM2.5/PM10.
 - Cache + stale-ground fallback + degraded flags.
 - City-level queries verified: Mumbai (Kurla), Pune (Shivajinagar), Kozhikode (CAMS, nearest CPCB 82 km).

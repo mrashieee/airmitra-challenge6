@@ -2,6 +2,7 @@ import type { StateEntry } from "@/lib/states";
 import { cacheGet, cacheGetStale, cacheSet } from "./cache";
 import { fetchCpcb } from "./providers/cpcb";
 import { fetchOpenAQ } from "./providers/openaq";
+import { fetchNearbyStations } from "./providers/nearby";
 import { fetchOpenMeteoAir, fetchWeather } from "./providers/openmeteo";
 import type { AirReading, Target } from "./types";
 
@@ -55,6 +56,7 @@ export async function resolveAirReading(
   let sample = cpcb.sample ?? openaq.sample;
   let fallbackReason: AirReading["fallbackReason"];
   let nearestStationKm: number | undefined;
+  let modelNearby: AirReading["nearby"];
 
   if (!sample) {
     const nearest = cpcb.nearestKm ?? openaq.nearestKm;
@@ -83,6 +85,15 @@ export async function resolveAirReading(
     }
 
     sample = await fetchOpenMeteoAir(state, place);
+
+    if (sample) {
+      const nearby = await withTimeout(
+        fetchNearbyStations(place),
+        6500,
+        [],
+      );
+      if (nearby.length) modelNearby = nearby;
+    }
   }
 
   if (!sample) throw new Error(`No air data available for ${state.code}`);
@@ -104,6 +115,7 @@ export async function resolveAirReading(
     degraded: fallbackReason === "cpcb_unavailable" || fallbackReason === "cams_unavailable",
     fallbackReason,
     nearestStationKm,
+    nearby: modelNearby,
   };
 
   cacheSet(cacheKey, reading, CACHE_TTL_MS);

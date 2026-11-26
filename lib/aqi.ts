@@ -1,6 +1,6 @@
 import { BANDS, bandFor } from "@/lib/air/naqi";
 import type { Band, BandKey } from "@/lib/air/naqi";
-import type { AirReading } from "@/lib/air/types";
+import type { AirReading, NearbyStation } from "@/lib/air/types";
 import type { FamilyMember, Profile } from "./profile";
 import type { StateEntry } from "./states";
 
@@ -27,6 +27,7 @@ export type Reading = {
   degraded?: boolean;
   fallbackReason?: string;
   nearestStationKm?: number;
+  nearby?: NearbyStation[];
   demo: boolean;
   guidelines: string[];
   family: { name: string; meta: string; advice: string; tone: "warn" | "calm" }[];
@@ -348,6 +349,7 @@ export function readingFromAir(
     degraded: air.degraded,
     fallbackReason: air.fallbackReason,
     nearestStationKm: air.nearestStationKm,
+    nearby: air.nearby,
     demo,
     guidelines: guidelinesFor(air.band),
     family: familyFor(air.aqi, air.band, profile),

@@ -202,6 +202,50 @@ export default async function CityPage({ params }: Params) {
           </p>
         </section>
 
+        {reading.source.type === "model" && reading.nearby?.length ? (
+          <section className="mt-4 rounded-2xl bg-card p-5 ring-1 ring-black/5">
+            <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+              <PinIcon className="h-4 w-4 text-brand" />
+              Nearest ground monitors
+            </div>
+            <p className="mt-1 text-xs leading-5 text-muted">
+              {city.name} has no continuous monitor. Closest live stations:
+            </p>
+            <div className="mt-3 space-y-2">
+              {reading.nearby.map((station) => (
+                <div
+                  key={station.name}
+                  className="flex items-center justify-between gap-3 rounded-xl bg-paper px-3 py-2 ring-1 ring-line"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate text-xs font-medium text-ink">
+                      {station.name}
+                    </div>
+                    <div className="text-[10px] text-muted">
+                      {station.distanceKm} km away · updated{" "}
+                      {station.ageMinutes < 60
+                        ? `${station.ageMinutes} min ago`
+                        : `${Math.round(station.ageMinutes / 60)}h ago`}
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="tabular text-sm font-semibold text-ink">
+                      {station.aqi}
+                    </div>
+                    <div className="text-[10px] text-muted">
+                      {station.bandLabel}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-[11px] leading-5 text-muted">
+              Different airshed, so use this as regional context — not a local
+              reading.
+            </p>
+          </section>
+        ) : null}
+
         <section className="mt-4 rounded-2xl bg-card p-5 ring-1 ring-black/5">
           <div className="flex items-center gap-2 text-sm font-semibold text-ink">
             <SparkIcon className="h-4 w-4 text-brand" />
@@ -251,7 +295,10 @@ export default async function CityPage({ params }: Params) {
 
         <p className="mt-6 text-[11px] leading-5 text-muted">
           Source: {reading.source.station}. India AQI uses CPCB NAQI, not the US
-          EPA scale. AirMitra is not a medical service.
+          EPA scale. {reading.source.type === "model"
+            ? `${city.name} has no continuous ground monitor, so this is a CAMS model estimate, not a measured reading.`
+            : "Measured at a ground monitor."}{" "}
+          AirMitra is not a medical service.
         </p>
       </main>
     </div>

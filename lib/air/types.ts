@@ -66,4 +66,15 @@ export type AirReading = AirSample & {
     | "cams_unavailable"
     | "station_too_far";
   nearestStationKm?: number;
+  /** Live ground monitors within 100 km, when this reading is model-based. */
+  nearby?: NearbyStation[];
+};
+
+export type NearbyStation = {
+  name: string;
+  distanceKm: number;
+  aqi: number;
+  bandLabel: string;
+  updatedAt: string;
+  ageMinutes: number;
 };

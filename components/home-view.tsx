@@ -157,6 +157,10 @@ export function HomeView({
             <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700 ring-1 ring-amber-200">
               cached
             </span>
+          ) : reading.source.type === "model" ? (
+            <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700 ring-1 ring-amber-200">
+              model only
+            </span>
           ) : (
             <span className="rounded-full bg-teal-50 px-2 py-0.5 font-medium text-teal-700 ring-1 ring-teal-100">
               live
@@ -186,7 +190,45 @@ export function HomeView({
         </div>
       </section>
 
-      {/* Today's brief: AI when available, rules otherwise */}
+      {reading.source.type === "model" && reading.nearby?.length ? (
+        <SectionCard
+          icon={<PinIcon className="h-4 w-4" />}
+          title="Nearest ground monitors"
+          subtitle={`No monitor in ${reading.area} — these are the closest live stations`}
+          delay={30}
+        >
+          <div className="space-y-2">
+            {reading.nearby.map((station) => (
+              <div
+                key={station.name}
+                className="flex items-center justify-between gap-3 rounded-xl bg-paper px-3 py-2 ring-1 ring-line"
+              >
+                <div className="min-w-0">
+                  <div className="truncate text-xs font-medium text-ink">
+                    {station.name}
+                  </div>
+                  <div className="text-[10px] text-muted">
+                    {station.distanceKm} km away · updated{" "}
+                    {station.ageMinutes < 60
+                      ? `${station.ageMinutes} min ago`
+                      : `${Math.round(station.ageMinutes / 60)}h ago`}
+                  </div>
+                </div>
+                <div className="shrink-0 text-right">
+                  <div className="tabular text-sm font-semibold text-ink">
+                    {station.aqi}
+                  </div>
+                  <div className="text-[10px] text-muted">{station.bandLabel}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-[11px] leading-5 text-muted">
+            Different airshed from {reading.area}, so use this as context,
+            not a local reading.
+          </p>
+        </SectionCard>
+      ) : null}
       {brief ? (
         <SectionCard
           icon={<SparkIcon className="h-4 w-4" />}

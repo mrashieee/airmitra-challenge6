@@ -12,12 +12,12 @@ import type { AirSample, Target } from "../types";
 
 const BASE = "https://api.openaq.org/v3";
 
-type OpenAQSensor = {
+export type OpenAQSensor = {
   id: number;
   parameter: { name: string; units: string };
 };
 
-type OpenAQLocation = {
+export type OpenAQLocation = {
   id: number;
   name: string;
   country?: { code?: string };
@@ -25,10 +25,16 @@ type OpenAQLocation = {
   sensors?: OpenAQSensor[];
 };
 
-type OpenAQLatest = {
+export type OpenAQLatest = {
   sensorsId: number;
   value: number;
   datetime?: { utc?: string; local?: string };
+};
+
+export type OpenAQResult = {
+  sample: AirSample | null;
+  failed: boolean;
+  nearestKm?: number;
 };
 
 const PARAM_MAP: Record<string, PollutantKey> = {
@@ -61,11 +67,84 @@ function normalise(
   return null;
 }
 
-export type OpenAQResult = {
-  sample: AirSample | null;
-  failed: boolean;
-  nearestKm?: number;
-};
+/** Turns an OpenAQ location + its latest readings into a normalised sample. */
+export function buildSample(
+  location: OpenAQLocation,
+  latest: OpenAQLatest[],
+  area: string,
+  distanceKmValue: number,
+): AirSample | null {
+  const sensorMap = new Map(
+    (location.sensors ?? []).map((sensor) => [sensor.id, sensor]),
+  );
+
+  // OpenAQ can return older rows alongside today's reading for the same
+  // sensor, so keep only the freshest row per sensor.
+  const timeOf = (row: OpenAQLatest) =>
+    Date.parse(row.datetime?.utc ?? "") || 0;
+
+  const freshest = new Map<number, OpenAQLatest>();
+  for (const row of latest) {
+    const previous = freshest.get(row.sensorsId);
+    if (!previous || timeOf(row) >= timeOf(previous)) {
+      freshest.set(row.sensorsId, row);
+    }
+  }
+
+  const pollutants: PollutantValue[] = [];
+  let latestTime: string | undefined;
+
+  for (const reading of freshest.values()) {
+    const sensor = sensorMap.get(reading.sensorsId);
+    if (!sensor) continue;
+    const keyName = PARAM_MAP[sensor.parameter.name];
+    if (!keyName) continue;
+    if (typeof reading.value !== "number" || !Number.isFinite(reading.value)) {
+      continue;
+    }
+
+    const value = normalise(
+      keyName,
+      reading.value,
+      sensor.parameter.units ?? "",
+    );
+    if (value === null) continue;
+
+    const stamp = reading.datetime?.utc;
+    if (stamp && (!latestTime || Date.parse(stamp) > Date.parse(latestTime))) {
+      latestTime = stamp;
+    }
+
+    pollutants.push({
+      key: keyName,
+      label: POLLUTANT_LABELS[keyName],
+      value,
+      unit: POLLUTANT_UNITS[keyName],
+    });
+  }
+
+  const pm = pollutants.filter((p) => p.key === "pm25" || p.key === "pm10");
+  const result = computeAqi(pm.length ? pm : pollutants);
+  if (!result) return null;
+
+  const band = bandFor(result.aqi);
+
+  return {
+    area,
+    aqi: result.aqi,
+    band: band.key,
+    bandLabel: band.label,
+    dominant: result.dominant,
+    basis: pm.length ? "PM2.5/PM10" : "mixed",
+    pollutants,
+    source: {
+      type: "ground",
+      station: `${location.name} · OpenAQ`,
+      distanceKm: Math.round(distanceKmValue * 10) / 10,
+      updatedAt: latestTime ?? new Date().toISOString(),
+    },
+  };
+}
 
 export async function fetchOpenAQ(
   state: StateEntry,
@@ -130,68 +209,17 @@ export async function fetchOpenAQ(
     }
 
     const latest = (await latestRes.json()) as { results?: OpenAQLatest[] };
-    const sensorMap = new Map(
-      (best.location.sensors ?? []).map((sensor) => [sensor.id, sensor]),
+    const sample = buildSample(
+      best.location,
+      latest.results ?? [],
+      place.city,
+      best.distance,
     );
-
-    const pollutants: PollutantValue[] = [];
-    for (const reading of latest.results ?? []) {
-      const sensor = sensorMap.get(reading.sensorsId);
-      if (!sensor) continue;
-      const keyName = PARAM_MAP[sensor.parameter.name];
-      if (!keyName) continue;
-      if (typeof reading.value !== "number" || !Number.isFinite(reading.value)) {
-        continue;
-      }
-
-      const value = normalise(
-        keyName,
-        reading.value,
-        sensor.parameter.units ?? "",
-      );
-      if (value === null) continue;
-
-      pollutants.push({
-        key: keyName,
-        label: POLLUTANT_LABELS[keyName],
-        value,
-        unit: POLLUTANT_UNITS[keyName],
-      });
-    }
-
-    const pm = pollutants.filter(
-      (p) => p.key === "pm25" || p.key === "pm10",
-    );
-    const result = computeAqi(pm.length ? pm : pollutants);
-    if (!result) {
-      return {
-        sample: null,
-        failed: false,
-        nearestKm: Math.round(best.distance * 10) / 10,
-      };
-    }
-
-    const band = bandFor(result.aqi);
-    const latestTime = latest.results?.[0]?.datetime?.utc;
 
     return {
+      sample,
       failed: false,
       nearestKm: Math.round(best.distance * 10) / 10,
-      sample: {
-        area: place.city,
-        aqi: result.aqi,
-        band: band.key,
-        bandLabel: band.label,
-        dominant: result.dominant,
-        basis: pm.length ? "PM2.5/PM10" : "mixed",
-        pollutants,
-        source: {
-          type: "ground",
-          station: `${best.location.name} · OpenAQ`,
-          distanceKm: Math.round(best.distance * 10) / 10,
-          updatedAt: latestTime ?? new Date().toISOString(),
-        },
-      },
     };
   } catch {
     return { sample: null, failed: true };
