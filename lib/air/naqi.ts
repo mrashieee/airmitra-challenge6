@@ -174,18 +174,60 @@ const US_PM25_BREAKPOINTS: Array<[number, number, number, number]> = [
   [350.5, 500.4, 401, 500],
 ];
 
-export function usAqiForPm25(pm25: number | undefined): number | null {
-  if (typeof pm25 !== "number" || !Number.isFinite(pm25) || pm25 < 0) {
-    return null;
-  }
+const US_PM10_BREAKPOINTS: Array<[number, number, number, number]> = [
+  [0, 54, 0, 50],
+  [55, 154, 51, 100],
+  [155, 254, 101, 150],
+  [255, 354, 151, 200],
+  [355, 424, 201, 300],
+  [425, 504, 301, 400],
+  [505, 604, 401, 500],
+];
 
-  const value = Math.min(pm25, 500.4);
-
-  for (const [clo, chi, ilo, ihi] of US_PM25_BREAKPOINTS) {
+function interpolate(
+  table: Array<[number, number, number, number]>,
+  value: number,
+): number {
+  for (const [clo, chi, ilo, ihi] of table) {
     if (value >= clo && value <= chi) {
       return Math.round(((ihi - ilo) / (chi - clo)) * (value - clo) + ilo);
     }
   }
-
   return 500;
+}
+
+export function usAqiForPm25(pm25: number | undefined): number | null {
+  if (typeof pm25 !== "number" || !Number.isFinite(pm25) || pm25 < 0) {
+    return null;
+  }
+  return interpolate(US_PM25_BREAKPOINTS, Math.min(pm25, 500.4));
+}
+
+export function usAqiForPm10(pm10: number | undefined): number | null {
+  if (typeof pm10 !== "number" || !Number.isFinite(pm10) || pm10 < 0) {
+    return null;
+  }
+  return interpolate(US_PM10_BREAKPOINTS, Math.min(pm10, 604));
+}
+
+/**
+ * US EPA AQI is the highest PM sub-index, not just PM2.5. Returning the basis
+ * keeps the comparison honest when NAQI is driven by a different pollutant.
+ */
+export function usAqiForPollutants(
+  pollutants: PollutantValue[],
+): { aqi: number; basis: string } | null {
+  const pm25 = pollutants.find((p) => p.key === "pm25")?.value;
+  const pm10 = pollutants.find((p) => p.key === "pm10")?.value;
+
+  const candidates = [
+    { aqi: usAqiForPm25(pm25), basis: "PM2.5" },
+    { aqi: usAqiForPm10(pm10), basis: "PM10" },
+  ].filter(
+    (c): c is { aqi: number; basis: string } =>
+      typeof c.aqi === "number" && Number.isFinite(c.aqi),
+  );
+
+  if (!candidates.length) return null;
+  return candidates.reduce((best, next) => (next.aqi > best.aqi ? next : best));
 }

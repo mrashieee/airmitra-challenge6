@@ -147,10 +147,11 @@ export function HomeView({
           </span>
           {reading.usAqi ? (
             <span
-              title="US EPA scale for comparison. The two scales cross over, so this can be higher or lower than NAQI."
+              title={`US EPA scale for comparison, driven by ${reading.usAqiBasis ?? "PM"}. The two scales cross over, so this can be higher or lower than NAQI.`}
               className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm"
             >
               US AQI {reading.usAqi}
+              {reading.usAqiBasis ? ` · ${reading.usAqiBasis}` : ""}
             </span>
           ) : null}
           {reading.demo ? (

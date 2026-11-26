@@ -1,6 +1,6 @@
 import type { StateEntry } from "@/lib/states";
 import { cacheGet, cacheGetStale, cacheSet } from "./cache";
-import { usAqiForPm25 } from "./naqi";
+import { usAqiForPollutants } from "./naqi";
 import { fetchCpcb } from "./providers/cpcb";
 import { fetchOpenAQ } from "./providers/openaq";
 import { fetchNearbyStations } from "./providers/nearby";
@@ -99,8 +99,7 @@ export async function resolveAirReading(
 
   if (!sample) throw new Error(`No air data available for ${state.code}`);
 
-  const pm25 = sample.pollutants.find((p) => p.key === "pm25")?.value;
-  const usAqi = usAqiForPm25(pm25) ?? undefined;
+  const us = usAqiForPollutants(sample.pollutants) ?? undefined;
 
   const reading: AirReading = {
     ...sample,
@@ -119,7 +118,8 @@ export async function resolveAirReading(
     degraded: fallbackReason === "cpcb_unavailable" || fallbackReason === "cams_unavailable",
     fallbackReason,
     nearestStationKm,
-    usAqi,
+    usAqi: us?.aqi,
+    usAqiBasis: us?.basis,
     nearby: modelNearby,
   };
 

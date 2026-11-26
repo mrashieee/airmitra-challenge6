@@ -67,7 +67,12 @@ export default async function CityPage({ params }: Params) {
 
   const reading = readingFromAir(state, air, undefined, false, profile);
   const styles = BAND_STYLES[reading.band.key];
-  const pm25 = reading.pollutants.find((p) => p.label === "PM2.5")?.value;
+  const usBasisValue = reading.pollutants.find(
+    (p) => p.label === reading.usAqiBasis,
+  )?.value;
+  const dominantValue = reading.pollutants.find(
+    (p) => p.label === reading.dominant,
+  )?.value;
 
   const nearby = citiesForStatePage(state.code).filter(
     (entry) => entry.name !== city.name,
@@ -175,10 +180,11 @@ export default async function CityPage({ params }: Params) {
               </span>
               {reading.usAqi ? (
                 <span
-                  title="US EPA scale for comparison. The two scales cross over, so this can be higher or lower than NAQI."
+                  title={`US EPA scale for comparison, driven by ${reading.usAqiBasis ?? "PM"}. The two scales cross over, so this can be higher or lower than NAQI.`}
                   className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm"
                 >
                   US AQI {reading.usAqi}
+                  {reading.usAqiBasis ? ` · ${reading.usAqiBasis}` : ""}
                 </span>
               ) : null}
             </div>
@@ -218,21 +224,30 @@ export default async function CityPage({ params }: Params) {
             </div>
             <p className="mt-2 text-sm leading-6 text-muted">
               AirMitra uses India&apos;s CPCB NAQI. Many apps use the US EPA
-              AQI. The two scales cross over:{" "}
-              {pm25 !== undefined ? (
-                <>
-                  at PM2.5 {pm25} µg/m³, the US number is about{" "}
-                  <span className="font-medium text-ink">{reading.usAqi}</span>{" "}
-                  and NAQI is{" "}
-                </>
+              AQI. Same air, different breakpoints:
+            </p>
+            <p className="mt-2 rounded-xl bg-paper px-3 py-2 text-sm leading-6 text-ink ring-1 ring-line">
+              US AQI{" "}
+              <span className="font-semibold">{reading.usAqi}</span>
+              {usBasisValue !== undefined ? (
+                <span className="text-muted">
+                  {" "}
+                  ({reading.usAqiBasis} {usBasisValue} µg/m³)
+                </span>
               ) : null}
-              <span className="font-medium text-ink">{reading.aqi}</span>. For
-              cleaner air the US number is usually higher; at very high
-              pollution NAQI can be higher. Same air, different yardstick.
+              {" · "}NAQI{" "}
+              <span className="font-semibold">{reading.aqi}</span>
+              {dominantValue !== undefined ? (
+                <span className="text-muted">
+                  {" "}
+                  ({reading.dominant} {dominantValue} µg/m³)
+                </span>
+              ) : null}
             </p>
             <p className="mt-2 text-[11px] leading-5 text-muted">
-              We use NAQI because CPCB, GRAP, and Indian health advisories use
-              it.
+              For cleaner air the US number is usually higher; at very high
+              pollution NAQI can be higher. We use NAQI because CPCB, GRAP, and
+              Indian health advisories use it.
             </p>
           </section>
         ) : null}

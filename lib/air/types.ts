@@ -66,8 +66,9 @@ export type AirReading = AirSample & {
     | "cams_unavailable"
     | "station_too_far";
   nearestStationKm?: number;
-  /** US EPA AQI for PM2.5, shown only for comparison with apps like aqi.in. */
+  /** US EPA AQI (highest of PM2.5/PM10), shown only for app comparison. */
   usAqi?: number;
+  usAqiBasis?: string;
   /** Live ground monitors within 100 km, when this reading is model-based. */
   nearby?: NearbyStation[];
 };
