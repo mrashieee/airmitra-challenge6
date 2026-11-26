@@ -10,6 +10,7 @@ import {
   HomeIcon,
   MaskIcon,
   PinIcon,
+  ShareIcon,
   SparkIcon,
   WindIcon,
 } from "./icons";
@@ -410,13 +411,55 @@ export function HomeView({
         className="animate-rise overflow-hidden rounded-2xl bg-[#083d39] p-5 text-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
         style={{ animationDelay: "200ms" }}
       >
-        <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-teal-200">
-          <SparkIcon className="h-4 w-4" />
-          Impact receipt
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-teal-200">
+            <SparkIcon className="h-4 w-4" />
+            Impact receipt
+          </div>
+          <span className="text-[10px] text-teal-100/60">
+            {reading.area} · AQI {reading.aqi}
+          </span>
         </div>
-        <div className="mt-3 text-2xl font-semibold tracking-tight">{reading.impact.value}</div>
-        <div className="mt-1 text-sm text-teal-100/90">{reading.impact.title}</div>
-        <p className="mt-2 text-xs leading-5 text-teal-100/70">{reading.impact.note}</p>
+
+        <div className="mt-4 space-y-2.5">
+          <div className="flex items-baseline justify-between gap-4 border-b border-white/10 pb-2.5">
+            <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-teal-200/80">
+              When
+            </span>
+            <span className="text-right text-sm font-semibold">
+              {reading.windows.best}
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between gap-4 border-b border-white/10 pb-2.5">
+            <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-teal-200/80">
+              Do
+            </span>
+            <span className="text-right text-sm font-medium text-teal-50">
+              {reading.doNow[0]?.title}
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between gap-4">
+            <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-teal-200/80">
+              Payoff
+            </span>
+            <span className="text-right text-sm font-semibold">
+              {reading.impact.value}
+            </span>
+          </div>
+        </div>
+
+        <p className="mt-3 text-[11px] leading-5 text-teal-100/70">
+          {reading.impact.title}. {reading.impact.note}
+        </p>
+
+        <button
+          type="button"
+          onClick={() => onNavigate("cards")}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-xs font-medium text-white ring-1 ring-white/15 transition hover:bg-white/15 active:scale-[0.99]"
+        >
+          <ShareIcon className="h-3.5 w-3.5" />
+          Make a story or status
+        </button>
       </section>
 
       {/* Primary action - one CTA, nav handles the rest */}

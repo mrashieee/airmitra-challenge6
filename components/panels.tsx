@@ -6,6 +6,8 @@ import type { Profile } from "@/lib/profile";
 import type { Tab } from "@/lib/nav";
 import { BAND_STYLES, cn } from "@/lib/ui";
 import { LANGUAGES } from "@/lib/profile-options";
+import { slugify } from "@/lib/slug";
+import { renderStoryImage } from "@/lib/story-image";
 import {
   setMotionPreference,
   useDarkReaderDetected,
@@ -16,7 +18,6 @@ import { ProfileEditor } from "./profile-editor";
 import {
   AlertIcon,
   CheckIcon,
-  MaskIcon,
   ShareIcon,
   SparkIcon,
   WindIcon,
@@ -415,37 +416,157 @@ function legacyCopy(text: string) {
   }
 }
 
-export function CardsPanel({ reading }: { reading: Reading }) {
-  const [copied, setCopied] = useState<"status" | "full" | null>(null);
+export function StoryPreview({ reading }: { reading: Reading }) {
+  const styles = BAND_STYLES[reading.band.key];
+  const date = new Date().toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+  });
 
-  const statusText = useMemo(() => {
-    const lines = [
-      `${reading.area} · AQI ${reading.aqi} (${reading.band.label})`,
-      reading.aqi <= 150
-        ? `Best time out: ${reading.windows.best}`
-        : `Best time out: ${reading.windows.best} — mask still advised`,
-      `Avoid outdoors: ${reading.windows.avoid}`,
-      "If you must go: N95, short route",
-      "— AirMitra",
-    ];
-    return lines.join("\n");
-  }, [reading]);
+  return (
+    <div className="relative mx-auto aspect-[9/16] w-full max-w-[300px] overflow-hidden rounded-[26px] bg-gradient-to-br from-[#052a26] via-[#0a3b36] to-[#0f2b29] text-white shadow-xl ring-1 ring-black/10">
+      <div
+        className={cn(
+          "absolute -right-12 -top-12 h-52 w-52 rounded-full opacity-40 blur-3xl",
+          styles.dot,
+        )}
+      />
+      <div className="relative flex h-full flex-col p-5">
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="text-sm font-semibold">AirMitra</div>
+            <div className="text-[7px] uppercase tracking-[0.18em] text-teal-200/70">
+              Household air coach
+            </div>
+          </div>
+          <div className="text-[9px] text-teal-100/70">{date}</div>
+        </div>
+
+        <div className="mt-5">
+          <div className="text-lg font-semibold leading-tight">
+            {reading.area}
+          </div>
+          <div className="text-[9px] text-teal-100/70">{reading.state.name}</div>
+        </div>
+
+        <div className="mt-3 flex items-end gap-2">
+          <span className="tabular text-[58px] font-semibold leading-none tracking-[-0.04em]">
+            {reading.aqi}
+          </span>
+          <span className="mb-1 rounded-full bg-white/15 px-2 py-0.5 text-[9px] font-semibold text-white ring-1 ring-white/25">
+            {reading.band.label}
+          </span>
+        </div>
+        <div className="mt-1 text-[9px] text-teal-100/70">
+          {reading.dominant} dominant
+        </div>
+
+        <div className="mt-4 border-t border-white/15 pt-3">
+          <div className="text-[7px] font-semibold uppercase tracking-[0.18em] text-teal-200/70">
+            {reading.aqi > 150 ? "Least-bad time out" : "Best time out"}
+          </div>
+          <div className="mt-0.5 text-base font-semibold leading-tight">
+            {reading.windows.best}
+          </div>
+          <div className="mt-2 text-[7px] font-semibold uppercase tracking-[0.18em] text-teal-200/70">
+            Avoid outdoors
+          </div>
+          <div className="text-[11px] text-white/80">{reading.windows.avoid}</div>
+        </div>
+
+        <div className="mt-3">
+          <div className="text-[7px] font-semibold uppercase tracking-[0.18em] text-teal-200/70">
+            Do now
+          </div>
+          <ul className="mt-1 space-y-1">
+            {reading.doNow.slice(0, 2).map((item) => (
+              <li
+                key={item.title}
+                className="flex gap-1.5 text-[9px] leading-4 text-white/85"
+              >
+                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-current" />
+                <span>{item.title}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="mt-3 rounded-xl bg-white/[0.07] px-3 py-2 ring-1 ring-white/15">
+          <div className="text-[7px] font-semibold uppercase tracking-[0.18em] text-teal-200/70">
+            Impact
+          </div>
+          <div className="mt-0.5 text-sm font-semibold leading-tight">
+            {reading.impact.value}
+          </div>
+          <div className="text-[8px] text-white/75">{reading.impact.title}</div>
+        </div>
+
+        <div className="mt-auto">
+          <div className="text-[7px] text-teal-100/50">
+            {reading.source.type === "ground"
+              ? "Ground monitor"
+              : "CAMS model estimate"}{" "}
+            · {reading.source.updated}
+          </div>
+          <div className="mt-1 border-t border-white/15 pt-2">
+            <div className="text-[9px] font-medium">
+              Check the air before you go out
+            </div>
+            <div className="text-[8px] text-teal-100/60">
+              airmitra-app.vercel.app
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function CardsPanel({ reading }: { reading: Reading }) {
+  const [copied, setCopied] = useState<"status" | "caption" | "full" | null>(
+    null,
+  );
+  const [busy, setBusy] = useState(false);
+  const [instagramNote, setInstagramNote] = useState(false);
+
+  const site =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "https://airmitra-app.vercel.app";
+  const pageUrl = `${site}/aqi/${slugify(reading.state.name)}/${slugify(reading.area)}`;
+
+  const statusText = useMemo(
+    () =>
+      [
+        `${reading.area} · AQI ${reading.aqi} (${reading.band.label})`,
+        reading.aqi <= 150
+          ? `Best time out: ${reading.windows.best}`
+          : `Least-bad time out: ${reading.windows.best} — mask still advised`,
+        `Avoid outdoors: ${reading.windows.avoid}`,
+        "If you must go: N95, short route",
+        "— AirMitra",
+      ].join("\n"),
+    [reading],
+  );
+
+  const caption = `${statusText}\n${pageUrl}`;
 
   const text = useMemo(
     () =>
       [
         `AirMitra advisory — ${reading.area}, ${reading.state.name}`,
         `AQI ${reading.aqi} (${reading.band.label}), ${reading.dominant} dominant.`,
-        `Best time out: ${reading.windows.best}. Avoid: ${reading.windows.avoid}.`,
+        `${reading.aqi > 150 ? "Least-bad" : "Best"} time out: ${reading.windows.best}. Avoid: ${reading.windows.avoid}.`,
         reading.guidelines[0],
         reading.guidelines[1],
         `Do now: ${reading.doNow.map((d) => d.title).join("; ")}.`,
         `Source: ${reading.source.station} (${reading.source.updated}).`,
+        pageUrl,
       ].join("\n"),
-    [reading],
+    [reading, pageUrl],
   );
 
-  async function copyValue(value: string, kind: "status" | "full") {
+  async function copyValue(value: string, kind: "status" | "caption" | "full") {
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(value);
@@ -465,75 +586,166 @@ export function CardsPanel({ reading }: { reading: Reading }) {
     }
   }
 
-  async function share() {
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({ title: "AirMitra status", text: statusText });
-      } catch {
-        /* cancelled */
-      }
-    } else {
-      await copyValue(statusText, "status");
+  async function storyBlob(): Promise<Blob> {
+    return renderStoryImage(reading);
+  }
+
+  async function downloadStory() {
+    setBusy(true);
+    try {
+      const blob = await storyBlob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `airmitra-${slugify(reading.area)}.png`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } finally {
+      setBusy(false);
     }
   }
+
+  async function shareImage() {
+    setBusy(true);
+    try {
+      const blob = await storyBlob();
+      const file = new File([blob], `airmitra-${slugify(reading.area)}.png`, {
+        type: "image/png",
+      });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], text: statusText });
+      } else {
+        await downloadStory();
+      }
+    } catch {
+      /* cancelled */
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function instagram() {
+    await downloadStory();
+    await copyValue(caption, "caption");
+    setInstagramNote(true);
+    window.setTimeout(() => setInstagramNote(false), 6000);
+  }
+
+  const links = [
+    {
+      label: "WhatsApp",
+      href: `https://wa.me/?text=${encodeURIComponent(caption)}`,
+    },
+    {
+      label: "X",
+      href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(statusText)}&url=${encodeURIComponent(pageUrl)}`,
+    },
+    {
+      label: "Telegram",
+      href: `https://t.me/share/url?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(statusText)}`,
+    },
+    {
+      label: "Facebook",
+      href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`,
+    },
+    {
+      label: "LinkedIn",
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}`,
+    },
+  ];
 
   return (
     <div className="space-y-4">
       <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
         <div className="flex items-center gap-2 text-sm font-semibold text-ink">
           <ShareIcon className="h-4 w-4 text-brand" />
-          Share card
+          Story card
         </div>
-        <p className="mt-1 text-xs text-muted">
-          Send to a family or society WhatsApp group. No names or health details in the card.
+        <p className="mt-1 text-xs leading-5 text-muted">
+          A 9:16 image for WhatsApp status or Instagram, plus ready-made text.
+          No names or health details.
+        </p>
+        <div className="mt-4">
+          <StoryPreview reading={reading} />
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={downloadStory}
+            disabled={busy}
+            className="rounded-xl bg-ink px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.99] disabled:opacity-60"
+          >
+            {busy ? "Building…" : "Download image"}
+          </button>
+          <button
+            type="button"
+            onClick={shareImage}
+            disabled={busy}
+            className="rounded-xl bg-card px-4 py-3 text-sm font-medium text-ink ring-1 ring-line transition hover:bg-paper active:scale-[0.99] disabled:opacity-60"
+          >
+            Share image
+          </button>
+        </div>
+        <p className="mt-2 text-[10px] leading-4 text-muted">
+          Image is 1080×1920 PNG. On a phone, “Share image” opens the native
+          share sheet, including Instagram.
         </p>
       </div>
 
-      <ShareCardPreview reading={reading} />
+      <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
+        <div className="text-sm font-semibold text-ink">Post to</div>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {links.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-xl bg-paper px-2 py-2.5 text-center text-[11px] font-medium text-ink ring-1 ring-line transition hover:bg-white"
+            >
+              {link.label}
+            </a>
+          ))}
+          <button
+            type="button"
+            onClick={instagram}
+            className="rounded-xl bg-paper px-2 py-2.5 text-center text-[11px] font-medium text-ink ring-1 ring-line transition hover:bg-white"
+          >
+            Instagram
+          </button>
+        </div>
+        {instagramNote ? (
+          <p className="mt-2 rounded-lg bg-emerald-50 px-2.5 py-2 text-[11px] leading-5 text-emerald-800 ring-1 ring-emerald-200">
+            Image downloaded and caption copied. Open Instagram → Add to story
+            → choose the image.
+          </p>
+        ) : null}
+      </div>
 
       <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
         <div className="text-sm font-semibold text-ink">Status / story text</div>
-        <p className="mt-1 text-xs leading-5 text-muted">
-          Short enough for WhatsApp status or an Instagram story, with the hours
-          spelled out.
-        </p>
-        <pre className="mt-3 whitespace-pre-wrap rounded-xl bg-paper p-3 text-[11px] leading-5 text-ink ring-1 ring-line">
-          {statusText}
+        <pre className="mt-2 whitespace-pre-wrap rounded-xl bg-paper p-3 text-[11px] leading-5 text-ink ring-1 ring-line">
+          {caption}
         </pre>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button
             type="button"
-            onClick={() => copyValue(statusText, "status")}
-            className="rounded-xl bg-ink px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.99]"
+            onClick={() => copyValue(caption, "caption")}
+            className="rounded-xl bg-ink px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
           >
-            {copied === "status" ? "Copied" : "Copy status"}
+            {copied === "caption" ? "Copied" : "Copy caption"}
           </button>
           <button
             type="button"
-            onClick={share}
-            className="rounded-xl bg-card px-4 py-3 text-sm font-medium text-ink ring-1 ring-line transition hover:bg-paper active:scale-[0.99]"
+            onClick={() => copyValue(text, "full")}
+            className="rounded-xl bg-card px-4 py-2.5 text-sm font-medium text-ink ring-1 ring-line transition hover:bg-paper"
           >
-            Share
+            {copied === "full" ? "Copied" : "Copy advisory"}
           </button>
         </div>
-        <button
-          type="button"
-          onClick={() => copyValue(text, "full")}
-          className="mt-2 text-[11px] font-medium text-muted hover:text-ink"
-        >
-          {copied === "full" ? "Copied full advisory" : "Copy full advisory"}
-        </button>
-      </div>
-
-      <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <div className="flex items-center gap-2 text-sm font-semibold text-ink">
-          <MaskIcon className="h-4 w-4 text-brand" />
-          Improve-air card
-        </div>
-        <p className="mt-1 text-xs leading-5 text-muted">
-          One tap later: a second card with only the home fixes — no AQI, no personal
-          detail. For the society group.
-        </p>
       </div>
     </div>
   );
