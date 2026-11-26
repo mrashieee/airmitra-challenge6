@@ -1,4 +1,5 @@
 import type { Reading } from "@/lib/aqi";
+import { slugify } from "@/lib/slug";
 
 const ACCENTS: Record<string, string> = {
   good: "#34d399",
@@ -162,7 +163,16 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
   y = aqiY + 70;
   ctx.fillStyle = "rgba(255,255,255,0.72)";
   ctx.font = `500 30px ${FONT}`;
-  ctx.fillText(`${reading.dominant} dominant`, margin, y);
+  const dominantValue = reading.pollutants.find(
+    (p) => p.label === reading.dominant,
+  )?.value;
+  ctx.fillText(
+    `${reading.dominant}${
+      dominantValue !== undefined ? ` ${dominantValue} µg/m³` : ""
+    } dominant`,
+    margin,
+    y,
+  );
 
   // Divider
   y += 56;
@@ -174,7 +184,7 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
   ctx.stroke();
 
   // Windows
-  y += 78;
+  y += 68;
   const windowBlock = (label: string, value: string, color: string) => {
     ctx.fillStyle = "rgba(204,251,241,0.65)";
     ctx.font = `600 24px ${FONT}`;
@@ -184,9 +194,9 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
     ctx.font = `700 60px ${FONT}`;
     for (const line of wrap(ctx, value, maxWidth, 2)) {
       ctx.fillText(line, margin, y);
-      y += 68;
+      y += 64;
     }
-    y += 34;
+    y += 26;
   };
 
   windowBlock(
@@ -200,7 +210,7 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
   ctx.fillStyle = "rgba(204,251,241,0.65)";
   ctx.font = `600 24px ${FONT}`;
   ctx.fillText("DO NOW", margin, y);
-  y += 54;
+  y += 50;
 
   ctx.font = `500 34px ${FONT}`;
   for (const item of reading.doNow.slice(0, 3)) {
@@ -212,14 +222,14 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
     ctx.fillStyle = "rgba(255,255,255,0.92)";
     for (const line of wrap(ctx, item.title, maxWidth - 40, 2)) {
       ctx.fillText(line, margin + 34, y);
-      y += 46;
+      y += 44;
     }
-    y += 22;
+    y += 18;
   }
 
   // Impact payoff
-  const boxY = Math.min(y + 24, 1440);
-  const boxHeight = 168;
+  const boxY = Math.min(y + 22, 1450);
+  const boxHeight = 188;
   ctx.fillStyle = "rgba(255,255,255,0.07)";
   roundRect(ctx, margin, boxY, maxWidth, boxHeight, 28);
   ctx.fill();
@@ -238,10 +248,24 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
   ctx.fillStyle = "rgba(255,255,255,0.8)";
   ctx.font = `500 26px ${FONT}`;
   const impactTitle = wrap(ctx, reading.impact.title, maxWidth - 64, 1)[0];
-  ctx.fillText(impactTitle, margin + 32, boxY + 140);
+  ctx.fillText(impactTitle, margin + 32, boxY + 138);
+
+  ctx.fillStyle = "rgba(255,255,255,0.62)";
+  ctx.font = `500 22px ${FONT}`;
+  ctx.fillText(
+    "If you must go out: fitted N95, short route",
+    margin + 32,
+    boxY + 172,
+  );
 
   // Source line above the footer
-  const source = `${reading.source.type === "ground" ? "Ground monitor" : "CAMS model estimate"} · ${reading.source.updated}`;
+  const weatherWord =
+    reading.weather.condition.charAt(0).toUpperCase() +
+    reading.weather.condition.slice(1);
+  const weather = `${weatherWord} ${reading.weather.tempC ?? "—"}°C`;
+  const source = `${weather} · ${
+    reading.source.type === "ground" ? "Ground monitor" : "CAMS model estimate"
+  } · ${reading.source.updated}`;
   ctx.fillStyle = "rgba(204,251,241,0.55)";
   ctx.font = `500 22px ${FONT}`;
   const sourceLine = wrap(ctx, source, maxWidth, 1)[0];
@@ -261,8 +285,14 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
   ctx.fillText("Check the air before you go out", margin, footerY + 10);
 
   ctx.fillStyle = "rgba(204,251,241,0.7)";
-  ctx.font = `500 26px ${FONT}`;
-  ctx.fillText("airmitra-app.vercel.app", margin, footerY + 56);
+  let urlSize = 26;
+  ctx.font = `500 ${urlSize}px ${FONT}`;
+  const cityUrl = `airmitra-app.vercel.app/aqi/${slugify(reading.state.name)}/${slugify(reading.area)}`;
+  while (ctx.measureText(cityUrl).width > maxWidth && urlSize > 17) {
+    urlSize -= 2;
+    ctx.font = `500 ${urlSize}px ${FONT}`;
+  }
+  ctx.fillText(cityUrl, margin, footerY + 56);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(

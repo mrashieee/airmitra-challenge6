@@ -2,6 +2,8 @@
 
 import type { Reading } from "@/lib/aqi";
 import { BAND_STYLES, cn } from "@/lib/ui";
+import { slugify } from "@/lib/slug";
+import { weatherLabel } from "./weather-scene";
 
 export function ShareCardPreview({ reading }: { reading: Reading }) {
   const styles = BAND_STYLES[reading.band.key];
@@ -99,6 +101,17 @@ export function StoryPreview({ reading }: { reading: Reading }) {
         </div>
         <div className="mt-1 text-[9px] text-teal-100/70">
           {reading.dominant} dominant
+          {reading.pollutants.find((p) => p.label === reading.dominant)
+            ? ` · ${
+                reading.pollutants.find((p) => p.label === reading.dominant)!
+                  .value
+              } µg/m³`
+            : ""}
+        </div>
+        <div className="mt-0.5 text-[8px] text-teal-100/55">
+          {weatherLabel(reading.weather.condition, reading.weather.isDay)} ·{" "}
+          {reading.weather.tempC ?? "—"}°C · wind {reading.weather.windKph ?? "—"}{" "}
+          km/h
         </div>
 
         <div className="mt-4 border-t border-white/15 pt-3">
@@ -119,7 +132,7 @@ export function StoryPreview({ reading }: { reading: Reading }) {
             Do now
           </div>
           <ul className="mt-1 space-y-1">
-            {reading.doNow.slice(0, 2).map((item) => (
+            {reading.doNow.slice(0, 3).map((item) => (
               <li
                 key={item.title}
                 className="flex gap-1.5 text-[9px] leading-4 text-white/85"
@@ -139,21 +152,28 @@ export function StoryPreview({ reading }: { reading: Reading }) {
             {reading.impact.value}
           </div>
           <div className="text-[8px] text-white/75">{reading.impact.title}</div>
+          <div className="mt-1 text-[7px] text-white/55">
+            If you must go out: fitted N95, short route
+          </div>
         </div>
 
         <div className="mt-auto">
           <div className="text-[7px] text-teal-100/50">
             {reading.source.type === "ground"
               ? "Ground monitor"
-              : "CAMS model estimate"}{" "}
+              : "CAMS model estimate"}
+            {reading.source.distanceKm > 0
+              ? ` · ${reading.source.distanceKm} km`
+              : ""}{" "}
             · {reading.source.updated}
           </div>
           <div className="mt-1 border-t border-white/15 pt-2">
             <div className="text-[9px] font-medium">
               Check the air before you go out
             </div>
-            <div className="text-[8px] text-teal-100/60">
-              airmitra-app.vercel.app
+            <div className="text-[7px] text-teal-100/60">
+              airmitra-app.vercel.app/aqi/{slugify(reading.state.name)}/
+              {slugify(reading.area)}
             </div>
           </div>
         </div>
