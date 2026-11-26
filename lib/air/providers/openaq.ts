@@ -74,27 +74,30 @@ export function buildSample(
   area: string,
   distanceKmValue: number,
 ): AirSample | null {
+  const timeOf = (row: OpenAQLatest) => Date.parse(row.datetime?.utc ?? "") || 0;
+  const newest = latest.reduce((max, row) => Math.max(max, timeOf(row)), 0);
+
+  // OpenAQ returns old rows for retired sensor ids alongside today's reading.
+  // Only keep rows close to the newest timestamp so a 2022 value can never
+  // masquerade as "now".
+  const FRESH_WINDOW_MS = 6 * 60 * 60 * 1000;
+  const usable =
+    newest > 0
+      ? latest.filter((row) => timeOf(row) >= newest - FRESH_WINDOW_MS)
+      : latest;
+
   const sensorMap = new Map(
     (location.sensors ?? []).map((sensor) => [sensor.id, sensor]),
   );
 
-  // OpenAQ can return older rows alongside today's reading for the same
-  // sensor, so keep only the freshest row per sensor.
-  const timeOf = (row: OpenAQLatest) =>
-    Date.parse(row.datetime?.utc ?? "") || 0;
+  // Multiple sensors can report the same pollutant. Keep the freshest one and
+  // break ties with the higher value.
+  const best = new Map<
+    PollutantKey,
+    { value: number; time: number; unit: string }
+  >();
 
-  const freshest = new Map<number, OpenAQLatest>();
-  for (const row of latest) {
-    const previous = freshest.get(row.sensorsId);
-    if (!previous || timeOf(row) >= timeOf(previous)) {
-      freshest.set(row.sensorsId, row);
-    }
-  }
-
-  const pollutants: PollutantValue[] = [];
-  let latestTime: string | undefined;
-
-  for (const reading of freshest.values()) {
+  for (const reading of usable) {
     const sensor = sensorMap.get(reading.sensorsId);
     if (!sensor) continue;
     const keyName = PARAM_MAP[sensor.parameter.name];
@@ -110,24 +113,29 @@ export function buildSample(
     );
     if (value === null) continue;
 
-    const stamp = reading.datetime?.utc;
-    if (stamp && (!latestTime || Date.parse(stamp) > Date.parse(latestTime))) {
-      latestTime = stamp;
+    const time = timeOf(reading);
+    const previous = best.get(keyName);
+    if (!previous || time > previous.time || (time === previous.time && value > previous.value)) {
+      best.set(keyName, { value, time, unit: POLLUTANT_UNITS[keyName] });
     }
-
-    pollutants.push({
-      key: keyName,
-      label: POLLUTANT_LABELS[keyName],
-      value,
-      unit: POLLUTANT_UNITS[keyName],
-    });
   }
+
+  const pollutants: PollutantValue[] = [...best.entries()].map(
+    ([key, entry]) => ({
+      key,
+      label: POLLUTANT_LABELS[key],
+      value: Math.round(entry.value * 10) / 10,
+      unit: entry.unit,
+    }),
+  );
 
   const pm = pollutants.filter((p) => p.key === "pm25" || p.key === "pm10");
   const result = computeAqi(pm.length ? pm : pollutants);
   if (!result) return null;
 
   const band = bandFor(result.aqi);
+  const latestTime =
+    newest > 0 ? new Date(newest).toISOString() : new Date().toISOString();
 
   return {
     area,
@@ -141,7 +149,7 @@ export function buildSample(
       type: "ground",
       station: `${location.name} · OpenAQ`,
       distanceKm: Math.round(distanceKmValue * 10) / 10,
-      updatedAt: latestTime ?? new Date().toISOString(),
+      updatedAt: latestTime,
     },
   };
 }
@@ -215,6 +223,18 @@ export async function fetchOpenAQ(
       place.city,
       best.distance,
     );
+
+    if (sample) {
+      const ageMs =
+        Date.now() - new Date(sample.source.updatedAt).getTime();
+      if (!Number.isFinite(ageMs) || ageMs > 12 * 60 * 60 * 1000) {
+        return {
+          sample: null,
+          failed: false,
+          nearestKm: Math.round(best.distance * 10) / 10,
+        };
+      }
+    }
 
     return {
       sample,
