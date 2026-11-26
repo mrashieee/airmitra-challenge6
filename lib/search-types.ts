@@ -12,3 +12,8 @@ export type CitySuggestion = {
   /** GeoNames/OSM feature code, used to keep settlements only. */
   feature_code?: string;
 };
+
+export type CrossStateSuggestion = CitySuggestion & {
+  stateCode: string;
+  stateName: string;
+};

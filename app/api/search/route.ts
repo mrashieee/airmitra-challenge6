@@ -1,7 +1,14 @@
 import type { NextRequest } from "next/server";
-import { searchCities, topCities } from "@/lib/city-index";
+import {
+  searchCities,
+  searchOtherStates,
+  topCities,
+} from "@/lib/city-index";
 import { geocodeCities, knownState } from "@/lib/geocode-search";
-import type { CitySuggestion } from "@/lib/search-types";
+import type {
+  CitySuggestion,
+  CrossStateSuggestion,
+} from "@/lib/search-types";
 
 export async function GET(request: NextRequest) {
   const state = (request.nextUrl.searchParams.get("state") ?? "DL").toUpperCase();
@@ -15,7 +22,8 @@ export async function GET(request: NextRequest) {
     Math.max(1, Number(request.nextUrl.searchParams.get("limit") ?? 8) || 8),
   );
 
-  let results: CitySuggestion[];
+  let results: CitySuggestion[] = [];
+  let crossState: CrossStateSuggestion[] = [];
   let fallback: "geocode" | null = null;
 
   if (query.length < 2) {
@@ -24,15 +32,20 @@ export async function GET(request: NextRequest) {
     results = searchCities(state, query, limit);
 
     if (results.length === 0) {
-      // Nothing in the curated index: allow an explicit live lookup so small
-      // towns are never a dead end. These are labelled "model only".
+      // A place in another state is a far more likely explanation than a typo.
+      crossState = searchOtherStates(state, query, 3);
+    }
+
+    if (results.length === 0 && crossState.length === 0) {
+      // Nothing in the index: allow an explicit live lookup so small towns are
+      // never a dead end. These are labelled "model only".
       results = await geocodeCities(query, state, limit);
       fallback = results.length ? "geocode" : null;
     }
   }
 
   return Response.json(
-    { results, fallback },
+    { results, crossState, fallback },
     { headers: { "Cache-Control": "public, s-maxage=86400" } },
   );
 }

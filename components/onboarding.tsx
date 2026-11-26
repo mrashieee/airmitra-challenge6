@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { distanceKm } from "@/lib/air/geo";
-import type { CitySuggestion } from "@/lib/search-types";
+import type {
+  CitySuggestion,
+  CrossStateSuggestion,
+} from "@/lib/search-types";
 import { cn } from "@/lib/ui";
 import { SearchIcon } from "./icons";
 import {
@@ -145,6 +148,7 @@ export function Onboarding({ initial, onComplete }: Props) {
   const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
   const [searching, setSearching] = useState(false);
   const [fromGeocode, setFromGeocode] = useState(false);
+  const [crossState, setCrossState] = useState<CrossStateSuggestion[]>([]);
 
   // Popular, station-backed places for the selected state (no typing needed).
   useEffect(() => {
@@ -180,13 +184,21 @@ export function Onboarding({ initial, onComplete }: Props) {
         { signal: controller.signal },
       )
         .then((res) => res.json())
-        .then((data: { results?: CitySuggestion[]; fallback?: string | null }) => {
-          setResults(data.results ?? []);
-          setFromGeocode(data.fallback === "geocode");
-        })
+        .then(
+          (data: {
+            results?: CitySuggestion[];
+            crossState?: CrossStateSuggestion[];
+            fallback?: string | null;
+          }) => {
+            setResults(data.results ?? []);
+            setCrossState(data.crossState ?? []);
+            setFromGeocode(data.fallback === "geocode");
+          },
+        )
         .catch((reason: unknown) => {
           if (!(reason instanceof DOMException && reason.name === "AbortError")) {
             setResults([]);
+            setCrossState([]);
             setFromGeocode(false);
           }
         })
@@ -203,16 +215,17 @@ export function Onboarding({ initial, onComplete }: Props) {
     setQuery(value);
     if (value.trim().length < 2) {
       setResults([]);
+      setCrossState([]);
       setFromGeocode(false);
       setSearching(false);
     }
   }
 
-  function setSearchedLocation(result: CitySuggestion) {
+  function setSearchedLocation(result: CitySuggestion, stateCode?: string) {
     setDraft((d) => ({
       ...d,
       location: {
-        stateCode: d.location.stateCode,
+        stateCode: stateCode ?? d.location.stateCode,
         city: result.name,
         lat: result.latitude,
         lon: result.longitude,
@@ -220,6 +233,7 @@ export function Onboarding({ initial, onComplete }: Props) {
     }));
     setQuery("");
     setResults([]);
+    setCrossState([]);
   }
 
   const state = findState(draft.location.stateCode);
@@ -528,8 +542,30 @@ export function Onboarding({ initial, onComplete }: Props) {
                 ) : null}
                 {!searching && query.trim().length >= 2 && results.length === 0 ? (
                   <p className="mt-2 text-[11px] text-muted">
-                    No place found in {state.name}. Try another spelling or state.
+                    No place found in {state.name}.
                   </p>
+                ) : null}
+                {!searching && crossState.length ? (
+                  <div className="mt-2">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-muted">
+                      Found in another state
+                    </p>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {crossState.map((place) => (
+                        <button
+                          key={`${place.stateCode}-${place.name}`}
+                          type="button"
+                          onClick={() => setSearchedLocation(place, place.stateCode)}
+                          className="rounded-full bg-card px-2.5 py-1 text-[11px] font-medium text-ink ring-1 ring-line transition hover:bg-white"
+                        >
+                          {place.name}
+                          <span className="ml-1 text-[9px] text-muted">
+                            {place.stateName}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ) : null}
                 {fromGeocode && results.length ? (
                   <p className="mt-2 text-[10px] leading-4 text-muted">

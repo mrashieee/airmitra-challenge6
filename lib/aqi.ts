@@ -30,6 +30,8 @@ export type Reading = {
   usAqi?: number;
   usAqiBasis?: string;
   nearby?: NearbyStation[];
+  stations?: NearbyStation[];
+  aqiRange?: { min: number; max: number };
   demo: boolean;
   guidelines: string[];
   family: { name: string; meta: string; advice: string; tone: "warn" | "calm" }[];
@@ -354,6 +356,8 @@ export function readingFromAir(
     usAqi: air.usAqi,
     usAqiBasis: air.usAqiBasis,
     nearby: air.nearby,
+    stations: air.stations,
+    aqiRange: air.aqiRange,
     demo,
     guidelines: guidelinesFor(air.band),
     family: familyFor(air.aqi, air.band, profile),

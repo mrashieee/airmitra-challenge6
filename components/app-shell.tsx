@@ -21,7 +21,10 @@ import {
   type Profile,
 } from "@/lib/profile";
 import { Onboarding } from "./onboarding";
-import type { CitySuggestion } from "@/lib/search-types";
+import type {
+  CitySuggestion,
+  CrossStateSuggestion,
+} from "@/lib/search-types";
 import type { Tab } from "@/lib/nav";
 import { cn } from "@/lib/ui";
 import { HomeView } from "./home-view";
@@ -85,6 +88,7 @@ function LocationSelect({
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<CitySuggestion[]>([]);
+  const [crossState, setCrossState] = useState<CrossStateSuggestion[]>([]);
   const [searching, setSearching] = useState(false);
   const stateName = findState(code).name;
 
@@ -100,12 +104,19 @@ function LocationSelect({
         { signal: controller.signal },
       )
         .then((res) => res.json())
-        .then((data: { results?: CitySuggestion[] }) =>
-          setResults(data.results ?? []),
+        .then(
+          (data: {
+            results?: CitySuggestion[];
+            crossState?: CrossStateSuggestion[];
+          }) => {
+            setResults(data.results ?? []);
+            setCrossState(data.crossState ?? []);
+          },
         )
         .catch((reason: unknown) => {
           if (!(reason instanceof DOMException && reason.name === "AbortError")) {
             setResults([]);
+            setCrossState([]);
           }
         })
         .finally(() => setSearching(false));
@@ -121,19 +132,21 @@ function LocationSelect({
     setQuery(value);
     if (value.trim().length < 2) {
       setResults([]);
+      setCrossState([]);
       setSearching(false);
     }
   }
 
-  function choose(result: CitySuggestion) {
+  function choose(result: CitySuggestion, stateCode?: string) {
     onSelectLocation({
-      stateCode: code,
+      stateCode: stateCode ?? code,
       city: result.name,
       lat: result.latitude,
       lon: result.longitude,
     });
     setQuery("");
     setResults([]);
+    setCrossState([]);
   }
 
   return (
@@ -182,6 +195,23 @@ function LocationSelect({
           <p className="mt-1 text-[10px] text-muted">
             No place found in {stateName}. Try another spelling or state.
           </p>
+        ) : null}
+        {!searching && !results.length && crossState.length ? (
+          <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-xl border border-line bg-card shadow-lg">
+            {crossState.map((place) => (
+              <button
+                key={`${place.stateCode}-${place.name}`}
+                type="button"
+                onClick={() => choose(place, place.stateCode)}
+                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs text-ink transition hover:bg-paper"
+              >
+                <span className="truncate">{place.name}</span>
+                <span className="shrink-0 text-[9px] text-muted">
+                  {place.stateName}
+                </span>
+              </button>
+            ))}
+          </div>
         ) : null}
         {results.length ? (
           <div className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-line bg-card shadow-lg">

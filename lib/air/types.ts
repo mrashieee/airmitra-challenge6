@@ -71,6 +71,10 @@ export type AirReading = AirSample & {
   usAqiBasis?: string;
   /** Live ground monitors within 100 km, when this reading is model-based. */
   nearby?: NearbyStation[];
+  /** Per-station AQI used to build a city median. */
+  stations?: NearbyStation[];
+  /** Lowest and highest station AQI in the city. */
+  aqiRange?: { min: number; max: number };
 };
 
 export type NearbyStation = {

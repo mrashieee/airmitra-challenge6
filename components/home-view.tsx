@@ -154,6 +154,14 @@ export function HomeView({
               {reading.usAqiBasis ? ` · ${reading.usAqiBasis}` : ""}
             </span>
           ) : null}
+          {reading.aqiRange ? (
+            <span
+              title="Lowest and highest AQI among official stations in this city"
+              className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm"
+            >
+              stations {reading.aqiRange.min}–{reading.aqiRange.max}
+            </span>
+          ) : null}
           {reading.demo ? (
             <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700 ring-1 ring-amber-200">
               demo data

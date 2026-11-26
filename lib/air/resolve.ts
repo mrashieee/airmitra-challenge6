@@ -4,6 +4,7 @@ import { usAqiForPollutants } from "./naqi";
 import { fetchCpcb } from "./providers/cpcb";
 import { fetchOpenAQ } from "./providers/openaq";
 import { fetchNearbyStations } from "./providers/nearby";
+import { fetchCityStations, mergeCityStations } from "./aggregate";
 import { fetchOpenMeteoAir, fetchWeather } from "./providers/openmeteo";
 import type { AirReading, Target } from "./types";
 
@@ -99,10 +100,24 @@ export async function resolveAirReading(
 
   if (!sample) throw new Error(`No air data available for ${state.code}`);
 
-  const us = usAqiForPollutants(sample.pollutants) ?? undefined;
+  let finalSample = sample;
+  let cityStations: AirReading["stations"];
+  let aqiRange: AirReading["aqiRange"];
+
+  if (finalSample.source.type === "ground") {
+    const stations = await withTimeout(fetchCityStations(place), 6500, []);
+    const merged = mergeCityStations(stations, place.city);
+    if (merged) {
+      finalSample = merged.sample;
+      cityStations = merged.list;
+      aqiRange = merged.range;
+    }
+  }
+
+  const us = usAqiForPollutants(finalSample.pollutants) ?? undefined;
 
   const reading: AirReading = {
-    ...sample,
+    ...finalSample,
     state: {
       code: state.code,
       name: state.name,
@@ -121,6 +136,8 @@ export async function resolveAirReading(
     usAqi: us?.aqi,
     usAqiBasis: us?.basis,
     nearby: modelNearby,
+    stations: cityStations,
+    aqiRange,
   };
 
   cacheSet(cacheKey, reading, CACHE_TTL_MS);
