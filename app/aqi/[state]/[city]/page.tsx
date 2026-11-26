@@ -101,7 +101,7 @@ export default async function CityPage({ params }: Params) {
         </Link>
         <Link
           href="/"
-          className="rounded-full bg-ink px-3.5 py-2 text-xs font-medium text-white"
+          className="rounded-full bg-brand px-3.5 py-2 text-xs font-medium text-white"
         >
           Open app
         </Link>
@@ -218,8 +218,8 @@ export default async function CityPage({ params }: Params) {
           </div>
         </section>
 
-        <section className="mt-4 rounded-2xl bg-card p-5 ring-1 ring-black/5">
-          <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+        <section className="mt-6 border-t border-line pt-5">
+          <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
             <WindIcon className="h-4 w-4 text-brand" />
             What this means today
           </div>
@@ -245,8 +245,8 @@ export default async function CityPage({ params }: Params) {
         </section>
 
         {reading.usAqi ? (
-          <section className="mt-4 rounded-2xl bg-card p-5 ring-1 ring-black/5">
-            <div className="text-sm font-semibold text-ink">
+          <section className="mt-6 border-t border-line pt-5">
+            <div className="font-display text-lg font-semibold text-ink">
               Why the number differs from other apps
             </div>
             <p className="mt-2 text-sm leading-6 text-muted">
@@ -280,8 +280,8 @@ export default async function CityPage({ params }: Params) {
         ) : null}
 
         {reading.source.type === "model" && reading.nearby?.length ? (
-          <section className="mt-4 rounded-2xl bg-card p-5 ring-1 ring-black/5">
-            <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <section className="mt-6 border-t border-line pt-5">
+            <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
               <PinIcon className="h-4 w-4 text-brand" />
               Nearest ground monitors
             </div>
@@ -324,8 +324,8 @@ export default async function CityPage({ params }: Params) {
         ) : null}
 
         {reading.stations?.length && reading.stations.length >= 2 ? (
-          <section className="mt-4 rounded-2xl bg-card p-5 ring-1 ring-black/5">
-            <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <section className="mt-6 border-t border-line pt-5">
+            <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
               <WindIcon className="h-4 w-4 text-brand" />
               Stations in {city.name}
             </div>
@@ -363,20 +363,19 @@ export default async function CityPage({ params }: Params) {
           </section>
         ) : null}
 
-        <section className="mt-4 rounded-2xl bg-card p-5 ring-1 ring-black/5">
-          <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+        <section className="mt-6 rounded-2xl border border-line/80 bg-card p-5">
+          <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
             <SparkIcon className="h-4 w-4 text-brand" />
             For your household
           </div>
           <p className="mt-2 text-sm leading-6 text-muted">
-            AirMitra goes beyond the city number. Add your family, health
-            conditions, home inventory, and routine to get one clear action for
-            today.
+            Who lives with you changes the advice. Asthma, a gas stove, dry
+            sweeping, a top-floor flat: each one changes what to do today.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
               href="/"
-              className="rounded-xl bg-ink px-4 py-2.5 text-sm font-medium text-white"
+              className="rounded-xl bg-brand px-4 py-2.5 text-sm font-medium text-white"
             >
               Set up your household
             </Link>
@@ -392,8 +391,8 @@ export default async function CityPage({ params }: Params) {
         </section>
 
         {nearby.length > 0 ? (
-          <section className="mt-4 rounded-2xl bg-card p-5 ring-1 ring-black/5">
-            <div className="text-sm font-semibold text-ink">
+          <section className="mt-6 border-t border-line pt-5">
+            <div className="font-display text-lg font-semibold text-ink">
               Other cities in {state.name}
             </div>
             <div className="mt-3 flex flex-wrap gap-2">

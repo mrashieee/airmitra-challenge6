@@ -499,7 +499,7 @@ export function Onboarding({ initial, onComplete }: Props) {
           {step === 0 ? (
             <div className="space-y-5">
               <div>
-                <h1 className="text-lg font-semibold tracking-tight text-ink">
+                <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
                   Where should I watch the air?
                 </h1>
                 <p className="mt-1 text-xs leading-5 text-muted">
@@ -511,7 +511,7 @@ export function Onboarding({ initial, onComplete }: Props) {
                 type="button"
                 onClick={useMyLocation}
                 disabled={locating}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-medium text-white transition hover:bg-[#0a4a3e] disabled:opacity-60"
               >
                 {locating ? "Finding you…" : "Use my location"}
               </button>
@@ -673,7 +673,7 @@ export function Onboarding({ initial, onComplete }: Props) {
           {step === 1 ? (
             <div className="space-y-4">
               <div>
-                <h1 className="text-lg font-semibold tracking-tight text-ink">
+                <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
                   Who do you care for?
                 </h1>
                 <p className="mt-1 text-xs leading-5 text-muted">
@@ -696,7 +696,7 @@ export function Onboarding({ initial, onComplete }: Props) {
                       <button
                         type="button"
                         onClick={() => addMember("You")}
-                        className="rounded-full bg-ink px-3 py-1.5 text-[11px] font-medium text-white"
+                        className="rounded-full bg-brand px-3 py-1.5 text-[11px] font-medium text-white"
                       >
                         Add yourself
                       </button>
@@ -779,7 +779,7 @@ export function Onboarding({ initial, onComplete }: Props) {
           {step === 2 ? (
             <div className="space-y-4">
               <div>
-                <h1 className="text-lg font-semibold tracking-tight text-ink">
+                <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
                   What does your home have?
                 </h1>
                 <p className="mt-1 text-xs leading-5 text-muted">
@@ -945,7 +945,7 @@ export function Onboarding({ initial, onComplete }: Props) {
           {step === 3 ? (
             <div className="space-y-4">
               <div>
-                <h1 className="text-lg font-semibold tracking-tight text-ink">
+                <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
                   What does your day look like?
                 </h1>
                 <p className="mt-1 text-xs leading-5 text-muted">
@@ -1043,7 +1043,7 @@ export function Onboarding({ initial, onComplete }: Props) {
           {step === 4 ? (
             <div className="space-y-4">
               <div>
-                <h1 className="text-lg font-semibold tracking-tight text-ink">
+                <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
                   How sensitive is each person?
                 </h1>
                 <p className="mt-1 text-xs leading-5 text-muted">
@@ -1088,7 +1088,7 @@ export function Onboarding({ initial, onComplete }: Props) {
           {step === 5 ? (
             <div className="space-y-4">
               <div>
-                <h1 className="text-lg font-semibold tracking-tight text-ink">
+                <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
                   You&apos;re set.
                 </h1>
                 <p className="mt-1 text-xs leading-5 text-muted">
@@ -1153,7 +1153,7 @@ export function Onboarding({ initial, onComplete }: Props) {
           <button
             type="button"
             onClick={() => (canNext ? setStep((s) => s + 1) : finish())}
-            className="flex-1 rounded-xl bg-ink px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+            className="flex-1 rounded-xl bg-brand px-4 py-3 text-sm font-medium text-white transition hover:bg-[#0a4a3e]"
           >
             {canNext ? "Continue" : "Finish setup"}
           </button>

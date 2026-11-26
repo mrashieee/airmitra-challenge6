@@ -49,7 +49,7 @@ function Brand() {
         <WindIcon className="h-5 w-5" />
       </span>
       <div className="leading-tight">
-        <div className="text-sm font-semibold tracking-tight text-ink">AirMitra</div>
+        <div className="font-display text-base font-semibold tracking-tight text-ink">AirMitra</div>
         <div className="text-[10px] text-muted">Household Air Coach</div>
       </div>
     </div>
@@ -165,6 +165,27 @@ function AppShellInner({
     saveProfile({ ...profile, largeText: next });
   }
 
+  const familyLine = profile.family.length
+    ? profile.family
+        .map((member) => `${member.relation} (${member.ageBand})`)
+        .join(", ")
+    : "No family added yet";
+
+  const homeLine = [
+    profile.home.type,
+    profile.home.purifiers === "None" || profile.home.purifiers === "Not sure"
+      ? "no purifier"
+      : `purifier: ${profile.home.purifiers}`,
+    profile.home.cooking.length
+      ? `cooking: ${profile.home.cooking.join(", ")}`
+      : null,
+    profile.home.indoorSmoke.length
+      ? `smoke: ${profile.home.indoorSmoke.join(", ")}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   function saveFullProfile(next: Profile) {
     saveProfile(next);
     setTarget(next.location);
@@ -250,7 +271,7 @@ function AppShellInner({
   return (
     <div className="min-h-dvh bg-paper">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[264px] flex-col border-r border-line bg-paper/85 px-5 py-6 backdrop-blur lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[264px] flex-col border-r border-line bg-[#efeadd]/90 px-5 py-6 backdrop-blur lg:flex">
         <Brand />
         <LocationSelect
           code={code}
@@ -267,7 +288,7 @@ function AppShellInner({
               className={cn(
                 "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
                 tab === item.tab
-                  ? "bg-ink text-white shadow-sm"
+                  ? "bg-brand text-white shadow-sm"
                   : "text-ink/70 hover:bg-white hover:text-ink",
               )}
             >
@@ -293,7 +314,7 @@ function AppShellInner({
       {/* Main column */}
       <div className="lg:pl-[264px]">
         {/* Mobile header */}
-        <header className="sticky top-0 z-30 border-b border-line bg-paper/90 px-4 pb-3 pt-3 backdrop-blur lg:hidden">
+        <header className="sticky top-0 z-30 border-b border-line bg-[#f5f2e9]/95 px-4 pb-3 pt-3 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between">
             <Brand />
             <button
@@ -319,7 +340,7 @@ function AppShellInner({
             </h1>
             <div className="mb-4 hidden items-end justify-between lg:flex">
               <div>
-                <h1 className="text-lg font-semibold tracking-tight text-ink">
+                <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
                   {tab === "today" ? "Today" : NAV.find((n) => n.tab === tab)?.label}
                 </h1>
                 <p className="text-xs text-muted">
@@ -384,9 +405,17 @@ function AppShellInner({
                 Why this advice
               </div>
               <ul className="mt-2 space-y-2 text-[11px] leading-5 text-muted">
-                <li>Family: father (asthma), daughter (6).</li>
-                <li>Home: no purifier, gas stove, agarbatti.</li>
-                <li>Source: CPCB / OpenAQ / CAMS, with freshness shown.</li>
+                <li>
+                  <span className="font-medium text-ink">Family:</span>{" "}
+                  {familyLine}.
+                </li>
+                <li>
+                  <span className="font-medium text-ink">Home:</span> {homeLine}.
+                </li>
+                <li>
+                  <span className="font-medium text-ink">Source:</span>{" "}
+                  {reading.source.station} · {reading.source.updated}.
+                </li>
               </ul>
             </div>
           </aside>
@@ -409,7 +438,7 @@ function AppShellInner({
               <span
                 className={cn(
                   "grid h-8 w-8 place-items-center rounded-xl transition",
-                  tab === item.tab ? "bg-teal-50 text-brand" : "text-muted",
+                  tab === item.tab ? "bg-brand/10 text-brand" : "text-muted",
                 )}
               >
                 {item.icon}

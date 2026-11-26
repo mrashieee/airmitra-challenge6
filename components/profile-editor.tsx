@@ -370,7 +370,7 @@ export function ProfileEditor({ profile, onSave }: Props) {
                 <button
                   type="button"
                   onClick={() => addMember("You")}
-                  className="rounded-full bg-ink px-3 py-1.5 text-[11px] font-medium text-white"
+                  className="rounded-full bg-brand px-3 py-1.5 text-[11px] font-medium text-white"
                 >
                   Add yourself
                 </button>
@@ -588,7 +588,7 @@ export function ProfileEditor({ profile, onSave }: Props) {
         <button
           type="button"
           onClick={() => onSave(draft)}
-          className="mt-4 w-full rounded-xl bg-ink px-3 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
+          className="mt-4 w-full rounded-xl bg-brand px-3 py-2.5 text-sm font-medium text-white transition hover:bg-[#0a4a3e]"
         >
           Save changes
         </button>

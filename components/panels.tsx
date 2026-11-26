@@ -122,7 +122,7 @@ export function AskPanel({
   return (
     <div className="space-y-4">
       <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+        <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
           <SparkIcon className="h-4 w-4 text-brand" />
           Ask AirMitra
           <span className="ml-auto rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-medium text-teal-700 ring-1 ring-teal-100">
@@ -239,7 +239,7 @@ export function ReportPanel({ reading }: { reading: Reading }) {
   return (
     <div className="space-y-4">
       <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+        <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
           <AlertIcon className="h-4 w-4 text-brand" />
           Tell us what is going on
         </div>
@@ -250,7 +250,7 @@ export function ReportPanel({ reading }: { reading: Reading }) {
       </div>
 
       <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h3 className="text-sm font-semibold text-ink">How is someone feeling?</h3>
+        <h3 className="font-display text-lg font-semibold text-ink">How is someone feeling?</h3>
         <div className="mt-3 flex flex-wrap gap-2">
           {SYMPTOMS.map((s) => (
             <button
@@ -299,7 +299,7 @@ export function ReportPanel({ reading }: { reading: Reading }) {
       </section>
 
       <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h3 className="text-sm font-semibold text-ink">Report a local issue</h3>
+        <h3 className="font-display text-lg font-semibold text-ink">Report a local issue</h3>
         <p className="mt-1 text-xs leading-5 text-muted">
           Save it here, then copy a complaint draft you can send to your
           municipality or society.
@@ -343,7 +343,7 @@ export function ReportPanel({ reading }: { reading: Reading }) {
           }
           setSaved(true);
         }}
-        className="w-full rounded-xl bg-ink px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.99]"
+        className="w-full rounded-xl bg-brand px-4 py-3 text-sm font-medium text-white transition hover:bg-[#0a4a3e] active:scale-[0.99]"
       >
         Save on this device
       </button>
@@ -555,7 +555,7 @@ export function CardsPanel({ reading }: { reading: Reading }) {
   return (
     <div className="space-y-4">
       <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+        <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
           <ShareIcon className="h-4 w-4 text-brand" />
           Story card
         </div>
@@ -572,7 +572,7 @@ export function CardsPanel({ reading }: { reading: Reading }) {
             type="button"
             onClick={downloadStory}
             disabled={busy}
-            className="rounded-xl bg-ink px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.99] disabled:opacity-60"
+            className="rounded-xl bg-brand px-4 py-3 text-sm font-medium text-white transition hover:bg-[#0a4a3e] active:scale-[0.99] disabled:opacity-60"
           >
             {busy ? "Building…" : "Download image"}
           </button>
@@ -592,7 +592,7 @@ export function CardsPanel({ reading }: { reading: Reading }) {
       </div>
 
       <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <div className="text-sm font-semibold text-ink">Post to</div>
+        <div className="font-display text-lg font-semibold text-ink">Post to</div>
         <div className="mt-3 grid grid-cols-3 gap-2">
           {links.map((link) => (
             <a
@@ -622,7 +622,7 @@ export function CardsPanel({ reading }: { reading: Reading }) {
       </div>
 
       <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <div className="text-sm font-semibold text-ink">Status / story text</div>
+        <div className="font-display text-lg font-semibold text-ink">Status / story text</div>
         <pre className="mt-2 whitespace-pre-wrap rounded-xl bg-paper p-3 text-[11px] leading-5 text-ink ring-1 ring-line">
           {caption}
         </pre>
@@ -630,7 +630,7 @@ export function CardsPanel({ reading }: { reading: Reading }) {
           <button
             type="button"
             onClick={() => copyValue(caption, "caption")}
-            className="rounded-xl bg-ink px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
+            className="rounded-xl bg-brand px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
           >
             {copied === "caption" ? "Copied" : "Copy caption"}
           </button>

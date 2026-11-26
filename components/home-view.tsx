@@ -30,28 +30,39 @@ function SectionCard({
   subtitle,
   children,
   delay = 0,
+  variant = "plain",
 }: {
   icon: React.ReactNode;
   title: string;
   subtitle?: string;
   children: React.ReactNode;
   delay?: number;
+  variant?: "plain" | "panel";
 }) {
   return (
     <section
-      className="animate-rise rounded-2xl bg-card p-5 ring-1 ring-black/5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+      className={cn(
+        "animate-rise",
+        variant === "panel"
+          ? "rounded-2xl border border-line/80 bg-card p-5"
+          : "border-t border-line pt-5",
+      )}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="flex items-start gap-3">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-paper text-brand ring-1 ring-line">
-          {icon}
-        </span>
-        <div>
-          <h2 className="text-sm font-semibold text-ink">{title}</h2>
-          {subtitle ? <p className="mt-0.5 text-xs text-muted">{subtitle}</p> : null}
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+        <div className="flex min-w-0 items-baseline gap-2">
+          <span className="shrink-0 text-brand">{icon}</span>
+          <h2 className="font-display text-[20px] font-semibold tracking-[-0.01em] text-ink">
+            {title}
+          </h2>
         </div>
+        {subtitle ? (
+          <p className="text-[11px] leading-4 text-muted sm:max-w-[48%] sm:text-right">
+            {subtitle}
+          </p>
+        ) : null}
       </div>
-      <div className="mt-4">{children}</div>
+      <div className="mt-3.5">{children}</div>
     </section>
   );
 }
@@ -73,7 +84,7 @@ export function HomeView({
     .slice(0, 6);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Hero */}
       <section
         className={cn(
@@ -265,6 +276,7 @@ export function HomeView({
       ) : null}
       {brief ? (
         <SectionCard
+          variant="panel"
           icon={<SparkIcon className="h-4 w-4" />}
           title={"Today's brief"}
           subtitle={
@@ -304,8 +316,8 @@ export function HomeView({
           title="General guideline"
           subtitle={
             briefLoading
-              ? "Personalising for your household…"
-              : "For anyone at this AQI"
+              ? "Writing for your household…"
+              : "General guidance for this AQI"
           }
           delay={40}
         >
@@ -329,7 +341,7 @@ export function HomeView({
         title="For your family"
         subtitle={
           reading.family.length
-            ? `${reading.family.length} ${reading.family.length === 1 ? "person" : "people"} you care for`
+            ? `${reading.family.length} ${reading.family.length === 1 ? "person" : "people"}`
             : "No one added yet"
         }
         delay={80}
@@ -344,7 +356,7 @@ export function HomeView({
               <button
                 type="button"
                 onClick={() => onNavigate("settings")}
-                className="mt-2 rounded-full bg-ink px-3 py-1.5 text-[11px] font-medium text-white"
+                className="mt-2 rounded-full bg-brand px-3 py-1.5 text-[11px] font-medium text-white"
               >
                 Add your family
               </button>
@@ -385,8 +397,8 @@ export function HomeView({
       {/* If you must go out */}
       <SectionCard
         icon={<MaskIcon className="h-4 w-4" />}
-        title="If someone must go out"
-        subtitle="Never a dead-end restriction"
+        title="If you must go out"
+        subtitle="A plan for going out"
         delay={120}
       >
         <div className="space-y-2">
@@ -406,8 +418,8 @@ export function HomeView({
       {/* Do now */}
       <SectionCard
         icon={<HomeIcon className="h-4 w-4" />}
-        title="Do now at home"
-        subtitle="Based on what your home has"
+        title="Do now"
+        subtitle="What you can do today"
         delay={160}
       >
         <div className="space-y-2">
@@ -486,7 +498,7 @@ export function HomeView({
         <button
           type="button"
           onClick={() => onNavigate("ask")}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.99] sm:w-auto"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-medium text-white transition hover:bg-[#0a4a3e] active:scale-[0.99] sm:w-auto"
         >
           <ChatIcon className="h-4 w-4" />
           Ask about today
