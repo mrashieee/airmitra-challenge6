@@ -45,12 +45,13 @@ export function WeatherScene({
     <div
       aria-hidden
       className={cn(
-        "pointer-events-none absolute inset-0 overflow-hidden bg-gradient-to-br",
+        "animate-scene pointer-events-none absolute inset-0 overflow-hidden bg-gradient-to-br",
         GRADIENTS[condition],
       )}
     >
       {showSun ? (
         <>
+          <div className="animate-glow absolute -right-16 -top-20 h-64 w-64 rounded-full bg-amber-200/50 blur-3xl" />
           <div className="animate-sun absolute -right-12 -top-14 h-52 w-52 rounded-full bg-amber-300/40 blur-2xl" />
           <div
             className="animate-spin-slow absolute -right-2 -top-4 h-40 w-40 rounded-full opacity-60 blur-[1px]"
@@ -101,6 +102,12 @@ export function WeatherScene({
             <div className="relative h-12 w-36">
               <div className="absolute bottom-0 h-7 w-36 rounded-full bg-white/55 blur-[2px]" />
               <div className="absolute bottom-3 left-4 h-9 w-14 rounded-full bg-white/60 blur-[1px]" />
+            </div>
+          </div>
+          <div className="animate-cloud absolute -left-16 top-2 scale-75 opacity-70 [animation-delay:7s] [animation-duration:26s]">
+            <div className="relative h-10 w-40">
+              <div className="absolute bottom-0 h-6 w-40 rounded-full bg-white/45 blur-[3px]" />
+              <div className="absolute bottom-2 left-6 h-8 w-16 rounded-full bg-white/50 blur-[2px]" />
             </div>
           </div>
           {condition !== "partly" ? (

@@ -18,7 +18,7 @@ import {
 import { Onboarding } from "./onboarding";
 import type { Tab } from "@/lib/nav";
 import { cn } from "@/lib/ui";
-import { HomeView } from "./home-view";
+import { HomeView, TodaySkeleton } from "./home-view";
 import { LocationSelect } from "./location-picker";
 import {
   AskPanel,
@@ -108,7 +108,12 @@ function AppShellInner({
   const city = { name: target.city, lat: target.lat, lon: target.lon };
   const state = useMemo(() => findState(code), [code]);
 
-  const { data, error } = useAirReading(code, city.lat, city.lon, city.name);
+  const { data, error, loading } = useAirReading(
+    code,
+    city.lat,
+    city.lon,
+    city.name,
+  );
   const reading = useMemo(
     () =>
       data
@@ -171,7 +176,12 @@ function AppShellInner({
     setLargeText(next.largeText);
   }
 
-  const badge = reading.demo
+  const badge = loading && !error
+    ? {
+        label: "loading",
+        className: "bg-slate-100 text-slate-600 ring-slate-200",
+      }
+    : reading.demo
     ? error
       ? {
           label: "offline demo",
@@ -207,7 +217,9 @@ function AppShellInner({
   }, [largeText]);
 
   const content =
-    tab === "today" ? (
+    loading && !error && tab !== "settings" ? (
+      <TodaySkeleton city={city.name} />
+    ) : tab === "today" ? (
       <HomeView
         reading={reading}
         onNavigate={setTab}
@@ -312,7 +324,11 @@ function AppShellInner({
                   {tab === "today" ? "Today" : NAV.find((n) => n.tab === tab)?.label}
                 </h1>
                 <p className="text-xs text-muted">
-                  {reading.demo ? "Demo conditions for your area" : "Live conditions for your area"}
+                  {loading && !error
+                    ? "Loading live conditions…"
+                    : reading.demo
+                      ? "Demo conditions for your area"
+                      : "Live conditions for your area"}
                 </p>
               </div>
               <div className="flex items-center gap-2">

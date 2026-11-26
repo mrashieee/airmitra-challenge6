@@ -260,3 +260,84 @@ html.large-text {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
+
+@keyframes aqi-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes scene-in {
+  from {
+    opacity: 0.35;
+    transform: scale(1.035);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes glow-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translate3d(6px, -5px, 0) scale(1.12);
+    opacity: 0.32;
+  }
+}
+
+.animate-aqi-pop {
+  animation: aqi-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-scene {
+  animation: scene-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-glow {
+  animation: glow-drift 9s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-aqi-pop,
+  .animate-scene,
+  .animate-glow {
+    animation: none !important;
+  }
+}
+
+@keyframes sheen {
+  0% {
+    transform: translateX(-140%) skewX(-14deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.5;
+  }
+  30% {
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(240%) skewX(-14deg);
+    opacity: 0;
+  }
+}
+
+.animate-sheen {
+  animation: sheen 11s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sheen {
+    animation: none !important;
+  }
+}

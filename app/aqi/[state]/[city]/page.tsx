@@ -8,6 +8,7 @@ import { createDefaultProfile } from "@/lib/profile";
 import { BAND_STYLES, cn } from "@/lib/ui";
 import { PinIcon, SparkIcon, WindIcon } from "@/components/icons";
 import { WeatherScene, weatherLabel } from "@/components/weather-scene";
+import { AqiNumber } from "@/components/aqi-number";
 
 type Params = { params: Promise<{ state: string; city: string }> };
 
@@ -113,6 +114,7 @@ export default async function CityPage({ params }: Params) {
             isDay={reading.weather.isDay}
             aqi={reading.aqi}
           />
+          <span className="animate-sheen pointer-events-none absolute inset-y-0 -left-1/3 z-[1] w-1/3 bg-gradient-to-r from-transparent via-white/35 to-transparent" />
           <div className="relative z-10 p-5">
             <div className="flex items-center gap-1.5 text-xs text-muted">
               <PinIcon className="h-3.5 w-3.5" />
@@ -122,9 +124,18 @@ export default async function CityPage({ params }: Params) {
             </div>
 
             <div className="mt-3 flex flex-wrap items-end gap-3">
-              <span className="tabular text-[64px] font-semibold leading-none tracking-[-0.04em] text-ink">
-                {reading.aqi}
-              </span>
+              <div className="relative flex items-end">
+                <div
+                  className={cn(
+                    "animate-glow pointer-events-none absolute -left-5 -top-4 h-28 w-28 rounded-full blur-3xl",
+                    styles.dot,
+                  )}
+                />
+                <AqiNumber
+                  value={reading.aqi}
+                  className="relative text-[64px] font-semibold leading-none tracking-[-0.04em] text-ink"
+                />
+              </div>
               <span
                 className={cn(
                   "mb-1.5 rounded-full px-3 py-1 text-xs font-semibold ring-1",

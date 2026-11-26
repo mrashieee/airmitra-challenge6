@@ -14,6 +14,7 @@ import {
   WindIcon,
 } from "./icons";
 import { WeatherScene, weatherLabel } from "./weather-scene";
+import { AqiNumber } from "./aqi-number";
 
 type Props = {
   reading: Reading;
@@ -79,6 +80,7 @@ export function HomeView({
           isDay={reading.weather.isDay}
           aqi={reading.aqi}
         />
+        <span className="animate-sheen pointer-events-none absolute inset-y-0 -left-1/3 z-[1] w-1/3 bg-gradient-to-r from-transparent via-white/35 to-transparent" />
         <div className="relative z-10 p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -90,9 +92,18 @@ export function HomeView({
             </div>
 
             <div className="mt-3 flex flex-wrap items-end gap-3">
-              <span className="tabular text-[64px] font-semibold leading-none tracking-[-0.04em] text-ink">
-                {reading.aqi}
-              </span>
+              <div className="relative flex items-end">
+                <div
+                  className={cn(
+                    "animate-glow pointer-events-none absolute -left-5 -top-4 h-28 w-28 rounded-full blur-3xl",
+                    styles.dot,
+                  )}
+                />
+                <AqiNumber
+                  value={reading.aqi}
+                  className="relative text-[64px] font-semibold leading-none tracking-[-0.04em] text-ink"
+                />
+              </div>
               <span
                 className={cn(
                   "mb-1.5 rounded-full px-3 py-1 text-xs font-semibold ring-1",
@@ -414,6 +425,31 @@ export function HomeView({
           Ask about today
         </button>
       </div>
+    </div>
+  );
+}
+
+export function TodaySkeleton({ city }: { city: string }) {
+  return (
+    <div className="space-y-4" aria-busy="true" aria-live="polite">
+      <div className="animate-soft relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 p-5 ring-1 ring-black/5">
+        <div className="h-3 w-28 rounded-full bg-white/70" />
+        <div className="mt-4 flex items-end gap-3">
+          <div className="h-14 w-28 rounded-2xl bg-white/80" />
+          <div className="mb-2 h-6 w-20 rounded-full bg-white/60" />
+        </div>
+        <div className="mt-4 h-3 w-64 max-w-full rounded-full bg-white/60" />
+        <div className="mt-2 h-3 w-44 rounded-full bg-white/50" />
+        <div className="mt-6 flex gap-2">
+          <div className="h-8 w-24 rounded-full bg-white/60" />
+          <div className="h-8 w-24 rounded-full bg-white/50" />
+        </div>
+        <p className="mt-5 text-[11px] font-medium text-slate-600">
+          Loading live air quality for {city}…
+        </p>
+      </div>
+      <div className="animate-soft h-36 rounded-2xl bg-card ring-1 ring-black/5" />
+      <div className="animate-soft h-28 rounded-2xl bg-card ring-1 ring-black/5" />
     </div>
   );
 }

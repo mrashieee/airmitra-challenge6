@@ -53,24 +53,26 @@ function hash(input: string): number {
 }
 
 function guidelinesFor(key: BandKey): string[] {
+  const { best, avoid } = comfortWindows(key);
+
   if (key === "severe" || key === "veryPoor") {
     return [
-      "Reduce outdoor activity until air improves. If you must go out: fitted N95, short trips, avoid main roads.",
+      `Avoid outdoors ${avoid}. If you must go out: fitted N95, short trips, avoid main roads.`,
       "Keep windows closed while outdoor air is worse than indoor.",
-      "Sensitive groups: stay in if possible. If you must go out: N95 and under 15 minutes.",
+      `Sensitive groups: stay in. If you must go out, keep it under 15 minutes — even in the ${best} window.`,
     ];
   }
   if (key === "poor" || key === "moderate") {
     return [
-      "Limit outdoor time. If you must go out: N95 for sensitive groups, short trips.",
-      "Ventilate when wind picks up; keep windows closed during peak hours.",
+      `Limit outdoor time to ${best}. Avoid ${avoid}.`,
+      "Ventilate 11 AM–4 PM when wind picks up; keep windows closed otherwise.",
       "Sensitive groups: skip outdoor exercise today.",
     ];
   }
   return [
-    "Good window - open up and go out.",
-    "Dry clothes outside and ventilate the house.",
-    "No mask needed; sensitive groups keep one handy.",
+    `Best outdoor hours: ${best}. Open up and go out.`,
+    "Dry clothes outside 10 AM–4 PM and ventilate the house.",
+    `No mask needed; skip outdoor exercise ${avoid} if sensitive.`,
   ];
 }
 
