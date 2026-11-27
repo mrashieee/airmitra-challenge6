@@ -167,7 +167,7 @@ export default async function CityPage({ params }: Params) {
 
             {reading.source.type === "model" ? (
               <p className="mt-2 text-[11px] leading-5 text-muted">
-                Model estimate, not a local monitor.{" "}
+                Model estimate, not a local monitor. Models can differ from other apps.{" "}
                 {reading.nearby?.length
                   ? `Nearest monitor: ${reading.nearby[0].distanceKm} km away, AQI ${reading.nearby[0].aqi}.`
                   : "No ground monitor within 60 km."}
