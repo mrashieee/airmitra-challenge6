@@ -159,31 +159,34 @@ body {
 }
 
 .font-display {
-  font-family: var(--font-source-serif), "Source Serif 4", Georgia,
-    "Times New Roman", serif;
+  font-family: "Inter", var(--font-indic);
   font-optical-sizing: auto;
-  letter-spacing: -0.015em;
-  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
 }
 
-/* Keep translated headings legible: Latin serif fonts do not carry Indic
-   glyphs, so use the sans stack for those languages instead of a mixed
-   system-serif fallback. */
-:lang(hi) .font-display:not(.brand-name),
-:lang(ml) .font-display:not(.brand-name),
-:lang(ta) .font-display:not(.brand-name),
-:lang(te) .font-display:not(.brand-name),
-:lang(kn) .font-display:not(.brand-name),
-:lang(mr) .font-display:not(.brand-name),
-:lang(bn) .font-display:not(.brand-name),
-:lang(gu) .font-display:not(.brand-name),
-:lang(pa) .font-display:not(.brand-name),
-:lang(or) .font-display:not(.brand-name),
-:lang(ur) .font-display:not(.brand-name),
+/* The wordmark keeps a little more weight and tighter spacing. */
+.font-display.brand-name {
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+/* Indic scripts need more vertical room and less negative tracking. */
+:lang(hi) .font-display,
+:lang(ml) .font-display,
+:lang(ta) .font-display,
+:lang(te) .font-display,
+:lang(kn) .font-display,
+:lang(mr) .font-display,
+:lang(bn) .font-display,
+:lang(gu) .font-display,
+:lang(pa) .font-display,
+:lang(or) .font-display,
+:lang(ur) .font-display,
 :lang(as) .font-display {
-  font-family: "Inter", var(--font-indic);
   letter-spacing: -0.01em;
-  line-height: 1.25;
+  line-height: 1.3;
 }
 
 ::selection {

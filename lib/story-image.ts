@@ -13,7 +13,6 @@ const ACCENTS: Record<string, string> = {
 };
 
 const FONT = '"Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif';
-const SERIF = '"Source Serif 4", Georgia, "Times New Roman", serif';
 
 function hexToRgba(hex: string, alpha: number): string {
   const clean = hex.replace("#", "");
@@ -114,7 +113,7 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
 
   // Header
   ctx.fillStyle = "#ffffff";
-  ctx.font = `700 46px ${SERIF}`;
+  ctx.font = `700 46px ${FONT}`;
   ctx.fillText("AirMitra", margin, 148);
 
   ctx.fillStyle = "rgba(204, 251, 241, 0.7)";
