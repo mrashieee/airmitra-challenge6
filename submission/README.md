@@ -2,7 +2,7 @@
 
 **Play:** https://mrashieee.github.io/airmitra-challenge6/
 
-**MP4:** [AirMitra_Promo_1080p.mp4](https://github.com/mrashieee/airmitra-challenge6/releases/download/demo-video/AirMitra_Promo_1080p.mp4) — 1:45, 1920×1080, 30 fps, H.264/AAC.
+**MP4:** [AirMitra_Promo_1080p.mp4](https://mrashieee.github.io/airmitra-challenge6/video/AirMitra_Promo_1080p.mp4) — 1:45, 1920×1080, 30 fps, H.264/AAC.
 
 [![AirMitra demo thumbnail](../docs/video/Thumbnail_1280x720.jpg)](https://mrashieee.github.io/airmitra-challenge6/)
 
