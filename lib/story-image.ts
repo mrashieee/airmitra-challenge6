@@ -259,9 +259,13 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
   );
 
   // Source line above the footer
-  const source = `${
-    reading.source.type === "ground" ? "Ground monitor" : "CAMS model estimate"
-  } · ${reading.source.updated}`;
+  const sourceLabel =
+    reading.source.type === "ground"
+      ? "Ground monitor"
+      : reading.source.type === "approximate"
+        ? `Nearest monitor · ${reading.source.distanceKm} km`
+        : "CAMS model estimate";
+  const source = `${sourceLabel} · ${reading.source.updated}`;
   ctx.fillStyle = "rgba(204,251,241,0.55)";
   ctx.font = `500 22px ${FONT}`;
   const sourceLine = wrap(ctx, source, maxWidth, 1)[0];

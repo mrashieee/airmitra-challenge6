@@ -165,13 +165,30 @@ export default async function CityPage({ params }: Params) {
               ) : null}
             </p>
 
+            {reading.source.type === "model" ? (
+              <p className="mt-2 text-[11px] leading-5 text-muted">
+                Model estimate, not a local monitor.{" "}
+                {reading.nearby?.length
+                  ? `Nearest monitor: ${reading.nearby[0].distanceKm} km away, AQI ${reading.nearby[0].aqi}.`
+                  : "No ground monitor within 100 km."}
+              </p>
+            ) : null}
+
+                {reading.source.type === "approximate" ? (
+              <p className="mt-2 text-[11px] leading-5 text-muted">
+                Approximate reading from the nearest monitor{" "}
+                {reading.source.distanceKm} km away. Not a local station.
+              </p>
+            ) : null}
             <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-muted">
               <span
                 className={cn(
                   "h-1.5 w-1.5 rounded-full",
                   reading.source.type === "ground"
                     ? "bg-emerald-500"
-                    : "bg-amber-500",
+                    : reading.source.type === "approximate"
+                      ? "bg-orange-500"
+                      : "bg-amber-500",
                 )}
               />
               <span className="font-medium text-ink">
@@ -189,7 +206,9 @@ export default async function CityPage({ params }: Params) {
               <span className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm">
                 {reading.source.type === "ground"
                   ? "ground monitor"
-                  : "model estimate"}
+                  : reading.source.type === "approximate"
+                    ? "nearest monitor"
+                    : "model estimate"}
               </span>
               {reading.usAqi ? (
                 <span
@@ -407,7 +426,9 @@ export default async function CityPage({ params }: Params) {
           Source: {reading.source.station}. India AQI uses CPCB NAQI, not the US
           EPA scale. {reading.source.type === "model"
             ? `${city.name} has no continuous ground monitor, so this is a CAMS model estimate, not a measured reading.`
-            : "Measured at a ground monitor."}{" "}
+            : reading.source.type === "approximate"
+              ? `This is an approximate reading from the nearest monitor, ${reading.source.distanceKm} km away, not a local station.`
+              : "Measured at a ground monitor."}{" "}
           AirMitra is not a medical service.
         </p>
       </main>

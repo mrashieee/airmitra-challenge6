@@ -144,11 +144,30 @@ export function HomeView({
 
         </div>
 
+        {reading.source.type === "model" ? (
+          <p className="mt-2 text-[11px] leading-5 text-muted">
+            Model estimate, not a local monitor.{" "}
+            {reading.nearby?.length
+              ? `Nearest monitor: ${reading.nearby[0].distanceKm} km away, AQI ${reading.nearby[0].aqi}.`
+              : "No ground monitor within 100 km."}
+          </p>
+        ) : null}
+
+        {reading.source.type === "approximate" ? (
+          <p className="mt-2 text-[11px] leading-5 text-muted">
+            Approximate reading from the nearest monitor{" "}
+            {reading.source.distanceKm} km away. Not a local station.
+          </p>
+        ) : null}
         <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-muted">
           <span
             className={cn(
               "h-1.5 w-1.5 rounded-full",
-              reading.source.type === "ground" ? "bg-emerald-500" : "bg-amber-500",
+              reading.source.type === "ground"
+                ? "bg-emerald-500"
+                : reading.source.type === "approximate"
+                  ? "bg-orange-500"
+                  : "bg-amber-500",
             )}
           />
           <span className="font-medium text-ink">{reading.source.station}</span>
@@ -158,7 +177,11 @@ export function HomeView({
             <span>· nearest CPCB {Math.round(reading.nearestStationKm)} km</span>
           ) : null}
           <span className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm">
-            {reading.source.type === "ground" ? "ground monitor" : "model estimate"}
+            {reading.source.type === "ground"
+              ? "ground monitor"
+              : reading.source.type === "approximate"
+                ? "nearest monitor"
+                : "model estimate"}
           </span>
           {reading.usAqi ? (
             <span
@@ -188,6 +211,10 @@ export function HomeView({
           ) : reading.stale ? (
             <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700 ring-1 ring-amber-200">
               cached
+            </span>
+          ) : reading.source.type === "approximate" ? (
+            <span className="rounded-full bg-orange-50 px-2 py-0.5 font-medium text-orange-700 ring-1 ring-orange-200">
+              approximate
             </span>
           ) : reading.source.type === "model" ? (
             <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700 ring-1 ring-amber-200">

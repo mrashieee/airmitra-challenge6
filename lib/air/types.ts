@@ -1,6 +1,6 @@
 import type { BandKey, PollutantValue } from "./naqi";
 
-export type AirSourceType = "ground" | "model";
+export type AirSourceType = "ground" | "approximate" | "model";
 
 export type AirSource = {
   type: AirSourceType;

@@ -17,7 +17,7 @@ export type Reading = {
   pollutants: { label: string; value: number; unit: string }[];
   weather: AirReading["weather"];
   source: {
-    type: "ground" | "model";
+    type: "ground" | "approximate" | "model";
     station: string;
     distanceKm: number;
     updated: string;

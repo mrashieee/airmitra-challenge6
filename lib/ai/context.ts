@@ -18,7 +18,7 @@ export type AiContext = {
     isDay: boolean;
   };
   source: {
-    type: "ground" | "model";
+    type: "ground" | "approximate" | "model";
     station: string;
     distanceKm: number;
     nearestCpcbKm?: number;

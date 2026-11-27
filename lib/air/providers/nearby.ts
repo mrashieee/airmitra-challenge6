@@ -1,5 +1,5 @@
 import { distanceKm } from "../geo";
-import type { Target, NearbyStation } from "../types";
+import type { AirSample, Target, NearbyStation } from "../types";
 import {
   buildSample,
   type OpenAQLatest,
@@ -8,15 +8,22 @@ import {
 
 const BASE = "https://api.openaq.org/v3";
 
+export type NearbySampleRow = {
+  name: string;
+  distanceKm: number;
+  ageMinutes: number;
+  sample: AirSample;
+};
+
 /**
  * Finds live ground monitors around a place that has no station of its own.
  * OpenAQ caps `radius` at 25 km, so we use a bounding box (~100 km) instead.
  * Only stations reporting PM within the last 12 hours are returned.
  */
-export async function fetchNearbyStations(
+export async function fetchNearbySamples(
   place: Target,
-  limit = 3,
-): Promise<NearbyStation[]> {
+  limit = 4,
+): Promise<NearbySampleRow[]> {
   const key = process.env.OPENAQ_API_KEY;
   if (!key) return [];
 
@@ -100,11 +107,9 @@ export async function fetchNearbyStations(
           return {
             name: location.name,
             distanceKm: Math.round(distance * 10) / 10,
-            aqi: sample.aqi,
-            bandLabel: sample.bandLabel,
-            updatedAt: sample.source.updatedAt,
             ageMinutes: Math.max(0, ageMinutes),
-          } satisfies NearbyStation;
+            sample,
+          } satisfies NearbySampleRow;
         } catch {
           return null;
         }
@@ -112,10 +117,25 @@ export async function fetchNearbyStations(
     );
 
     return results
-      .filter((row): row is NearbyStation => row !== null)
+      .filter((row): row is NearbySampleRow => row !== null)
       .sort((a, b) => a.distanceKm - b.distanceKm)
       .slice(0, limit);
   } catch {
     return [];
   }
+}
+
+export async function fetchNearbyStations(
+  place: Target,
+  limit = 3,
+): Promise<NearbyStation[]> {
+  const rows = await fetchNearbySamples(place, Math.max(limit, 4));
+  return rows.slice(0, limit).map((row) => ({
+    name: row.name,
+    distanceKm: row.distanceKm,
+    aqi: row.sample.aqi,
+    bandLabel: row.sample.bandLabel,
+    updatedAt: row.sample.source.updatedAt,
+    ageMinutes: row.ageMinutes,
+  }));
 }

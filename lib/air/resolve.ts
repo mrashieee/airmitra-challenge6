@@ -3,7 +3,7 @@ import { cacheGet, cacheGetStale, cacheSet } from "./cache";
 import { usAqiForPollutants } from "./naqi";
 import { fetchCpcb } from "./providers/cpcb";
 import { fetchOpenAQ } from "./providers/openaq";
-import { fetchNearbyStations } from "./providers/nearby";
+import { fetchNearbySamples, fetchNearbyStations } from "./providers/nearby";
 import { fetchCityStations, mergeCityStations } from "./aggregate";
 import { fetchOpenMeteoAir, fetchWeather } from "./providers/openmeteo";
 import type { AirReading, Target } from "./types";
@@ -95,15 +95,32 @@ export async function resolveAirReading(
       }
     }
 
-    sample = await fetchOpenMeteoAir(state, place);
+    // Prefer a real station up to 100 km away over a model. It is labelled
+    // approximate in the UI.
+    const nearbySamples = await withTimeout(
+      fetchNearbySamples(place, 1),
+      7000,
+      [],
+    );
 
-    if (sample) {
-      const nearby = await withTimeout(
-        fetchNearbyStations(place),
-        6500,
-        [],
-      );
-      if (nearby.length) modelNearby = nearby;
+    if (nearbySamples.length) {
+      const nearest = nearbySamples[0];
+      sample = {
+        ...nearest.sample,
+        source: { ...nearest.sample.source, type: "approximate" },
+      };
+      nearestStationKm = nearest.distanceKm;
+    } else {
+      sample = await fetchOpenMeteoAir(state, place);
+
+      if (sample) {
+        const nearby = await withTimeout(
+          fetchNearbyStations(place),
+          6500,
+          [],
+        );
+        if (nearby.length) modelNearby = nearby;
+      }
     }
   }
 

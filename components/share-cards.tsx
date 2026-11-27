@@ -47,7 +47,12 @@ export function ShareCardPreview({ reading }: { reading: Reading }) {
 
         <div className="mt-3 flex items-center justify-between text-[10px] text-muted">
           <span>
-            {reading.source.type === "ground" ? "Ground monitor" : "Model estimate"} ·{" "}
+            {reading.source.type === "ground"
+              ? "Ground monitor"
+              : reading.source.type === "approximate"
+                ? `Nearest monitor · ${reading.source.distanceKm} km`
+                : "Model estimate"}{" "}
+            ·{" "}
             {reading.source.station}
           </span>
           <span>via AirMitra</span>
@@ -155,7 +160,9 @@ export function StoryPreview({ reading }: { reading: Reading }) {
           <div className="text-[7px] text-teal-100/50">
             {reading.source.type === "ground"
               ? "Ground monitor"
-              : "CAMS model estimate"}
+              : reading.source.type === "approximate"
+                ? "Nearest monitor"
+                : "CAMS model estimate"}
             {reading.source.distanceKm > 0
               ? ` · ${reading.source.distanceKm} km`
               : ""}{" "}
