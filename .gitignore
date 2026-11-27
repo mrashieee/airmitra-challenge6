@@ -34,6 +34,15 @@ next-env.d.ts
 .env*
 !.env.example
 
-# Agent skills installed locally (not part of the app)
+# Android signing and build artifacts
+*.keystore
+*.jks
+key.properties
+local.properties
+*.apk
+*.aab
+*.idsig
+
+# Agent skills installed locally, not part of the app
 .agents/
 skills-lock.json

@@ -7,7 +7,7 @@ profile on the device.
 
 ## Android — signed APK
 
-[Download AirMitra 1.0.0 APK](https://github.com/mrashieee/airmitra-challenge6/releases/tag/v1.0.0) (1.1 MB, GitHub release).
+[Download AirMitra 1.0.1 APK](https://github.com/mrashieee/airmitra-challenge6/releases/tag/v1.0.1) (1.1 MB, GitHub release). This security release rotates the Android signing key; uninstall any 1.0.0 installation before installing because Android cannot update across signing certificates.
 
 - Trusted Web Activity (TWA) around `https://airmitra-app.vercel.app`
 - Package: `app.airmitra.twa`

@@ -17,7 +17,7 @@ PWA with a grounded GenAI brief, not a chat-only app.
 
 ## Get the app
 
-- **Android:** [signed APK](https://github.com/mrashieee/airmitra-challenge6/releases/tag/v1.0.0)
+- **Android:** [signed APK 1.0.1](https://github.com/mrashieee/airmitra-challenge6/releases/tag/v1.0.1) — security signing-key rotation; uninstall any 1.0.0 installation before installing.
 - **iOS:** Add to Home Screen from Safari
 - **Desktop:** [Linux AppImage and Windows .exe](https://github.com/mrashieee/airmitra-challenge6/releases/tag/v1.0.0) (Electron shell; source in `packaging/desktop`)
 - **Packaging notes:** [PACKAGING.md](PACKAGING.md)

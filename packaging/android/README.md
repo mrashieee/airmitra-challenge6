@@ -1,12 +1,15 @@
 # AirMitra Android APK
 
 The shippable APK is a **Trusted Web Activity (TWA)** around
-`https://airmitra-app.vercel.app`. It uses the existing PWA manifest, icons and
+`https://[REDACTED]-app.vercel.app`. It uses the existing PWA manifest, icons and
 service worker. The profile stays on the device; there is no account.
 
 The signed APK is published at:
 
-[https://github.com/mrashieee/airmitra-challenge6/releases/tag/v1.0.0](https://github.com/mrashieee/airmitra-challenge6/releases/tag/v1.0.0)
+[https://github.com/mrashieee/[REDACTED]-challenge6/releases/tag/v1.0.1](https://github.com/mrashieee/[REDACTED]-challenge6/releases/tag/v1.0.1)
+
+Version 1.0.1 rotates the signing key after credential exposure. Existing
+1.0.0 installations must be uninstalled before installing 1.0.1.
 
 ## Rebuild
 
@@ -29,11 +32,17 @@ BT="$ANDROID_HOME/build-tools/36.0.0"
 "$BT/zipalign" -f 4 app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
 "$BT/apksigner" sign \
   --ks ../../secrets/android.keystore \
-  --ks-pass pass:YOUR_PASSWORD \
-  --key-pass pass:YOUR_PASSWORD \
+  --ks-key-alias [REDACTED] \
+  --ks-pass env:ANDROID_KEYSTORE_PASSWORD \
+  --key-pass env:ANDROID_KEY_PASSWORD \
   --out AirMitra.apk aligned.apk
 "$BT/apksigner" verify --print-certs AirMitra.apk
 ```
+
+Set `ANDROID_KEYSTORE_PASSWORD` and `ANDROID_KEY_PASSWORD` through a secret
+manager or a hidden shell prompt. Never put passwords directly in commands or
+commit them. On this machine, the current password is stored in the desktop
+keyring under service `[REDACTED]-android`.
 
 The keystore is **not committed**. If you use a different keystore, update:
 
@@ -44,7 +53,7 @@ The keystore is **not committed**. If you use a different keystore, update:
 
 The site must serve:
 
-`https://airmitra-app.vercel.app/.well-known/assetlinks.json`
+`https://[REDACTED]-app.vercel.app/.well-known/assetlinks.json`
 
-with the package name `app.airmitra.twa` and the signing certificate SHA-256.
+with the package name `app.[REDACTED].twa` and the signing certificate SHA-256.
 Without it the app still opens, but in a Chrome Custom Tab with a URL bar.
