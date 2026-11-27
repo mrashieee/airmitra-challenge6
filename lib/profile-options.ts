@@ -25,21 +25,6 @@ export const RELATIONS = [
   "Other",
 ];
 
-export const LANGUAGES = [
-  "English",
-  "Hindi",
-  "Malayalam",
-  "Tamil",
-  "Telugu",
-  "Kannada",
-  "Marathi",
-  "Bengali",
-  "Gujarati",
-  "Punjabi",
-  "Odia",
-  "Urdu",
-  "Assamese",
-];
 
 export const HOME_TYPES = [
   "Apartment",

@@ -1,6 +1,7 @@
 import type { Reading } from "@/lib/aqi";
 import { slugify } from "@/lib/slug";
 import { shortStationName } from "@/lib/format";
+import { localeTag, t } from "@/lib/i18n";
 
 const ACCENTS: Record<string, string> = {
   good: "#34d399",
@@ -112,9 +113,9 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
 
   ctx.fillStyle = "rgba(204, 251, 241, 0.7)";
   ctx.font = `500 22px ${FONT}`;
-  ctx.fillText("HOUSEHOLD AIR COACH", margin, 186);
+  ctx.fillText(t(reading.language, "ui.story.household").toUpperCase(), margin, 186);
 
-  const date = new Date().toLocaleDateString("en-IN", {
+  const date = new Date().toLocaleDateString(localeTag(reading.language), {
     day: "numeric",
     month: "short",
   });
@@ -123,6 +124,22 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
   ctx.font = `500 26px ${FONT}`;
   ctx.fillText(date, W - margin, 148);
   ctx.textAlign = "left";
+
+  // One way to give back, in the empty right column
+  if (reading.helpTheAir?.[0]) {
+    ctx.textAlign = "right";
+    ctx.fillStyle = "rgba(201,232,163,0.90)";
+    ctx.font = `600 20px ${FONT}`;
+    ctx.fillText(t(reading.language, "ui.story.giveBack").toUpperCase(), W - margin, 238);
+    ctx.fillStyle = "rgba(255,255,255,0.84)";
+    ctx.font = `500 24px ${FONT}`;
+    let gy = 270;
+    for (const line of wrap(ctx, reading.helpTheAir[0].title, 360, 2)) {
+      ctx.fillText(line, W - margin, gy);
+      gy += 30;
+    }
+    ctx.textAlign = "left";
+  }
 
   // City
   ctx.fillStyle = "#ffffff";
@@ -201,16 +218,22 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
   };
 
   windowBlock(
-    reading.aqi > 150 ? "Least-bad time out" : "Best time out",
+    reading.aqi > 150
+      ? t(reading.language, "ui.story.leastBad")
+      : t(reading.language, "ui.story.best"),
     reading.windows.best,
     "#ffffff",
   );
-  windowBlock("Avoid outdoors", reading.windows.avoid, "rgba(255,255,255,0.82)");
+  windowBlock(
+    t(reading.language, "ui.story.avoid"),
+    reading.windows.avoid,
+    "rgba(255,255,255,0.82)",
+  );
 
   // Do now
   ctx.fillStyle = "rgba(204,251,241,0.65)";
   ctx.font = `600 24px ${FONT}`;
-  ctx.fillText("DO NOW", margin, y);
+  ctx.fillText(t(reading.language, "ui.story.doNow").toUpperCase(), margin, y);
   y += 50;
 
   ctx.font = `500 34px ${FONT}`;
@@ -240,7 +263,7 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
 
   ctx.fillStyle = "rgba(204,251,241,0.7)";
   ctx.font = `600 22px ${FONT}`;
-  ctx.fillText("IMPACT", margin + 32, boxY + 46);
+  ctx.fillText(t(reading.language, "ui.story.impact").toUpperCase(), margin + 32, boxY + 46);
 
   ctx.fillStyle = "#ffffff";
   ctx.font = `700 46px ${FONT}`;
@@ -254,7 +277,7 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
   ctx.fillStyle = "rgba(255,255,255,0.62)";
   ctx.font = `500 22px ${FONT}`;
   ctx.fillText(
-    "If you must go out: fitted N95, short route",
+    t(reading.language, "ui.story.mustGo"),
     margin + 32,
     boxY + 172,
   );
@@ -262,16 +285,18 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
   // Source line above the footer
   const sourceLabel =
     reading.source.type === "ground"
-      ? "Ground monitor"
+      ? t(reading.language, "ui.hero.ground")
       : reading.source.type === "approximate"
         ? reading.stations && reading.stations.length > 1
-          ? `Median of ${reading.stations.length} monitors · ${Math.min(
+          ? `${t(reading.language, "ui.story.median", {
+              n: reading.stations.length,
+            })} · ${Math.min(
               ...reading.stations.map((s) => s.distanceKm),
             )}–${Math.max(
               ...reading.stations.map((s) => s.distanceKm),
             )} km`
-          : `Nearest monitor · ${reading.source.distanceKm} km`
-        : "CAMS model estimate";
+          : `${t(reading.language, "ui.story.nearest")} · ${reading.source.distanceKm} km`
+        : t(reading.language, "ui.story.cams");
   const source = `${sourceLabel} · ${reading.source.updated}`;
   ctx.fillStyle = "rgba(204,251,241,0.55)";
   ctx.font = `500 22px ${FONT}`;
@@ -287,7 +312,12 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
       .join(" · ");
     ctx.fillStyle = "rgba(204,251,241,0.42)";
     ctx.font = `500 20px ${FONT}`;
-    const refLine = wrap(ctx, `Ref: ${refs}`, maxWidth, 1)[0];
+    const refLine = wrap(
+      ctx,
+      `${t(reading.language, "ui.story.ref")} ${refs}`,
+      maxWidth,
+      1,
+    )[0];
     ctx.fillText(refLine, margin, H - 232);
   }
 
@@ -302,7 +332,7 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
 
   ctx.fillStyle = "#ffffff";
   ctx.font = `600 32px ${FONT}`;
-  ctx.fillText("Check the air before you go out", margin, footerY + 10);
+  ctx.fillText(t(reading.language, "ui.story.check"), margin, footerY + 10);
 
   ctx.fillStyle = "rgba(204,251,241,0.7)";
   let urlSize = 26;

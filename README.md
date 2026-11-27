@@ -14,16 +14,21 @@ PWA with a grounded GenAI brief, not a chat-only app.
 - **Where the data comes from** is always visible: station name, distance,
   freshness, and a `ground monitor` / `model estimate` label.
 - **City pages** at `/aqi/<state>/<city>` with canonical metadata and a sitemap.
+- **Language first** — 13 Indian languages (English, Hindi, Malayalam, Tamil,
+  Telugu, Kannada, Marathi, Bengali, Gujarati, Punjabi, Odia, Urdu, Assamese).
+  The interface, the brief and the answers follow the choice.
 - **Household profile** — you, family, conditions, home inventory, routine.
-  Starts with **You**; no invented family members.
+  Starts with **You**; no invented family members. The last setup step is
+  **Accessibility**: text size and light / dark / system theme.
 - **Grounded GenAI brief and ask** (`gemini-3.1-flash-lite` → lite fallback →
   deterministic templates). The model writes; the data layer decides.
-- **Status / story cards** — 1080×1920 PNG with time windows, actions and the
-  impact payoff, shareable to WhatsApp, X, Telegram, Facebook, LinkedIn, or
-  Instagram (download + caption).
+- **Status / story cards** — high-quality story image with time windows,
+  actions, the impact payoff and one give-back idea (plant a native tree,
+  compost, or leave the car), shareable to WhatsApp, X, Telegram, Facebook,
+  LinkedIn, or Instagram (download + caption).
 - **Inline settings** — every field editable without the setup wizard.
 - **Weather-aware hero** with day/night sun, moon, stars, clouds, rain and fog.
-- **PWA** — installable, responsive, reduced-motion aware.
+- **PWA** — installable, responsive, reduced-motion aware, true-black dark mode.
 
 ## Data chain
 
@@ -68,8 +73,9 @@ scripts/
 
 ## Security & privacy
 
-- **No accounts, no PII, no analytics.** The profile and reports stay in
-  `localStorage` and are never uploaded.
+- **No accounts, no PII, no analytics.** The profile and saved settings stay in
+  `localStorage`. AI routes receive a sanitised profile to generate advice but
+  do not persist it.
 - **Secrets are server-side only** (`.env`, gitignored). No secret is exposed to
   the browser.
 - **Allow-listed inputs** on AI routes: profile fields are sanitised and capped
@@ -121,7 +127,10 @@ npm run index:cities   # rebuild data/city-index.json
 - Some towns have no continuous monitor; they show CAMS model data and nearby
   monitor context.
 - Manual NAMP samples are not used live (they can be months old).
-- English UI; the language selector is a saved preference.
+- The 13 language packs are machine-translated and then hand-checked for the
+  most visible Hindi and Malayalam strings. Gemini-generated advice follows the
+  chosen language; if Gemini is unavailable, the localized rule templates are
+  used.
 
 ## License
 

@@ -2,6 +2,7 @@ import type { AirReading } from "@/lib/air/types";
 import { comfortWindows } from "@/lib/air/naqi";
 import type { Profile } from "@/lib/profile";
 import type { StateEntry } from "@/lib/states";
+import { bandLabel, optionLabel } from "@/lib/i18n";
 
 export type AiContext = {
   location: { city: string; state: string };
@@ -56,7 +57,7 @@ export function buildContext(
   return {
     location: { city: air.state.city, state: state.name },
     aqi: air.aqi,
-    band: air.bandLabel,
+    band: bandLabel(profile.language, air.band),
     dominant: air.dominant,
     basis: air.basis,
     pollutants: air.pollutants
@@ -77,10 +78,12 @@ export function buildContext(
       nearestCpcbKm: air.nearestStationKm,
     },
     family: profile.family.map((m) => ({
-      relation: m.relation,
+      relation: optionLabel(profile.language, "relation", m.relation),
       ageBand: m.ageBand,
-      conditions: m.conditions,
-      severity: m.severity,
+      conditions: m.conditions.map((condition) =>
+        optionLabel(profile.language, "condition", condition),
+      ),
+      severity: optionLabel(profile.language, "severity", m.severity),
     })),
     home: profile.home,
     routine: profile.routine,

@@ -27,6 +27,14 @@ import {
   type Severity,
 } from "@/lib/profile";
 import {
+  LANGUAGES as LANGUAGE_OPTIONS,
+  t as translate,
+} from "@/lib/i18n";
+import {
+  setThemePreference,
+  useThemePreference,
+} from "@/lib/theme";
+import {
   AGE_BANDS,
   CLEANING_FREQUENCIES,
   CLEANING_METHODS,
@@ -37,7 +45,6 @@ import {
   EXERCISE,
   HOME_TYPES,
   INDOOR_SMOKE,
-  LANGUAGES,
   PURIFIERS,
   RELATIONS,
   WINDOW_STATES,
@@ -47,9 +54,17 @@ import {
 type Props = {
   initial?: Profile | null;
   onComplete: (profile: Profile) => void;
+  onLanguageChange?: (language: string) => void;
 };
 
-const STEPS = ["Location", "Family", "Home", "Routine", "Health", "Finish"];
+const STEPS = [
+  "ui.step.location",
+  "ui.step.family",
+  "ui.step.home",
+  "ui.step.routine",
+  "ui.step.health",
+  "ui.step.finish",
+];
 
 
 function uid() {
@@ -130,8 +145,105 @@ function Select({
   );
 }
 
-export function Onboarding({ initial, onComplete }: Props) {
+function LanguageGate({
+  value,
+  onChange,
+  onContinue,
+  onEnglish,
+}: {
+  value: string;
+  onChange: (language: string) => void;
+  onContinue: () => void;
+  onEnglish: () => void;
+}) {
+  return (
+    <div className="min-h-dvh bg-paper">
+      <div className="mx-auto flex min-h-dvh max-w-2xl flex-col px-4 pb-6 pt-5">
+        <div className="flex items-center gap-2.5">
+          <BrandMark className="h-8 w-8" />
+          <div>
+            <div className="font-display text-base font-semibold tracking-tight text-ink">
+              AirMitra
+            </div>
+            <div className="text-[10px] text-muted">
+              {translate(value, "ui.brand.tagline")}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-7">
+          <div className="text-[10px] font-medium uppercase tracking-[0.16em] text-muted">
+            1 / {STEPS.length + 1} · {translate(value, "ui.onboarding.language")}
+          </div>
+          <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-ink">
+            {translate(value, "ui.onboarding.chooseTitle")}
+          </h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
+            {translate(value, "ui.onboarding.chooseSub")}
+          </p>
+        </div>
+
+        <div className="mt-5 grid flex-1 grid-cols-2 content-start gap-2 sm:grid-cols-3">
+          {LANGUAGE_OPTIONS.map((language) => {
+            const active = language.name === value;
+            return (
+              <button
+                key={language.code}
+                type="button"
+                onClick={() => onChange(language.name)}
+                aria-pressed={active}
+                className={cn(
+                  "rounded-2xl border px-4 py-4 text-left transition",
+                  active
+                    ? "border-brand bg-brand text-white shadow-sm"
+                    : "border-line bg-card text-ink hover:bg-white",
+                )}
+              >
+                <div className="text-lg font-semibold leading-tight">
+                  {language.native}
+                </div>
+                <div
+                  className={cn(
+                    "mt-0.5 text-[11px]",
+                    active ? "text-white/65" : "text-muted",
+                  )}
+                >
+                  {language.name}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-5 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onContinue}
+            className="flex-1 rounded-xl bg-brand px-4 py-3 text-sm font-medium text-white transition hover:bg-[#0a4a3e]"
+          >
+            {translate(value, "ui.onboarding.continue")}
+          </button>
+          <button
+            type="button"
+            onClick={onEnglish}
+            className="rounded-xl bg-card px-4 py-3 text-sm font-medium text-ink ring-1 ring-line transition hover:bg-white"
+          >
+            English
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function Onboarding({
+  initial,
+  onComplete,
+  onLanguageChange,
+}: Props) {
   const [step, setStep] = useState(0);
+  const [languageConfirmed, setLanguageConfirmed] = useState(Boolean(initial));
+  const theme = useThemePreference();
   const [draft, setDraft] = useState<Profile>(initial ?? createDefaultProfile());
   const [locating, setLocating] = useState(false);
   const [geoError, setGeoError] = useState("");
@@ -266,7 +378,7 @@ export function Onboarding({ initial, onComplete }: Props) {
         if (!Number.isFinite(accuracy) || accuracy > 15000) {
           setGeoAccuracy(null);
           setGeoError(
-            "Couldn't get a reliable location. Search for your town above instead.",
+            "Couldn't get a reliable location. Search for your town below instead.",
           );
           setLocating(false);
           return;
@@ -464,6 +576,27 @@ export function Onboarding({ initial, onComplete }: Props) {
 
   const canNext = step < STEPS.length - 1;
 
+  if (!languageConfirmed) {
+    return (
+      <LanguageGate
+        value={draft.language}
+        onChange={(next) => {
+          setDraft((d) => ({ ...d, language: next }));
+          onLanguageChange?.(next);
+        }}
+        onContinue={() => {
+          setLanguageConfirmed(true);
+          onLanguageChange?.(draft.language);
+        }}
+        onEnglish={() => {
+          setDraft((d) => ({ ...d, language: "English" }));
+          onLanguageChange?.("English");
+          setLanguageConfirmed(true);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-dvh bg-paper">
       <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-4 pb-6 pt-5">
@@ -474,7 +607,9 @@ export function Onboarding({ initial, onComplete }: Props) {
               <div className="font-display text-base font-semibold tracking-tight text-ink">
                 AirMitra
               </div>
-              <div className="text-[10px] text-muted">Household Air Coach</div>
+              <div className="text-[10px] text-muted">
+                {translate(draft.language, "ui.brand.tagline")}
+              </div>
             </div>
           </div>
           <button
@@ -482,21 +617,24 @@ export function Onboarding({ initial, onComplete }: Props) {
             onClick={finish}
             className="text-[11px] font-medium text-muted underline-offset-4 hover:underline"
           >
-            Skip for now
+            {translate(draft.language, "ui.onboarding.skip")}
           </button>
         </div>
 
         <div className="mt-5">
           <div className="flex items-center justify-between text-[10px] text-muted">
             <span>
-              Step {step + 1} of {STEPS.length}
+              {translate(draft.language, "ui.onboarding.step", {
+                n: step + 2,
+                total: STEPS.length + 1,
+              })}
             </span>
-            <span>{STEPS[step]}</span>
+            <span>{translate(draft.language, STEPS[step])}</span>
           </div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line">
             <div
               className="h-full rounded-full bg-brand transition-all duration-300"
-              style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+              style={{ width: `${((step + 2) / (STEPS.length + 1)) * 100}%` }}
             />
           </div>
         </div>
@@ -506,10 +644,10 @@ export function Onboarding({ initial, onComplete }: Props) {
             <div className="space-y-5">
               <div>
                 <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
-                  Where should I watch the air?
+                  {translate(draft.language, "ui.onboarding.whereTitle")}
                 </h1>
                 <p className="mt-1 text-xs leading-5 text-muted">
-                  Use your location, or pick a state and city. You can change this later.
+                  {translate(draft.language, "ui.onboarding.whereSub")}
                 </p>
               </div>
 
@@ -519,7 +657,9 @@ export function Onboarding({ initial, onComplete }: Props) {
                 disabled={locating}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-medium text-white transition hover:bg-[#0a4a3e] disabled:opacity-60"
               >
-                {locating ? "Finding you…" : "Use my location"}
+                {locating
+                  ? translate(draft.language, "ui.onboarding.finding")
+                  : translate(draft.language, "ui.onboarding.useLocation")}
               </button>
               {geoError ? (
                 <p className="text-xs leading-5 text-red-700">{geoError}</p>
@@ -527,16 +667,16 @@ export function Onboarding({ initial, onComplete }: Props) {
               {geoAccuracy !== null && geoAccuracy > 1000 ? (
                 <p className="text-xs leading-5 text-amber-700">
                   Your device location is approximate (±
-                  {(geoAccuracy / 1000).toFixed(1)} km). Search your town above
+                  {(geoAccuracy / 1000).toFixed(1)} km). Search your town below
                   for accuracy.
                 </p>
               ) : null}
 
               <div className="space-y-3">
                 <div>
-                  <Label>State or union territory</Label>
+                  <Label>{translate(draft.language, "ui.onboarding.stateLabel")}</Label>
                   <Select
-                    ariaLabel="State or union territory"
+                    ariaLabel={translate(draft.language, "ui.onboarding.stateLabel")}
                     value={draft.location.stateCode}
                     onChange={(code) => setLocation(code, citiesFor(code)[0].name)}
                     options={[
@@ -551,39 +691,54 @@ export function Onboarding({ initial, onComplete }: Props) {
               </div>
 
               <div>
-                <Label>Search in {state.name}</Label>
+                <Label>
+                  {translate(draft.language, "ui.onboarding.searchIn", {
+                    state: state.name,
+                  })}
+                </Label>
                 <div className="relative">
                   <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
                   <input
                     type="search"
                     value={query}
                     onChange={(e) => onQueryChange(e.target.value)}
-                    placeholder={`Town or city in ${state.name}`}
+                    placeholder={translate(
+                      draft.language,
+                      "ui.onboarding.searchPlaceholder",
+                      { state: state.name },
+                    )}
                     className="w-full appearance-none rounded-xl border border-line bg-paper py-2.5 pl-10 pr-3 text-sm text-ink outline-none placeholder:text-muted"
                   />
                 </div>
                 <p className="mt-1 text-[10px] text-muted">
-                  Searches {state.name} only. Places with a ground monitor are
-                  listed first.
+                  {translate(draft.language, "ui.onboarding.searchHint", {
+                    state: state.name,
+                  })}
                 </p>
                 {query.trim().length > 0 &&
                 query.trim().length < MIN_SEARCH_CHARS ? (
                   <p className="mt-1 text-[10px] text-muted">
-                    Type at least {MIN_SEARCH_CHARS} letters.
+                    {translate(draft.language, "ui.onboarding.typeMore", {
+                      n: MIN_SEARCH_CHARS,
+                    })}
                   </p>
                 ) : null}
                 {searching ? (
-                  <p className="mt-2 text-[11px] text-muted">Searching…</p>
+                  <p className="mt-2 text-[11px] text-muted">
+                    {translate(draft.language, "ui.onboarding.searching")}
+                  </p>
                 ) : null}
                 {!searching && query.trim().length >= MIN_SEARCH_CHARS && results.length === 0 ? (
                   <p className="mt-2 text-[11px] text-muted">
-                    No place found in {state.name}.
+                    {translate(draft.language, "ui.onboarding.noPlace", {
+                      state: state.name,
+                    })}
                   </p>
                 ) : null}
                 {!searching && crossState.length ? (
                   <div className="mt-2">
                     <p className="text-[10px] font-medium uppercase tracking-wide text-muted">
-                      Found in another state
+                      {translate(draft.language, "ui.onboarding.crossState")}
                     </p>
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
                       {crossState.map((place) => (
@@ -604,8 +759,7 @@ export function Onboarding({ initial, onComplete }: Props) {
                 ) : null}
                 {fromGeocode && results.length ? (
                   <p className="mt-2 text-[10px] leading-4 text-muted">
-                    No monitored city matched. These results use the CAMS model,
-                    not a ground station.
+                    {translate(draft.language, "ui.onboarding.modelNote")}
                   </p>
                 ) : null}
                 {results.length ? (
@@ -634,7 +788,9 @@ export function Onboarding({ initial, onComplete }: Props) {
                               : "bg-amber-50 text-amber-700 ring-amber-200",
                           )}
                         >
-                          {result.monitor ? "ground monitor" : "model only"}
+                          {result.monitor
+                            ? translate(draft.language, "ui.hero.ground")
+                            : translate(draft.language, "ui.hero.modelOnly")}
                         </span>
                       </button>
                     ))}
@@ -643,7 +799,9 @@ export function Onboarding({ initial, onComplete }: Props) {
                 {!searching && !query.trim() && suggestions.length ? (
                   <div className="mt-2">
                     <p className="text-[10px] font-medium uppercase tracking-wide text-muted">
-                      Popular in {state.name}
+                      {translate(draft.language, "ui.onboarding.popularIn", {
+                        state: state.name,
+                      })}
                     </p>
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
                       {suggestions.map((suggestion) => (
@@ -665,12 +823,12 @@ export function Onboarding({ initial, onComplete }: Props) {
               </div>
 
               <div className="rounded-xl bg-paper p-3 text-xs leading-5 text-muted ring-1 ring-line">
-                Watching <span className="font-medium text-ink">{draft.location.city}</span>,{" "}
-                {state.name}. A ground monitor is used when one is nearby;
-                otherwise CAMS model data, labelled clearly.
+                {translate(draft.language, "ui.onboarding.watching", {
+                  city: draft.location.city,
+                  state: state.name,
+                })}
                 <p className="mt-1 text-[10px]">
-                  Detected from your device. Not right? Search for your town
-                  above.
+                  {translate(draft.language, "ui.onboarding.detected")}
                 </p>
               </div>
             </div>
@@ -680,11 +838,10 @@ export function Onboarding({ initial, onComplete }: Props) {
             <div className="space-y-4">
               <div>
                 <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
-                  Who do you care for?
+                  {translate(draft.language, "ui.onboarding.familyTitle")}
                 </h1>
                 <p className="mt-1 text-xs leading-5 text-muted">
-                  We start with you — pick your age group. Add anyone else you
-                  care for; the advice changes per person.
+                  {translate(draft.language, "ui.onboarding.familySub")}
                 </p>
               </div>
 
@@ -786,10 +943,10 @@ export function Onboarding({ initial, onComplete }: Props) {
             <div className="space-y-4">
               <div>
                 <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
-                  What does your home have?
+                  {translate(draft.language, "ui.onboarding.homeTitle")}
                 </h1>
                 <p className="mt-1 text-xs leading-5 text-muted">
-                  We use this to suggest fixes you can actually do.
+                  {translate(draft.language, "ui.onboarding.homeSub")}
                 </p>
               </div>
 
@@ -952,10 +1109,10 @@ export function Onboarding({ initial, onComplete }: Props) {
             <div className="space-y-4">
               <div>
                 <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
-                  What does your day look like?
+                  {translate(draft.language, "ui.onboarding.routineTitle")}
                 </h1>
                 <p className="mt-1 text-xs leading-5 text-muted">
-                  We time advice around your routine, not the other way round.
+                  {translate(draft.language, "ui.onboarding.routineSub")}
                 </p>
               </div>
 
@@ -1050,10 +1207,10 @@ export function Onboarding({ initial, onComplete }: Props) {
             <div className="space-y-4">
               <div>
                 <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
-                  How sensitive is each person?
+                  {translate(draft.language, "ui.onboarding.healthTitle")}
                 </h1>
                 <p className="mt-1 text-xs leading-5 text-muted">
-                  Optional. It tightens the thresholds. This is not a diagnosis.
+                  {translate(draft.language, "ui.onboarding.healthSub")}
                 </p>
               </div>
 
@@ -1092,55 +1249,72 @@ export function Onboarding({ initial, onComplete }: Props) {
           ) : null}
 
           {step === 5 ? (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
                 <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
-                  You&apos;re set.
+                  {translate(draft.language, "ui.onboarding.accessTitle")}
                 </h1>
                 <p className="mt-1 text-xs leading-5 text-muted">
-                  UI is English for now. Pick a preferred language for generated
-                  advice later.
+                  {translate(draft.language, "ui.onboarding.accessSub")}
                 </p>
               </div>
 
               <div>
-                <Label>Language</Label>
-                <Select
-                  ariaLabel="Language"
-                  value={draft.language}
-                  onChange={(v) => setDraft((d) => ({ ...d, language: v }))}
-                  options={LANGUAGES.map((l) => ({ value: l, label: l }))}
-                />
-              </div>
-
-              <div>
-                <Label>Text size</Label>
+                <Label>{translate(draft.language, "ui.settings.textSize")}</Label>
                 <div className="flex flex-wrap gap-2">
                   <Chip
                     active={!draft.largeText}
                     onClick={() => setDraft((d) => ({ ...d, largeText: false }))}
                   >
-                    Normal
+                    {translate(draft.language, "ui.settings.normal")}
                   </Chip>
                   <Chip
                     active={draft.largeText}
                     onClick={() => setDraft((d) => ({ ...d, largeText: true }))}
                   >
-                    Larger
+                    {translate(draft.language, "ui.settings.larger")}
                   </Chip>
                 </div>
               </div>
 
+              <div>
+                <Label>{translate(draft.language, "ui.settings.appearance")}</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["light", "dark", "system"] as const).map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setThemePreference(option)}
+                      aria-pressed={theme === option}
+                      className={cn(
+                        "rounded-xl px-2 py-2.5 text-xs font-medium ring-1 transition",
+                        theme === option
+                          ? "bg-brand text-white ring-brand"
+                          : "bg-paper text-ink ring-line hover:bg-white",
+                      )}
+                    >
+                      {option === "light"
+                        ? translate(draft.language, "ui.settings.light")
+                        : option === "dark"
+                          ? translate(draft.language, "ui.settings.dark")
+                          : translate(draft.language, "ui.settings.system")}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-[10px] leading-4 text-muted">
+                  {translate(draft.language, "ui.settings.appearanceHint")}
+                </p>
+              </div>
+
               <div className="rounded-xl bg-paper p-3 text-xs leading-5 text-muted ring-1 ring-line">
-                <div className="font-medium text-ink">Summary</div>
-                <div className="mt-1">
+                <div className="font-medium text-ink">
                   {draft.location.city}, {findState(draft.location.stateCode).name}
                 </div>
-                <div>
-                  {draft.family.length} {draft.family.length === 1 ? "person" : "people"} ·
-                  purifier: {draft.home.purifiers} · cooking: {draft.home.cooking.join(", ") || "None"}
+                <div className="mt-1">
+                  {draft.family.length}{" "}
+                  {draft.family.length === 1 ? "person" : "people"} ·{" "}
+                  {draft.language}
                 </div>
-                <div>{draft.language} · {draft.largeText ? "larger text" : "normal text"}</div>
               </div>
             </div>
           ) : null}
@@ -1153,7 +1327,7 @@ export function Onboarding({ initial, onComplete }: Props) {
               onClick={() => setStep((s) => Math.max(0, s - 1))}
               className="rounded-xl bg-card px-4 py-3 text-sm font-medium text-ink ring-1 ring-line transition hover:bg-white"
             >
-              Back
+              {translate(draft.language, "ui.onboarding.back")}
             </button>
           ) : null}
           <button
@@ -1161,7 +1335,9 @@ export function Onboarding({ initial, onComplete }: Props) {
             onClick={() => (canNext ? setStep((s) => s + 1) : finish())}
             className="flex-1 rounded-xl bg-brand px-4 py-3 text-sm font-medium text-white transition hover:bg-[#0a4a3e]"
           >
-            {canNext ? "Continue" : "Finish setup"}
+            {canNext
+              ? translate(draft.language, "ui.onboarding.next")
+              : translate(draft.language, "ui.onboarding.finish")}
           </button>
         </div>
       </div>

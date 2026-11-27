@@ -10,8 +10,12 @@ import { PinIcon, SparkIcon, WindIcon } from "@/components/icons";
 import { BrandMark } from "@/components/brand-mark";
 import { WeatherScene } from "@/components/weather-scene";
 import { AqiNumber } from "@/components/aqi-number";
+import { languageOption, t } from "@/lib/i18n";
 
-type Params = { params: Promise<{ state: string; city: string }> };
+type Params = {
+  params: Promise<{ state: string; city: string }>;
+  searchParams: Promise<{ lang?: string }>;
+};
 
 export const instant = false;
 
@@ -45,8 +49,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   };
 }
 
-export default async function CityPage({ params }: Params) {
+export default async function CityPage({ params, searchParams }: Params) {
   const { state: stateSlug, city: citySlug } = await params;
+  const query = await searchParams;
+  const language = languageOption(query.lang ?? "English").name;
   const state = stateBySlug(stateSlug);
   if (!state) notFound();
 
@@ -60,6 +66,7 @@ export default async function CityPage({ params }: Params) {
   if (!air) notFound();
 
   const profile = createDefaultProfile();
+  profile.language = language;
   profile.location = {
     stateCode: state.code,
     city: city.name,
@@ -81,7 +88,11 @@ export default async function CityPage({ params }: Params) {
   );
 
   const shareText = encodeURIComponent(
-    `${city.name}, ${state.name}: AQI ${reading.aqi} (${reading.band.label}). ${reading.guidelines[0]} — via AirMitra`,
+    `${city.name}, ${state.name}: AQI ${reading.aqi} (${reading.band.label}). ${reading.guidelines[0]}${
+      reading.helpTheAir[0]
+        ? ` ${t(language, "ui.story.giveBack")}: ${reading.helpTheAir[0].title}.`
+        : ""
+    } — via AirMitra`,
   );
 
   return (
@@ -244,7 +255,7 @@ export default async function CityPage({ params }: Params) {
         <section className="mt-6 border-t border-line pt-5">
           <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
             <WindIcon className="h-4 w-4 text-brand" />
-            What this means today
+            {t(language, "ui.city.meaning")}
           </div>
           <ul className="mt-3 space-y-2.5">
             {reading.guidelines.map((guideline) => (
@@ -263,14 +274,14 @@ export default async function CityPage({ params }: Params) {
             ))}
           </ul>
           <p className="mt-3 text-[11px] text-muted">
-            General guidance, not medical advice.
+            {t(language, "ui.city.general")}
           </p>
         </section>
 
         {reading.usAqi ? (
           <section className="mt-6 border-t border-line pt-5">
             <div className="font-display text-lg font-semibold text-ink">
-              Why the number differs from other apps
+              {t(language, "ui.city.scale")}
             </div>
             <p className="mt-2 text-sm leading-6 text-muted">
               AirMitra uses India&apos;s CPCB NAQI. Many apps use the US EPA
@@ -352,7 +363,7 @@ export default async function CityPage({ params }: Params) {
               <WindIcon className="h-4 w-4 text-brand" />
               {reading.source.type === "approximate"
                 ? "Monitors used for this estimate"
-                : `Stations in ${city.name}`}
+                : t(language, "ui.city.stations", { city: city.name })}
             </div>
             <p className="mt-1 text-xs leading-5 text-muted">
               {reading.source.type === "approximate"
@@ -390,10 +401,35 @@ export default async function CityPage({ params }: Params) {
           </section>
         ) : null}
 
+        <section className="mt-6 border-t border-line pt-5">
+          <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
+            <SparkIcon className="h-4 w-4 text-brand" />
+            {t(language, "ui.help.title")}
+          </div>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            {t(language, "ui.help.subtitle")}
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {reading.helpTheAir.map((item) => (
+              <div
+                key={item.title}
+                className="rounded-2xl bg-card p-4 ring-1 ring-black/5"
+              >
+                <div className="text-sm font-semibold text-ink">
+                  {item.title}
+                </div>
+                <p className="mt-1 text-xs leading-5 text-muted">
+                  {item.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="mt-6 rounded-2xl border border-line/80 bg-card p-5">
           <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
             <SparkIcon className="h-4 w-4 text-brand" />
-            For your household
+            {t(language, "ui.city.household")}
           </div>
           <p className="mt-2 text-sm leading-6 text-muted">
             Who lives with you changes the advice. Asthma, a gas stove, dry
@@ -404,7 +440,7 @@ export default async function CityPage({ params }: Params) {
               href="/"
               className="rounded-xl bg-brand px-4 py-2.5 text-sm font-medium text-white"
             >
-              Set up your household
+              {t(language, "ui.city.setup")}
             </Link>
             <a
               href={`https://wa.me/?text=${shareText}`}
@@ -412,7 +448,7 @@ export default async function CityPage({ params }: Params) {
               rel="noreferrer"
               className="rounded-xl bg-card px-4 py-2.5 text-sm font-medium text-ink ring-1 ring-line"
             >
-              Share this AQI
+              {t(language, "ui.city.share")}
             </a>
           </div>
         </section>
@@ -420,7 +456,7 @@ export default async function CityPage({ params }: Params) {
         {nearby.length > 0 ? (
           <section className="mt-6 border-t border-line pt-5">
             <div className="font-display text-lg font-semibold text-ink">
-              Other cities in {state.name}
+              {t(language, "ui.city.other", { state: state.name })}
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {nearby.map((entry) => (

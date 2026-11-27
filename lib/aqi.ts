@@ -1,4 +1,5 @@
 import { BANDS, bandFor, comfortWindows } from "@/lib/air/naqi";
+import { bandLabel, localeTag, optionLabel, t } from "@/lib/i18n";
 import type { Band, BandKey } from "@/lib/air/naqi";
 import type { AirReading, NearbyStation } from "@/lib/air/types";
 import type { FamilyMember, Profile } from "./profile";
@@ -8,6 +9,7 @@ export { BANDS, bandFor };
 export type { Band, BandKey };
 
 export type Reading = {
+  language: string;
   state: StateEntry;
   area: string;
   aqi: number;
@@ -38,6 +40,7 @@ export type Reading = {
   family: { name: string; meta: string; advice: string; tone: "warn" | "calm" }[];
   mustGoOut: { name: string; advice: string }[];
   doNow: { title: string; body: string; impact: string }[];
+  helpTheAir: { title: string; body: string }[];
   impact: { title: string; value: string; note: string };
 };
 
@@ -52,27 +55,27 @@ function hash(input: string): number {
   return h;
 }
 
-function guidelinesFor(key: BandKey): string[] {
+function guidelinesFor(key: BandKey, language: string): string[] {
   const { best, avoid } = comfortWindows(key);
 
   if (key === "severe" || key === "veryPoor") {
     return [
-      `Avoid outdoors ${avoid}. If you must go out: fitted N95, short trips, avoid main roads.`,
-      "Keep windows closed while outdoor air is worse than indoor.",
-      `Sensitive groups: stay in. If you must go out, keep it under 15 minutes — even in the ${best} window.`,
+      t(language, "r.guide.severe.0", { avoid }),
+      t(language, "r.guide.severe.1"),
+      t(language, "r.guide.severe.2", { best }),
     ];
   }
   if (key === "poor" || key === "moderate") {
     return [
-      `Limit outdoor time to ${best}. Avoid ${avoid}.`,
-      "Ventilate 11 AM–4 PM when wind picks up; keep windows closed otherwise.",
-      "Sensitive groups: skip outdoor exercise today.",
+      t(language, "r.guide.poor.0", { best, avoid }),
+      t(language, "r.guide.poor.1"),
+      t(language, "r.guide.poor.2"),
     ];
   }
   return [
-    `Best outdoor hours: ${best}. Open up and go out.`,
-    "Dry clothes outside 10 AM–4 PM and ventilate the house.",
-    `No mask needed; skip outdoor exercise ${avoid} if sensitive.`,
+    t(language, "r.guide.good.0", { best }),
+    t(language, "r.guide.good.1"),
+    t(language, "r.guide.good.2", { avoid }),
   ];
 }
 
@@ -80,6 +83,7 @@ function adviceForMember(
   member: FamilyMember,
   aqi: number,
   key: BandKey,
+  language: string,
 ): { advice: string; tone: "warn" | "calm" } {
   const hasResp = member.conditions.some((c) =>
     ["Asthma", "COPD", "Heart"].includes(c),
@@ -99,90 +103,84 @@ function adviceForMember(
 
   if (veryHigh) {
     return {
-      advice: hasResp
-        ? "Stay in. If they must go out: N95 + medication, under 15 min."
-        : "Stay in if possible. N95 and short trips if not.",
+      advice: t(
+        language,
+        hasResp ? "r.advice.veryHighResp" : "r.advice.veryHigh",
+      ),
       tone: "warn",
     };
   }
   if (hasResp) {
     return high
-      ? {
-          advice: "No outdoor exercise before 11 AM. N95 + inhaler if they go.",
-          tone: "warn",
-        }
-      : {
-          advice: "Keep the inhaler handy. Short walks are fine.",
-          tone: "calm",
-        };
+      ? { advice: t(language, "r.advice.respHigh"), tone: "warn" }
+      : { advice: t(language, "r.advice.respCalm"), tone: "calm" };
   }
   if (isChild) {
     return moderate
-      ? {
-          advice: "Indoor play today. N95 on the school run.",
-          tone: "warn",
-        }
-      : { advice: "Outdoor play is fine today.", tone: "calm" };
+      ? { advice: t(language, "r.advice.childWarn"), tone: "warn" }
+      : { advice: t(language, "r.advice.childCalm"), tone: "calm" };
   }
   if (isSenior) {
     return high
-      ? { advice: "Shift the morning walk to 11 AM–4 PM.", tone: "warn" }
-      : { advice: "Morning walk is fine; keep it short.", tone: "calm" };
+      ? { advice: t(language, "r.advice.seniorWarn"), tone: "warn" }
+      : { advice: t(language, "r.advice.seniorCalm"), tone: "calm" };
   }
   if (pregnant) {
     return moderate
-      ? {
-          advice: "Limit outdoor time and keep windows closed.",
-          tone: "warn",
-        }
-      : { advice: "Short walks are fine today.", tone: "calm" };
+      ? { advice: t(language, "r.advice.pregnantWarn"), tone: "warn" }
+      : { advice: t(language, "r.advice.pregnantCalm"), tone: "calm" };
   }
   if (key === "good" || key === "satisfactory") {
-    return { advice: "Air is okay for normal activity.", tone: "calm" };
+    return { advice: t(language, "r.advice.good"), tone: "calm" };
   }
   return high
-    ? { advice: "Limit outdoor time; N95 if you must go.", tone: "warn" }
-    : { advice: "Short trips are fine; mask if sensitive.", tone: "calm" };
+    ? { advice: t(language, "r.advice.genericWarn"), tone: "warn" }
+    : { advice: t(language, "r.advice.genericCalm"), tone: "calm" };
 }
 
-function familyFor(aqi: number, key: BandKey, profile?: Profile) {
+function familyFor(
+  aqi: number,
+  key: BandKey,
+  profile: Profile | undefined,
+  language: string,
+) {
   if (!profile?.family.length) return [];
 
   return profile.family.map((member) => {
-    const result = adviceForMember(member, aqi, key);
+    const result = adviceForMember(member, aqi, key, language);
+    const meta = [
+      member.ageBand,
+      member.conditions
+        .map((condition) => optionLabel(language, "condition", condition))
+        .join(", "),
+      member.severity !== "None"
+        ? optionLabel(language, "severity", member.severity)
+        : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
     return {
-      name: member.relation,
-      meta: `${member.ageBand}${
-        member.conditions.length ? ` · ${member.conditions.join(", ")}` : ""
-      }${member.severity !== "None" ? ` · ${member.severity}` : ""}`,
+      name: optionLabel(language, "relation", member.relation),
+      meta,
       advice: result.advice,
       tone: result.tone,
     };
   });
 }
 
-function doNowFor(state: StateEntry, profile?: Profile) {
+function doNowFor(state: StateEntry, profile: Profile | undefined, language: string) {
+  const item = (key: string) => ({
+    title: t(language, `r.do.${key}.title`),
+    body: t(language, `r.do.${key}.body`),
+    impact: t(language, `r.do.${key}.impact`),
+  });
+
   const fallback = [
-    {
-      title: "Clean room, not a new purifier",
-      body: "Pick one room, close windows, damp-mop, run a HEPA vacuum if you have one.",
-      impact: "Indoor PM ~40-70% lower",
-    },
-    {
-      title: "Run the kitchen exhaust",
-      body: "Switch it on 10 minutes after cooking - gas and smoke linger.",
-      impact: "Cuts cooking PM peak",
-    },
-    {
-      title: "Skip agarbatti or coil today",
-      body: "If you must, light it 8–10 PM with a window cracked open.",
-      impact: "Avoids a 3-5x indoor spike",
-    },
-    {
-      title: "Keep the road-side windows shut",
-      body: "Ventilate the courtyard side 11 AM–4 PM when wind picks up.",
-      impact: "Less traffic dust indoors",
-    },
+    item("clean"),
+    item("exhaust"),
+    item("smoke"),
+    item("road"),
   ];
 
   if (!profile) {
@@ -196,11 +194,7 @@ function doNowFor(state: StateEntry, profile?: Profile) {
   if (home.purifiers === "None" || home.purifiers === "Not sure") {
     items.push(fallback[0]);
   } else {
-    items.push({
-      title: "Run the purifier where you sit most",
-      body: "Close that room’s door and run it on auto during peak hours.",
-      impact: "Lower PM in one room",
-    });
+    items.push(item("purifier"));
   }
 
   if (home.cooking.includes("LPG") || home.cooking.includes("Wood/coal")) {
@@ -219,45 +213,32 @@ function doNowFor(state: StateEntry, profile?: Profile) {
     home.cleaning.includes("Dry sweeping") &&
     home.cleaningFrequency !== "Rarely"
   ) {
-    items.push({
-      title: "Damp-mop instead of sweeping",
-      body: "Dry sweeping lifts settled dust back into the air you breathe.",
-      impact: "Less indoor dust",
-    });
+    items.push(item("mop"));
   }
 
   if (home.carpet) {
-    items.push({
-      title: "Vacuum the carpet with a HEPA filter",
-      body: "Carpets hold fine dust. Vacuum slowly, once a week.",
-      impact: "Cuts stored dust",
-    });
+    items.push(item("carpet"));
   }
 
   if (home.damp) {
-    items.push({
-      title: "Treat damp and mold",
-      body: "Fix the leak, air the room, and wipe visible mold with a damp cloth.",
-      impact: "Fewer mold spores",
-    });
+    items.push(item("damp"));
   }
 
   items.push(fallback[3]);
 
   const unique = items.filter(
-    (item, index) => items.findIndex((x) => x.title === item.title) === index,
+    (entry, index) => items.findIndex((x) => x.title === entry.title) === index,
   );
 
   return (unique.length ? unique : fallback).slice(0, 3);
 }
 
-function mustGoOutFor(profile?: Profile) {
+function mustGoOutFor(profile: Profile | undefined, language: string) {
   if (!profile?.family.length) {
     return [
       {
-        name: "Anyone going out",
-        advice:
-          "Fitted N95, short trips, avoid main roads. Add your family for tailored advice.",
+        name: t(language, "r.must.anyone.name"),
+        advice: t(language, "r.must.anyone.advice"),
       },
     ];
   }
@@ -269,28 +250,48 @@ function mustGoOutFor(profile?: Profile) {
       (Number.isFinite(ageStart) && (ageStart <= 12 || ageStart >= 60));
     const severe = member.severity === "Severe";
     return {
-      name: member.relation,
+      name: optionLabel(language, "relation", member.relation),
       advice: severe
-        ? "Stay in unless essential. If they must go: fitted N95, under 15 min, carry medication."
+        ? t(language, "r.must.severe")
         : sensitive
-          ? "Fitted N95, under 15 min, avoid main roads. Carry medication if prescribed."
-          : "N95, short trips, avoid main roads.",
+          ? t(language, "r.must.sensitive")
+          : t(language, "r.must.normal"),
     };
   });
 }
 
-function relativeTime(iso: string): string {
+function helpTheAirFor(profile: Profile | undefined, language: string) {
+  const plant = {
+    title: t(language, "r.help.plant.title"),
+    body: t(language, "r.help.plant.body"),
+  };
+  const drives = profile?.routine.commute.some((mode) =>
+    ["Car", "Two-wheeler", "Auto"].includes(mode),
+  );
+  const second = drives
+    ? {
+        title: t(language, "r.help.commute.title"),
+        body: t(language, "r.help.commute.body"),
+      }
+    : {
+        title: t(language, "r.help.compost.title"),
+        body: t(language, "r.help.compost.body"),
+      };
+  return [plant, second];
+}
+
+function relativeTime(iso: string, language: string): string {
   const then = new Date(iso).getTime();
-  if (!Number.isFinite(then)) return "recently";
+  if (!Number.isFinite(then)) return t(language, "time.recently");
 
   const minutes = Math.max(0, Math.round((Date.now() - then) / 60000));
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes} min ago`;
+  if (minutes < 1) return t(language, "time.justNow");
+  if (minutes < 60) return t(language, "time.minAgo", { n: minutes });
 
   const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t(language, "time.hoursAgo", { n: hours });
 
-  return new Date(iso).toLocaleDateString("en-IN", {
+  return new Date(iso).toLocaleDateString(localeTag(language), {
     day: "numeric",
     month: "short",
   });
@@ -303,14 +304,20 @@ export function readingFromAir(
   demo = false,
   profile?: Profile,
 ): Reading {
+  const language = profile?.language ?? "English";
   const band = BANDS.find((b) => b.key === air.band) ?? bandFor(air.aqi);
   const high = air.aqi > 150;
+  const windows = comfortWindows(band.key);
+  const hasChild = (profile?.family ?? []).some(
+    (member) => Number.parseInt(member.ageBand, 10) <= 12,
+  );
 
   return {
+    language,
     state,
     area: air.area,
     aqi: air.aqi,
-    band,
+    band: { ...band, label: bandLabel(language, band.key) },
     dominant: air.dominant,
     basis: air.basis,
     pollutants: air.pollutants.map(({ label, value, unit }) => ({
@@ -323,7 +330,7 @@ export function readingFromAir(
       type: air.source.type,
       station: air.source.station,
       distanceKm: air.source.distanceKm,
-      updated: updatedLabel ?? relativeTime(air.source.updatedAt),
+      updated: updatedLabel ?? relativeTime(air.source.updatedAt, language),
     },
     cached: air.cached,
     stale: air.stale,
@@ -335,26 +342,26 @@ export function readingFromAir(
     nearby: air.nearby,
     stations: air.stations,
     aqiRange: air.aqiRange,
-    windows: comfortWindows(band.key),
+    windows,
     demo,
-    guidelines: guidelinesFor(air.band),
-    family: familyFor(air.aqi, air.band, profile),
-    mustGoOut: mustGoOutFor(profile),
-    doNow: doNowFor(state, profile),
+    guidelines: guidelinesFor(air.band, language),
+    family: familyFor(air.aqi, air.band, profile, language),
+    mustGoOut: mustGoOutFor(profile, language),
+    doNow: doNowFor(state, profile, language),
+    helpTheAir: helpTheAirFor(profile, language),
     impact: high
       ? {
-          title: (profile?.family ?? []).some(
-            (member) => Number.parseInt(member.ageBand, 10) <= 12,
-          )
-            ? "N95 on the school run"
-            : "N95 for outdoor errands",
-          value: "~85% less PM2.5 dose",
-          note: "Estimate for a 20-minute walk. Fit matters more than the label.",
+          title: t(
+            language,
+            hasChild ? "r.impact.school.title" : "r.impact.errand.title",
+          ),
+          value: t(language, "r.impact.high.value"),
+          note: t(language, "r.impact.high.note"),
         }
       : {
-          title: `Open windows ${comfortWindows(band.key).best}`,
-          value: "~30% lower indoor CO₂",
-          note: "When outdoor air is cleaner than indoor, a short cross-breeze helps.",
+          title: t(language, "r.impact.open.title", { best: windows.best }),
+          value: t(language, "r.impact.low.value"),
+          note: t(language, "r.impact.low.note"),
         },
   };
 }

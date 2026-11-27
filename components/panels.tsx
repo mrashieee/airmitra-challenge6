@@ -6,12 +6,8 @@ import { StoryPreview } from "./share-cards";
 import type { Profile } from "@/lib/profile";
 import { cn } from "@/lib/ui";
 import { slugify } from "@/lib/slug";
-import {
-  AlertIcon,
-  CheckIcon,
-  ShareIcon,
-  SparkIcon,
-} from "./icons";
+import { useT } from "./language-provider";
+import { ShareIcon, SparkIcon } from "./icons";
 
 
 
@@ -57,19 +53,23 @@ export function AskPanel({
   lat: number;
   lon: number;
 }) {
+  const { t } = useT();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      text: `I know your home and your family. Ask me anything about today — AQI ${reading.aqi}, ${reading.band.label}.`,
+      text: t("ui.ask.hello", {
+        aqi: reading.aqi,
+        band: reading.band.label,
+      }),
     },
   ]);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
 
   const suggestions = [
-    "Can my father walk at 6am?",
-    "Is 4 PM safe for my daughter?",
-    "What about agarbatti today?",
+    t("ui.ask.s1"),
+    t("ui.ask.s2"),
+    t("ui.ask.s3"),
   ];
 
   async function send(text: string) {
@@ -124,17 +124,14 @@ export function AskPanel({
       <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
         <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
           <SparkIcon className="h-4 w-4 text-brand" />
-          Ask AirMitra
+          {t("ui.ask.title")}
           <span className="ml-auto rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-medium text-teal-700 ring-1 ring-teal-100">
             AI
           </span>
         </div>
-        <p className="mt-1 text-xs text-muted">
-          Answers use your live AQI, family, and home. Falls back to rules if
-          Gemini is busy.
-        </p>
+        <p className="mt-1 text-xs text-muted">{t("ui.ask.sub")}</p>
         <p className="mt-1 text-[10px] leading-4 text-muted">
-          AI-generated. Can be wrong. Not medical advice.
+          {t("ui.ask.disclaimer")}
         </p>
       </div>
 
@@ -152,14 +149,16 @@ export function AskPanel({
             {m.text}
             {m.role === "assistant" && m.source ? (
               <div className="mt-1 text-[9px] font-medium uppercase tracking-[0.12em] text-muted">
-                {m.source === "ai" ? "Gemini" : "rule-based"}
+                {m.source === "ai"
+                  ? t("ui.ask.sourceAI")
+                  : t("ui.ask.sourceRules")}
               </div>
             ) : null}
           </div>
         ))}
         {pending ? (
           <div className="max-w-[92%] rounded-2xl bg-card px-4 py-3 text-sm text-muted ring-1 ring-black/5">
-            <span className="animate-soft">Thinking…</span>
+            <span className="animate-soft">{t("ui.ask.thinking")}</span>
           </div>
         ) : null}
       </div>
@@ -187,216 +186,16 @@ export function AskPanel({
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about a person, room, or time…"
+          placeholder={t("ui.ask.placeholder")}
           className="min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-muted"
         />
         <button
           type="submit"
           className="rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition hover:bg-teal-800 active:scale-[0.99]"
         >
-          Send
+          {t("ui.ask.send")}
         </button>
       </form>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Report                                                              */
-/* ------------------------------------------------------------------ */
-
-const SYMPTOMS = [
-  "Cough",
-  "Wheeze",
-  "Burning eyes",
-  "Headache",
-  "Breathless",
-  "Chest tightness",
-  "Throat irritation",
-];
-
-const ISSUES = [
-  "Garbage burning",
-  "Construction dust",
-  "Factory smoke",
-  "Road dust",
-  "Coil / agarbatti",
-  "Idling traffic",
-];
-
-export function ReportPanel({ reading }: { reading: Reading }) {
-  const [symptoms, setSymptoms] = useState<string[]>([]);
-  const [severity, setSeverity] = useState("Mild");
-  const [issues, setIssues] = useState<string[]>([]);
-  const [saved, setSaved] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const redFlag =
-    severity === "Severe" &&
-    (symptoms.includes("Breathless") || symptoms.includes("Chest tightness"));
-
-  function toggle(list: string[], value: string, set: (v: string[]) => void) {
-    set(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
-          <AlertIcon className="h-4 w-4 text-brand" />
-          Tell us what is going on
-        </div>
-        <p className="mt-1 text-xs leading-5 text-muted">
-          Optional and private to this device. It is never a diagnosis and is
-          not sent to a doctor or agency.
-        </p>
-      </div>
-
-      <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h3 className="font-display text-lg font-semibold text-ink">How is someone feeling?</h3>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {SYMPTOMS.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => toggle(symptoms, s, setSymptoms)}
-              aria-pressed={symptoms.includes(s)}
-              className={cn(
-                "rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition",
-                symptoms.includes(s)
-                  ? "bg-ink text-white ring-ink"
-                  : "bg-paper text-ink ring-line hover:bg-white",
-              )}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="text-xs text-muted">Severity</span>
-          {["Mild", "Moderate", "Severe"].map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setSeverity(s)}
-              aria-pressed={severity === s}
-              className={cn(
-                "rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition",
-                severity === s
-                  ? "bg-ink text-white ring-ink"
-                  : "bg-paper text-ink ring-line hover:bg-white",
-              )}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-
-        {redFlag ? (
-          <div className="mt-4 rounded-xl bg-red-50 p-3 text-sm leading-6 text-red-800 ring-1 ring-red-200">
-            <strong>Red flag.</strong> Breathless at rest or chest tightness is not
-            something to wait on. See a doctor now or call emergency services.
-          </div>
-        ) : null}
-      </section>
-
-      <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h3 className="font-display text-lg font-semibold text-ink">Report a local issue</h3>
-        <p className="mt-1 text-xs leading-5 text-muted">
-          Save it here, then copy a complaint draft you can send to your
-          municipality or society.
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {ISSUES.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => toggle(issues, s, setIssues)}
-              aria-pressed={issues.includes(s)}
-              className={cn(
-                "rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition",
-                issues.includes(s)
-                  ? "bg-brand text-white ring-brand"
-                  : "bg-paper text-ink ring-line hover:bg-white",
-              )}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <button
-        type="button"
-        onClick={async () => {
-          const record = {
-            date: new Date().toISOString(),
-            symptoms,
-            severity,
-            issues,
-          };
-          try {
-            window.localStorage.setItem(
-              "airmitra.report.v1",
-              JSON.stringify(record),
-            );
-          } catch {
-            // storage blocked — still show the saved state for this session
-          }
-          setSaved(true);
-        }}
-        className="w-full rounded-xl bg-brand px-4 py-3 text-sm font-medium text-white transition hover:bg-[#0a4a3e] active:scale-[0.99]"
-      >
-        Save on this device
-      </button>
-
-      {saved ? (
-        <div className="rounded-xl bg-teal-50 p-3 text-sm text-teal-900 ring-1 ring-teal-100">
-          <div className="flex items-start gap-2">
-            <CheckIcon className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>
-              Saved on this device. Nothing is uploaded and it is not a medical
-              record.
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={async () => {
-              const draft = [
-                `Air quality complaint — ${new Date().toLocaleDateString("en-IN")}`,
-                `${reading.area}, ${reading.state.name} · AQI ${reading.aqi} (${reading.band.label})`,
-                `Monitor: ${reading.source.station}`,
-                issues.length ? `Local issues: ${issues.join(", ")}` : "",
-                symptoms.length
-                  ? `Health noted: ${symptoms.join(", ")} (${severity})`
-                  : "",
-                "Requested action: please inspect the source and reduce exposure.",
-                "Reported via AirMitra",
-              ]
-                .filter(Boolean)
-                .join("\n");
-
-              try {
-                if (navigator.clipboard?.writeText) {
-                  await navigator.clipboard.writeText(draft);
-                } else {
-                  legacyCopy(draft);
-                }
-                setCopied(true);
-                window.setTimeout(() => setCopied(false), 2000);
-              } catch {
-                legacyCopy(draft);
-                setCopied(true);
-                window.setTimeout(() => setCopied(false), 2000);
-              }
-            }}
-            className="mt-2 rounded-full bg-white px-3 py-1.5 text-[11px] font-medium text-teal-900 ring-1 ring-teal-200"
-          >
-            {copied ? "Copied complaint draft" : "Copy complaint draft"}
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -421,6 +220,7 @@ function legacyCopy(text: string) {
 }
 
 export function CardsPanel({ reading }: { reading: Reading }) {
+  const { t } = useT();
   const [copied, setCopied] = useState<"status" | "caption" | "full" | null>(
     null,
   );
@@ -438,13 +238,18 @@ export function CardsPanel({ reading }: { reading: Reading }) {
       [
         `${reading.area} · AQI ${reading.aqi} (${reading.band.label})`,
         reading.aqi <= 150
-          ? `Best time out: ${reading.windows.best}`
-          : `Least-bad time out: ${reading.windows.best} — mask still advised`,
-        `Avoid outdoors: ${reading.windows.avoid}`,
-        "If you must go: N95, short route",
+          ? t("ui.share.bestTime", { time: reading.windows.best })
+          : t("ui.share.leastBadTime", { time: reading.windows.best }),
+        t("ui.share.avoid", { time: reading.windows.avoid }),
+        t("ui.share.mustGo"),
+        reading.helpTheAir[0]
+          ? `${t("ui.story.giveBack")}: ${reading.helpTheAir[0].title}`
+          : "",
         "— AirMitra",
-      ].join("\n"),
-    [reading],
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    [reading, t],
   );
 
   const caption = `${statusText}\n${pageUrl}`;
@@ -452,16 +257,36 @@ export function CardsPanel({ reading }: { reading: Reading }) {
   const text = useMemo(
     () =>
       [
-        `AirMitra advisory — ${reading.area}, ${reading.state.name}`,
-        `AQI ${reading.aqi} (${reading.band.label}), ${reading.dominant} dominant.`,
-        `${reading.aqi > 150 ? "Least-bad" : "Best"} time out: ${reading.windows.best}. Avoid: ${reading.windows.avoid}.`,
+        t("ui.share.advisory", {
+          city: reading.area,
+          state: reading.state.name,
+        }),
+        t("ui.share.aqiLine", {
+          aqi: reading.aqi,
+          band: reading.band.label,
+          dominant: reading.dominant,
+        }),
+        reading.aqi > 150
+          ? t("ui.share.leastBadTime", { time: reading.windows.best })
+          : t("ui.share.bestTime", { time: reading.windows.best }),
+        t("ui.share.avoid", { time: reading.windows.avoid }),
         reading.guidelines[0],
         reading.guidelines[1],
-        `Do now: ${reading.doNow.map((d) => d.title).join("; ")}.`,
-        `Source: ${reading.source.station} (${reading.source.updated}).`,
+        t("ui.share.doNow", {
+          items: reading.doNow.map((d) => d.title).join("; "),
+        }),
+        reading.helpTheAir[0]
+          ? `${t("ui.story.giveBack")}: ${reading.helpTheAir[0].title}.`
+          : "",
+        t("ui.share.source", {
+          station: reading.source.station,
+          updated: reading.source.updated,
+        }),
         pageUrl,
-      ].join("\n"),
-    [reading, pageUrl],
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    [reading, pageUrl, t],
   );
 
   async function copyValue(value: string, kind: "status" | "caption" | "full") {
@@ -560,11 +385,10 @@ export function CardsPanel({ reading }: { reading: Reading }) {
       <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
         <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
           <ShareIcon className="h-4 w-4 text-brand" />
-          Story card
+          {t("ui.cards.story")}
         </div>
         <p className="mt-1 text-xs leading-5 text-muted">
-          A 9:16 image for WhatsApp status or Instagram, plus ready-made text.
-          No names or health details.
+          {t("ui.cards.storySub")}
         </p>
         <div className="mt-4">
           <StoryPreview reading={reading} />
@@ -577,7 +401,7 @@ export function CardsPanel({ reading }: { reading: Reading }) {
             disabled={busy}
             className="rounded-xl bg-brand px-4 py-3 text-sm font-medium text-white transition hover:bg-[#0a4a3e] active:scale-[0.99] disabled:opacity-60"
           >
-            {busy ? "Building…" : "Download image"}
+            {busy ? t("ui.cards.building") : t("ui.cards.download")}
           </button>
           <button
             type="button"
@@ -585,17 +409,18 @@ export function CardsPanel({ reading }: { reading: Reading }) {
             disabled={busy}
             className="rounded-xl bg-card px-4 py-3 text-sm font-medium text-ink ring-1 ring-line transition hover:bg-paper active:scale-[0.99] disabled:opacity-60"
           >
-            Share image
+            {t("ui.cards.share")}
           </button>
         </div>
         <p className="mt-2 text-[10px] leading-4 text-muted">
-          Image is 1080×1920 PNG. On a phone, “Share image” opens the native
-          share sheet, including Instagram.
+          {t("ui.cards.note")}
         </p>
       </div>
 
       <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <div className="font-display text-lg font-semibold text-ink">Post to</div>
+        <div className="font-display text-lg font-semibold text-ink">
+          {t("ui.cards.postTo")}
+        </div>
         <div className="mt-3 grid grid-cols-3 gap-2">
           {links.map((link) => (
             <a
@@ -618,14 +443,15 @@ export function CardsPanel({ reading }: { reading: Reading }) {
         </div>
         {instagramNote ? (
           <p className="mt-2 rounded-lg bg-emerald-50 px-2.5 py-2 text-[11px] leading-5 text-emerald-800 ring-1 ring-emerald-200">
-            Image downloaded and caption copied. Open Instagram → Add to story
-            → choose the image.
+            {t("ui.cards.instagramNote")}
           </p>
         ) : null}
       </div>
 
       <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <div className="font-display text-lg font-semibold text-ink">Status / story text</div>
+        <div className="font-display text-lg font-semibold text-ink">
+          {t("ui.cards.statusTitle")}
+        </div>
         <pre className="mt-2 whitespace-pre-wrap rounded-xl bg-paper p-3 text-[11px] leading-5 text-ink ring-1 ring-line">
           {caption}
         </pre>
@@ -635,14 +461,14 @@ export function CardsPanel({ reading }: { reading: Reading }) {
             onClick={() => copyValue(caption, "caption")}
             className="rounded-xl bg-brand px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
           >
-            {copied === "caption" ? "Copied" : "Copy caption"}
+            {copied === "caption" ? t("ui.cards.copied") : t("ui.cards.copyCaption")}
           </button>
           <button
             type="button"
             onClick={() => copyValue(text, "full")}
             className="rounded-xl bg-card px-4 py-2.5 text-sm font-medium text-ink ring-1 ring-line transition hover:bg-paper"
           >
-            {copied === "full" ? "Copied" : "Copy advisory"}
+            {copied === "full" ? t("ui.cards.copied") : t("ui.cards.copyAdvisory")}
           </button>
         </div>
       </div>

@@ -4,8 +4,11 @@ import type { Reading } from "@/lib/aqi";
 import { BAND_STYLES, cn } from "@/lib/ui";
 import { slugify } from "@/lib/slug";
 import { shortStationName } from "@/lib/format";
+import { useT } from "./language-provider";
+import { stationLabel } from "@/lib/i18n";
 
 export function ShareCardPreview({ reading }: { reading: Reading }) {
+  const { t, language } = useT();
   const styles = BAND_STYLES[reading.band.key];
   return (
     <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 shadow-sm">
@@ -13,7 +16,7 @@ export function ShareCardPreview({ reading }: { reading: Reading }) {
         <div className="flex items-center justify-between">
           <div className="text-sm font-semibold">AirMitra</div>
           <div className="text-[10px] uppercase tracking-[0.14em] text-teal-200">
-            air advisory
+            {t("ui.share.advisory")}
           </div>
         </div>
         <div className="mt-1 text-[11px] text-teal-100/80">
@@ -30,7 +33,9 @@ export function ShareCardPreview({ reading }: { reading: Reading }) {
             {reading.band.label}
           </span>
         </div>
-        <p className="mt-1 text-[11px] text-muted">{reading.dominant} dominant</p>
+        <p className="mt-1 text-[11px] text-muted">
+          {t("ui.share.dominant", { dominant: reading.dominant })}
+        </p>
 
         <div className="mt-3 space-y-2 text-sm leading-6 text-ink/85">
           <p className="font-medium text-ink">{reading.guidelines[0]}</p>
@@ -38,7 +43,7 @@ export function ShareCardPreview({ reading }: { reading: Reading }) {
         </div>
 
         <div className="mt-3 rounded-xl bg-paper p-3 text-xs leading-5 text-ink/80 ring-1 ring-line">
-          <span className="font-semibold text-ink">Do now:</span>{" "}
+          <span className="font-semibold text-ink">{t("ui.share.doNow")}</span>{" "}
           {reading.doNow
             .slice(0, 2)
             .map((item) => item.title)
@@ -46,19 +51,28 @@ export function ShareCardPreview({ reading }: { reading: Reading }) {
           .
         </div>
 
+        {reading.helpTheAir[0] ? (
+          <p className="mt-2 text-[10px] leading-4 text-teal-800">
+            <span className="font-semibold">{t("ui.story.giveBack")}:</span>{" "}
+            {reading.helpTheAir[0].title}
+          </p>
+        ) : null}
+
         <div className="mt-3 flex items-center justify-between text-[10px] text-muted">
           <span>
             {reading.source.type === "ground"
-              ? "Ground monitor"
+              ? t("ui.hero.ground")
               : reading.source.type === "approximate"
                 ? reading.stations && reading.stations.length > 1
-                  ? `Median of ${reading.stations.length} monitors`
-                  : `Nearest monitor · ${reading.source.distanceKm} km`
-                : "Model estimate"}{" "}
+                  ? t("ui.share.median", { n: reading.stations.length })
+                  : t("ui.share.nearestKm", {
+                      km: reading.source.distanceKm,
+                    })
+                : t("ui.hero.model")}{" "}
             ·{" "}
-            {reading.source.station}
+            {stationLabel(language, reading.source.station)}
           </span>
-          <span>via AirMitra</span>
+          <span>{t("ui.share.via")}</span>
         </div>
       </div>
     </div>
@@ -66,6 +80,7 @@ export function ShareCardPreview({ reading }: { reading: Reading }) {
 }
 
 export function StoryPreview({ reading }: { reading: Reading }) {
+  const { t } = useT();
   const styles = BAND_STYLES[reading.band.key];
   const date = new Date().toLocaleDateString("en-IN", {
     day: "numeric",
@@ -85,7 +100,7 @@ export function StoryPreview({ reading }: { reading: Reading }) {
           <div>
             <div className="text-sm font-semibold">AirMitra</div>
             <div className="text-[7px] uppercase tracking-[0.18em] text-teal-200/70">
-              Household air coach
+              {t("ui.story.household")}
             </div>
           </div>
           <div className="text-[9px] text-teal-100/70">{date}</div>
@@ -107,7 +122,7 @@ export function StoryPreview({ reading }: { reading: Reading }) {
           </span>
         </div>
         <div className="mt-1 text-[9px] text-teal-100/70">
-          {reading.dominant} dominant
+          {t("ui.share.dominant", { dominant: reading.dominant })}
           {reading.pollutants.find((p) => p.label === reading.dominant)
             ? ` · ${
                 reading.pollutants.find((p) => p.label === reading.dominant)!
@@ -118,20 +133,22 @@ export function StoryPreview({ reading }: { reading: Reading }) {
 
         <div className="mt-4 border-t border-white/15 pt-3">
           <div className="text-[7px] font-semibold uppercase tracking-[0.18em] text-teal-200/70">
-            {reading.aqi > 150 ? "Least-bad time out" : "Best time out"}
+            {reading.aqi > 150
+              ? t("ui.story.leastBad")
+              : t("ui.story.best")}
           </div>
           <div className="mt-0.5 text-base font-semibold leading-tight">
             {reading.windows.best}
           </div>
           <div className="mt-2 text-[7px] font-semibold uppercase tracking-[0.18em] text-teal-200/70">
-            Avoid outdoors
+            {t("ui.story.avoid")}
           </div>
           <div className="text-[11px] text-white/80">{reading.windows.avoid}</div>
         </div>
 
         <div className="mt-3">
           <div className="text-[7px] font-semibold uppercase tracking-[0.18em] text-teal-200/70">
-            Do now
+            {t("ui.story.doNow")}
           </div>
           <ul className="mt-1 space-y-1">
             {reading.doNow.slice(0, 3).map((item) => (
@@ -146,28 +163,39 @@ export function StoryPreview({ reading }: { reading: Reading }) {
           </ul>
         </div>
 
+        {reading.helpTheAir[0] ? (
+          <div className="mt-2">
+            <div className="text-[7px] font-semibold uppercase tracking-[0.18em] text-teal-200/70">
+              {t("ui.story.giveBack")}
+            </div>
+            <div className="text-[9px] leading-4 text-white/85">
+              {reading.helpTheAir[0].title}
+            </div>
+          </div>
+        ) : null}
+
         <div className="mt-3 rounded-xl bg-white/[0.07] px-3 py-2 ring-1 ring-white/15">
           <div className="text-[7px] font-semibold uppercase tracking-[0.18em] text-teal-200/70">
-            Impact
+            {t("ui.story.impact")}
           </div>
           <div className="mt-0.5 text-sm font-semibold leading-tight">
             {reading.impact.value}
           </div>
           <div className="text-[8px] text-white/75">{reading.impact.title}</div>
           <div className="mt-1 text-[7px] text-white/55">
-            If you must go out: fitted N95, short route
+            {t("ui.story.mustGo")}
           </div>
         </div>
 
         <div className="mt-auto">
           <div className="text-[7px] text-teal-100/50">
             {reading.source.type === "ground"
-              ? "Ground monitor"
+              ? t("ui.hero.ground")
               : reading.source.type === "approximate"
                 ? reading.stations && reading.stations.length > 1
-                  ? `Median of ${reading.stations.length} monitors`
-                  : "Nearest monitor"
-                : "CAMS model estimate"}
+                  ? t("ui.story.median", { n: reading.stations.length })
+                  : t("ui.story.nearest")
+                : t("ui.story.cams")}
             {reading.source.type === "approximate" &&
             reading.stations &&
             reading.stations.length > 1
@@ -181,7 +209,7 @@ export function StoryPreview({ reading }: { reading: Reading }) {
           </div>
           {reading.source.type === "approximate" && reading.stations?.length ? (
             <div className="mt-0.5 text-[7px] text-teal-100/45">
-              Ref:{" "}
+              {t("ui.story.ref")}{" "}
               {reading.stations
                 .map(
                   (station) =>
@@ -192,7 +220,7 @@ export function StoryPreview({ reading }: { reading: Reading }) {
           ) : null}
           <div className="mt-1 border-t border-white/15 pt-2">
             <div className="text-[9px] font-medium">
-              Check the air before you go out
+              {t("ui.story.check")}
             </div>
             <div className="text-[7px] text-teal-100/60">
               airmitra-app.vercel.app/aqi/{slugify(reading.state.name)}/

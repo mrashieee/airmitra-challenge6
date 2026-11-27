@@ -16,12 +16,14 @@ import {
   type Profile,
 } from "@/lib/profile";
 import { Onboarding } from "./onboarding";
+import { LanguageProvider, useT } from "./language-provider";
+import { optionLabel, stationLabel } from "@/lib/i18n";
 import type { Tab } from "@/lib/nav";
 import { cn } from "@/lib/ui";
 import { BrandMark } from "./brand-mark";
 import { HomeView, TodaySkeleton } from "./home-view";
 import { LocationSelect } from "./location-picker";
-import { AskPanel, CardsPanel, ReportPanel } from "./panels";
+import { AskPanel, CardsPanel } from "./panels";
 import { SettingsPanel } from "./settings-panel";
 import { ShareCardPreview } from "./share-cards";
 import {
@@ -29,27 +31,26 @@ import {
   CardsIcon,
   ChatIcon,
   HomeIcon,
-  ReportIcon,
   SettingsIcon,
   ShareIcon,
   WindIcon,
 } from "./icons";
 
-const NAV: { tab: Tab; label: string; icon: React.ReactNode }[] = [
-  { tab: "today", label: "Today", icon: <WindIcon className="h-4 w-4" /> },
-  { tab: "ask", label: "Ask", icon: <ChatIcon className="h-4 w-4" /> },
-  { tab: "report", label: "Report", icon: <ReportIcon className="h-4 w-4" /> },
-  { tab: "cards", label: "Cards", icon: <CardsIcon className="h-4 w-4" /> },
-  { tab: "settings", label: "Settings", icon: <SettingsIcon className="h-4 w-4" /> },
+const NAV: { tab: Tab; key: string; icon: React.ReactNode }[] = [
+  { tab: "today", key: "ui.nav.today", icon: <WindIcon className="h-4 w-4" /> },
+  { tab: "ask", key: "ui.nav.ask", icon: <ChatIcon className="h-4 w-4" /> },
+  { tab: "cards", key: "ui.nav.cards", icon: <CardsIcon className="h-4 w-4" /> },
+  { tab: "settings", key: "ui.nav.settings", icon: <SettingsIcon className="h-4 w-4" /> },
 ];
 
 function Brand() {
+  const { t } = useT();
   return (
     <div className="flex items-center gap-2.5">
       <BrandMark className="h-9 w-9 shadow-sm" />
       <div className="leading-tight">
         <div className="font-display text-base font-semibold tracking-tight text-ink">AirMitra</div>
-        <div className="text-[10px] text-muted">Household Air Coach</div>
+        <div className="text-[10px] text-muted">{t("ui.brand.tagline")}</div>
       </div>
     </div>
   );
@@ -64,39 +65,51 @@ export function AppShell() {
   const profile = useMemo(() => parseProfile(rawProfile), [rawProfile]);
   const [editing, setEditing] = useState(false);
   const [editVersion, setEditVersion] = useState(0);
-
-  if (!profile || editing) {
-    return (
-      <Onboarding
-        initial={profile}
-        onComplete={(next) => {
-          saveProfile(next);
-          setEditing(false);
-          setEditVersion((v) => v + 1);
-        }}
-      />
-    );
-  }
+  const [draftLanguage, setDraftLanguage] = useState("English");
+  const uiLanguage = editing
+    ? draftLanguage
+    : profile?.language ?? draftLanguage;
 
   return (
-    <AppShellInner
-      key={editVersion}
-      profile={profile}
-      onEdit={() => setEditing(true)}
-    />
+    <LanguageProvider language={uiLanguage}>
+      {!profile || editing ? (
+        <Onboarding
+          initial={profile}
+          onLanguageChange={setDraftLanguage}
+          onComplete={(next) => {
+            saveProfile(next);
+            setDraftLanguage(next.language);
+            setEditing(false);
+            setEditVersion((v) => v + 1);
+          }}
+        />
+      ) : (
+        <AppShellInner
+          key={editVersion}
+          profile={profile}
+          onLanguageChange={setDraftLanguage}
+          onEdit={() => {
+            setDraftLanguage(profile.language);
+            setEditing(true);
+          }}
+        />
+      )}
+    </LanguageProvider>
   );
 }
 
 function AppShellInner({
   profile,
   onEdit,
+  onLanguageChange,
 }: {
   profile: Profile;
   onEdit: () => void;
+  onLanguageChange: (language: string) => void;
 }) {
+  const { t, language, native, locale } = useT();
   const [target, setTarget] = useState(profile.location);
   const [tab, setTab] = useState<Tab>("today");
-  const [language, setLanguage] = useState(profile.language);
   const [largeText, setLargeText] = useState(profile.largeText);
 
   const code = target.stateCode;
@@ -155,7 +168,7 @@ function AppShellInner({
   }
 
   function changeLanguage(next: string) {
-    setLanguage(next);
+    onLanguageChange(next);
     saveProfile({ ...profile, language: next });
   }
 
@@ -166,9 +179,12 @@ function AppShellInner({
 
   const familyLine = profile.family.length
     ? profile.family
-        .map((member) => `${member.relation} (${member.ageBand})`)
+        .map(
+          (member) =>
+            `${optionLabel(language, "relation", member.relation)} (${member.ageBand})`,
+        )
         .join(", ")
-    : "No family added yet";
+    : t("ui.sub.familyEmpty");
 
   const homeLine = [
     profile.home.type,
@@ -188,42 +204,42 @@ function AppShellInner({
   function saveFullProfile(next: Profile) {
     saveProfile(next);
     setTarget(next.location);
-    setLanguage(next.language);
+    onLanguageChange(next.language);
     setLargeText(next.largeText);
   }
 
   const badge = loading && !error
     ? {
-        label: "loading",
+        key: "ui.status.loading",
         className: "bg-slate-100 text-slate-600 ring-slate-200",
       }
     : reading.demo
     ? error
       ? {
-          label: "offline demo",
+          key: "ui.status.offline",
           className: "bg-amber-50 text-amber-700 ring-amber-200",
         }
       : {
-          label: "demo data",
+          key: "ui.status.demo",
           className: "bg-amber-50 text-amber-700 ring-amber-200",
         }
     : reading.degraded
       ? {
-          label: "ground feed down",
+          key: "ui.status.degraded",
           className: "bg-amber-50 text-amber-700 ring-amber-200",
         }
       : reading.stale
         ? {
-            label: "cached",
+            key: "ui.status.cached",
             className: "bg-amber-50 text-amber-700 ring-amber-200",
           }
         : reading.source.type === "model"
           ? {
-              label: "model estimate",
+              key: "ui.status.model",
               className: "bg-amber-50 text-amber-700 ring-amber-200",
             }
           : {
-              label: "live",
+              key: "ui.status.live",
               className: "bg-teal-50 text-teal-700 ring-teal-100",
             };
 
@@ -251,8 +267,6 @@ function AppShellInner({
         lat={city.lat}
         lon={city.lon}
       />
-    ) : tab === "report" ? (
-      <ReportPanel reading={reading} />
     ) : tab === "cards" ? (
       <CardsPanel reading={reading} />
     ) : (
@@ -292,7 +306,7 @@ function AppShellInner({
               )}
             >
               {item.icon}
-              {item.label}
+              {t(item.key)}
             </button>
           ))}
         </nav>
@@ -304,9 +318,9 @@ function AppShellInner({
               badge.className,
             )}
           >
-            {badge.label}
+            {t(badge.key)}
           </span>
-          <span>English</span>
+          <span>{native}</span>
         </div>
       </aside>
 
@@ -321,7 +335,7 @@ function AppShellInner({
               onClick={() => setTab("settings")}
               className="rounded-full bg-card px-3 py-1.5 text-[11px] font-medium text-ink ring-1 ring-line"
             >
-              English
+              {native}
             </button>
           </div>
           <LocationSelect
@@ -339,15 +353,17 @@ function AppShellInner({
             </h1>
             <div className="mb-4 hidden items-end justify-between lg:flex">
               <div>
-                <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
-                  {tab === "today" ? "Today" : NAV.find((n) => n.tab === tab)?.label}
+                <h1 className="font-display text-2xl font-semibold leading-normal tracking-tight text-ink">
+                  {tab === "today"
+                    ? t("ui.nav.today")
+                    : t(NAV.find((n) => n.tab === tab)?.key ?? "ui.nav.today")}
                 </h1>
                 <p className="text-xs text-muted">
                   {loading && !error
-                    ? "Loading live conditions…"
+                    ? t("ui.header.loading")
                     : reading.demo
-                      ? "Demo conditions for your area"
-                      : "Live conditions for your area"}
+                      ? t("ui.header.demo")
+                      : t("ui.header.live")}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -357,10 +373,10 @@ function AppShellInner({
                     badge.className,
                   )}
                 >
-                  {badge.label}
+                  {t(badge.key)}
                 </span>
                 <span className="rounded-full bg-card px-2.5 py-1 text-[11px] font-medium text-muted ring-1 ring-line">
-                  English
+                  {native}
                 </span>
               </div>
             </div>
@@ -368,14 +384,12 @@ function AppShellInner({
             {content}
 
             <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-[11px] text-muted">
-              <span>
-                India AQI uses CPCB NAQI · AI output can be wrong · not medical advice
-              </span>
+              <span>{t("ui.footer.disclaimer")}</span>
               <Link
-                href={`/aqi/${slugify(state.name)}/${slugify(city.name)}`}
+                href={`/aqi/${slugify(state.name)}/${slugify(city.name)}?lang=${locale}`}
                 className="font-medium text-brand hover:underline"
               >
-                Public page for {city.name} →
+                {t("ui.footer.public", { city: city.name })}
               </Link>
             </footer>
           </main>
@@ -385,7 +399,7 @@ function AppShellInner({
             <div>
               <div className="mb-2 flex items-center gap-2 px-1 text-[11px] font-medium text-muted">
                 <ShareIcon className="h-3.5 w-3.5" />
-                Share preview
+                {t("ui.rail.share")}
               </div>
               <ShareCardPreview reading={reading} />
               <button
@@ -393,7 +407,7 @@ function AppShellInner({
                 onClick={() => setTab("cards")}
                 className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl bg-card px-3 py-2.5 text-xs font-medium text-ink ring-1 ring-line transition hover:bg-white"
               >
-                Open share card
+                {t("ui.rail.open")}
                 <ArrowIcon className="h-3.5 w-3.5" />
               </button>
             </div>
@@ -401,19 +415,21 @@ function AppShellInner({
             <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
               <div className="flex items-center gap-2 text-sm font-semibold text-ink">
                 <HomeIcon className="h-4 w-4 text-brand" />
-                Why this advice
+                {t("ui.rail.why")}
               </div>
               <ul className="mt-2 space-y-2 text-[11px] leading-5 text-muted">
                 <li>
-                  <span className="font-medium text-ink">Family:</span>{" "}
+                  <span className="font-medium text-ink">{t("ui.rail.family")}:</span>{" "}
                   {familyLine}.
                 </li>
                 <li>
-                  <span className="font-medium text-ink">Home:</span> {homeLine}.
+                  <span className="font-medium text-ink">{t("ui.rail.home")}:</span>{" "}
+                  {homeLine}.
                 </li>
                 <li>
-                  <span className="font-medium text-ink">Source:</span>{" "}
-                  {reading.source.station} · {reading.source.updated}.
+                  <span className="font-medium text-ink">{t("ui.rail.source")}:</span>{" "}
+                  {stationLabel(language, reading.source.station)} ·{" "}
+                  {reading.source.updated}.
                 </li>
               </ul>
             </div>
@@ -423,7 +439,7 @@ function AppShellInner({
 
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
-        <div className="mx-auto grid max-w-lg grid-cols-5">
+        <div className="mx-auto grid max-w-lg grid-cols-4">
           {NAV.map((item) => (
             <button
               key={item.tab}
@@ -442,7 +458,7 @@ function AppShellInner({
               >
                 {item.icon}
               </span>
-              {item.label}
+              {t(item.key)}
             </button>
           ))}
         </div>

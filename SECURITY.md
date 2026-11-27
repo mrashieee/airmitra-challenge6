@@ -20,7 +20,7 @@ public issue.
   `X-Powered-By` is disabled.
 - The model is instructed that context and questions are untrusted data, not
   instructions.
-- No accounts, analytics, or PII. Profiles and reports are stored only in the
+- No accounts, analytics, or PII. The profile and saved settings are stored only in the
   browser's `localStorage`.
 
 ## If a key is exposed

@@ -3,6 +3,7 @@ import type { AirReading } from "@/lib/air/types";
 import type { Profile } from "@/lib/profile";
 import type { StateEntry } from "@/lib/states";
 import type { Brief } from "./types";
+import { t } from "@/lib/i18n";
 
 export function templateBrief(
   state: StateEntry,
@@ -11,20 +12,24 @@ export function templateBrief(
 ): Brief {
   const reading = readingFromAir(state, air, undefined, false, profile);
   const key = reading.band.key;
+  const language = profile.language;
 
   const directive =
     key === "severe" || key === "veryPoor"
-      ? "Keep everyone indoors until the air improves."
+      ? t(language, "r.brief.severe")
       : key === "poor" || key === "moderate"
-        ? "Limit outdoor time and keep windows closed."
-        : "Good window - open up and go out.";
+        ? t(language, "r.brief.limit")
+        : t(language, "r.brief.good");
 
   return {
     directive,
-    why: `${reading.dominant} is dominant at AQI ${reading.aqi} (${reading.band.label}).`,
+    why: t(language, "r.brief.why", {
+      dominant: reading.dominant,
+      aqi: reading.aqi,
+      band: reading.band.label,
+    }),
     mustGoOut:
-      reading.mustGoOut[0]?.advice ??
-      "Fitted N95, short trips, avoid main roads.",
+      reading.mustGoOut[0]?.advice ?? t(language, "r.brief.mustGo"),
     doNow: reading.doNow.map((item) => item.title).slice(0, 3),
     source: "template",
     model: "rules",
@@ -40,6 +45,7 @@ export function templateAnswer(
   profile: Profile,
 ): string {
   const reading = readingFromAir(state, air, undefined, false, profile);
+  const language = profile.language;
   const q = question.toLowerCase();
 
   const byName = reading.family.find((person) =>
@@ -58,17 +64,17 @@ export function templateAnswer(
   }
 
   if (q.includes("agarbatti") || q.includes("incense") || q.includes("coil")) {
-    return "Skip incense or mosquito coil today. If you must, light it 8–10 PM with a window open. Indoors, these can push PM2.5 up 3–5x for 1–2 hours.";
+    return t(language, "r.answer.agarbatti");
   }
 
   if (q.includes("window") || q.includes("open")) {
-    return reading.guidelines[1] ?? "Keep windows closed at peak hours.";
+    return reading.guidelines[1] ?? t(language, "r.answer.windows");
   }
 
   if (q.includes("purifier")) {
     return profile.home.purifiers === "None"
-      ? "You don't need to buy one today. Pick one room, close the door, damp-mop, and keep windows shut. That cuts indoor PM noticeably."
-      : "Run the purifier in the room you use most, on auto, with the door closed.";
+      ? t(language, "r.answer.purifierNone")
+      : t(language, "r.answer.purifier");
   }
 
   if (
@@ -76,8 +82,12 @@ export function templateAnswer(
     q.includes("chest") ||
     q.includes("emergency")
   ) {
-    return "Breathless at rest or chest tightness is not something to wait on. See a doctor now or call emergency services. AirMitra cannot diagnose.";
+    return t(language, "r.answer.emergency");
   }
 
-  return `${reading.guidelines[0]} For your family: ${reading.family[0]?.advice ?? "Keep sensitive members indoors."}`;
+  return t(language, "r.answer.fallback", {
+    guideline: reading.guidelines[0],
+    advice:
+      reading.family[0]?.advice ?? t(language, "r.advice.genericCalm"),
+  });
 }

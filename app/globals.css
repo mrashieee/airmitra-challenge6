@@ -13,13 +13,13 @@
 
 .dark {
   color-scheme: dark;
-  --paper: #0d1411;
-  --ink: #edf2ec;
+  --paper: #070a08;
+  --ink: #f2f6f2;
   --muted: #9aa69f;
-  --line: #29332d;
-  --card: #151d19;
+  --line: #252b26;
+  --card: #0f1310;
   --brand: #5ed3b6;
-  --sidebar: #101814;
+  --sidebar: #090c0a;
 }
 
 @theme inline {
@@ -102,19 +102,23 @@ body {
   --tw-ring-color: rgb(255 255 255 / 0.2);
 }
 .dark .weather-hero .weather-scene {
-  filter: brightness(0.7) saturate(0.9);
+  filter: brightness(0.52) saturate(0.48);
 }
 
 .dark .weather-hero .weather-scene::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(4, 12, 9, 0.42);
+  background: rgba(3, 8, 6, 0.58);
 }
 
 .dark .weather-hero .text-ink,
 .dark .weather-hero .text-muted {
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
+}
+
+[dir="rtl"] .weather-hero .weather-scene {
+  transform: scaleX(-1);
 }
 
 .sun-rays {

@@ -88,16 +88,6 @@ export function SparkIcon(props: IconProps) {
   );
 }
 
-export function ReportIcon(props: IconProps) {
-  return (
-    <svg {...base} {...props}>
-      <path d="M6 3h9l4 4v14H6V3Z" />
-      <path d="M14 3v5h5" />
-      <path d="M9 13h6M9 17h4" />
-    </svg>
-  );
-}
-
 export function CardsIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>
@@ -113,14 +103,6 @@ export function SettingsIcon(props: IconProps) {
     <svg {...base} {...props}>
       <circle cx="12" cy="12" r="3" />
       <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21h-4v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3v-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3h4v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1v4H21a1.7 1.7 0 0 0-1.6 1Z" />
-    </svg>
-  );
-}
-
-export function CheckIcon(props: IconProps) {
-  return (
-    <svg {...base} {...props}>
-      <path d="m5 12.5 4.5 4.5L19 7" />
     </svg>
   );
 }

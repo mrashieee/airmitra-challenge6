@@ -17,6 +17,8 @@ import {
 import { WeatherScene } from "./weather-scene";
 import { shortStationName } from "@/lib/format";
 import { AqiNumber } from "./aqi-number";
+import { useT } from "./language-provider";
+import { stationLabel } from "@/lib/i18n";
 
 type Props = {
   reading: Reading;
@@ -74,6 +76,7 @@ export function HomeView({
   brief,
   briefLoading,
 }: Props) {
+  const { t, language } = useT();
   const styles = BAND_STYLES[reading.band.key];
   const pollutantOrder = ["PM2.5", "PM10", "NO₂", "SO₂", "O₃", "NH₃"];
   const displayPollutants = [...reading.pollutants]
@@ -135,9 +138,12 @@ export function HomeView({
             </div>
 
             <p className="mt-2 text-sm text-muted">
-              <span className="font-medium text-ink">{reading.dominant}</span> is the dominant pollutant
+              <span className="font-medium text-ink">{reading.dominant}</span>{" "}
+              {t("ui.hero.dominant")}
               {reading.basis ? (
-                <span className="ml-1 text-[10px] text-muted">(AQI from {reading.basis})</span>
+                <span className="ml-1 text-[10px] text-muted">
+                  {t("ui.hero.aqiFrom", { basis: reading.basis })}
+                </span>
               ) : null}
             </p>
           </div>
@@ -147,27 +153,34 @@ export function HomeView({
 
         {reading.source.type === "model" ? (
           <p className="mt-2 text-[11px] leading-5 text-muted">
-            Model estimate, not a local monitor. Models can differ from other apps.{" "}
+            {t("ui.hero.modelNote")}{" "}
             {reading.nearby?.length
-              ? `Nearest monitor: ${reading.nearby[0].distanceKm} km away, AQI ${reading.nearby[0].aqi}.`
-              : "No ground monitor within 60 km."}
+              ? t("ui.hero.nearestMonitor", {
+                  km: reading.nearby[0].distanceKm,
+                  aqi: reading.nearby[0].aqi,
+                })
+              : t("ui.hero.noMonitor60")}
           </p>
         ) : null}
 
         {reading.source.type === "approximate" ? (
           <p className="mt-2 text-[11px] leading-5 text-muted">
             {reading.stations && reading.stations.length > 1
-              ? `Approximate: median of ${reading.stations.length} live monitors, ${Math.min(
-                  ...reading.stations.map((s) => s.distanceKm),
-                )}–${Math.max(
-                  ...reading.stations.map((s) => s.distanceKm),
-                )} km away. Not local stations.`
-              : `Approximate reading from the nearest monitor ${reading.source.distanceKm} km away. Not a local station.`}
+              ? t("ui.hero.approxMany", {
+                  n: reading.stations.length,
+                  min: Math.min(...reading.stations.map((s) => s.distanceKm)),
+                  max: Math.max(...reading.stations.map((s) => s.distanceKm)),
+                })
+              : t("ui.hero.approxOne", {
+                  km: reading.source.distanceKm,
+                })}
           </p>
         ) : null}
         {reading.source.type === "approximate" && reading.stations?.length ? (
           <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] text-muted">
-            <span className="font-medium text-ink">Reference:</span>
+            <span className="font-medium text-ink">
+              {t("ui.hero.reference")}
+            </span>
             {reading.stations.map((station) => (
               <span
                 key={station.name}
@@ -190,7 +203,9 @@ export function HomeView({
                   : "bg-amber-500",
             )}
           />
-          <span className="font-medium text-ink">{reading.source.station}</span>
+          <span className="font-medium text-ink">
+            {stationLabel(language, reading.source.station)}
+          </span>
           {reading.source.distanceKm > 0 ? <span>· {reading.source.distanceKm} km</span> : null}
           <span>· {reading.source.updated}</span>
           {reading.source.type === "model" && reading.nearestStationKm ? (
@@ -198,12 +213,12 @@ export function HomeView({
           ) : null}
           <span className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm">
             {reading.source.type === "ground"
-              ? "ground monitor"
+              ? t("ui.hero.ground")
               : reading.source.type === "approximate"
                 ? reading.stations && reading.stations.length > 1
-                  ? "nearest monitors"
-                  : "nearest monitor"
-                : "model estimate"}
+                  ? t("ui.hero.nearestMany")
+                  : t("ui.hero.nearestOne")
+                : t("ui.hero.model")}
           </span>
           {reading.usAqi ? (
             <span
@@ -219,33 +234,35 @@ export function HomeView({
               title="Lowest and highest AQI among official stations in this city"
               className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm"
             >
-              {reading.source.type === "approximate" ? "monitors" : "stations"}{" "}
+              {reading.source.type === "approximate"
+                ? t("ui.hero.monitors")
+                : t("ui.hero.stations")}{" "}
               {reading.aqiRange.min}–{reading.aqiRange.max}
             </span>
           ) : null}
           {reading.demo ? (
             <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700 ring-1 ring-amber-200">
-              demo data
+              {t("ui.hero.demo")}
             </span>
           ) : reading.degraded ? (
             <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700 ring-1 ring-amber-200">
-              ground feed down
+              {t("ui.status.degraded")}
             </span>
           ) : reading.stale ? (
             <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700 ring-1 ring-amber-200">
-              cached
+              {t("ui.hero.cached")}
             </span>
           ) : reading.source.type === "approximate" ? (
             <span className="rounded-full bg-orange-50 px-2 py-0.5 font-medium text-orange-700 ring-1 ring-orange-200">
-              approximate
+              {t("ui.hero.approx")}
             </span>
           ) : reading.source.type === "model" ? (
             <span className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-700 ring-1 ring-amber-200">
-              model only
+              {t("ui.hero.modelOnly")}
             </span>
           ) : (
             <span className="rounded-full bg-teal-50 px-2 py-0.5 font-medium text-teal-700 ring-1 ring-teal-100">
-              live
+              {t("ui.hero.live")}
             </span>
           )}
         </div>
@@ -275,8 +292,8 @@ export function HomeView({
       {reading.source.type === "model" && reading.nearby?.length ? (
         <SectionCard
           icon={<PinIcon className="h-4 w-4" />}
-          title="Nearest ground monitors"
-          subtitle={`No monitor in ${reading.area} — these are the closest live stations`}
+          title={t("ui.section.nearest")}
+          subtitle={t("ui.sub.nearest", { city: reading.area })}
           delay={30}
         >
           <div className="space-y-2">
@@ -306,8 +323,7 @@ export function HomeView({
             ))}
           </div>
           <p className="mt-3 text-[11px] leading-5 text-muted">
-            Different airshed from {reading.area}, so use this as context,
-            not a local reading.
+            {t("ui.notice.nearest", { city: reading.area })}
           </p>
         </SectionCard>
       ) : null}
@@ -315,11 +331,11 @@ export function HomeView({
         <SectionCard
           variant="panel"
           icon={<SparkIcon className="h-4 w-4" />}
-          title={"Today's brief"}
+          title={t("ui.section.brief")}
           subtitle={
             brief.source === "ai"
-              ? `AI · ${brief.model ?? "Gemini"}`
-              : "Rule-based fallback"
+              ? t("ui.sub.briefAI", { model: brief.model ?? "Gemini" })
+              : t("ui.sub.briefRules")
           }
           delay={40}
         >
@@ -328,7 +344,9 @@ export function HomeView({
           </p>
           <p className="mt-2 text-sm leading-6 text-muted">{brief.why}</p>
           <div className="mt-3 rounded-xl bg-paper p-3 text-xs leading-5 text-ink/80 ring-1 ring-line">
-            <span className="font-semibold text-ink">If you must go out:</span>{" "}
+            <span className="font-semibold text-ink">
+              {t("ui.brief.mustGoLabel")}
+            </span>{" "}
             {brief.mustGoOut}
           </div>
           {brief.doNow.length ? (
@@ -344,17 +362,17 @@ export function HomeView({
             </div>
           ) : null}
           <p className="mt-3 text-[11px] text-muted">
-            AI-generated for your household. Can be wrong. Not medical advice.
+            {t("ui.brief.disclaimer")}
           </p>
         </SectionCard>
       ) : (
         <SectionCard
           icon={<WindIcon className="h-4 w-4" />}
-          title="General guideline"
+          title={t("ui.section.guideline")}
           subtitle={
             briefLoading
-              ? "Writing for your household…"
-              : "General guidance for this AQI"
+              ? t("ui.sub.guidelineLoading")
+              : t("ui.sub.guideline")
           }
           delay={40}
         >
@@ -367,7 +385,7 @@ export function HomeView({
             ))}
           </ul>
           <p className="mt-3 text-[11px] text-muted">
-            General guidance, not medical advice.
+            {t("ui.guideline.disclaimer")}
           </p>
         </SectionCard>
       )}
@@ -375,11 +393,11 @@ export function HomeView({
       {/* Family */}
       <SectionCard
         icon={<HomeIcon className="h-4 w-4" />}
-        title="For your family"
+        title={t("ui.section.family")}
         subtitle={
           reading.family.length
-            ? `${reading.family.length} ${reading.family.length === 1 ? "person" : "people"}`
-            : "No one added yet"
+            ? t("ui.sub.familyCount", { count: reading.family.length })
+            : t("ui.sub.familyEmpty")
         }
         delay={80}
       >
@@ -387,15 +405,14 @@ export function HomeView({
           {reading.family.length === 0 ? (
             <div className="rounded-xl bg-paper p-3 ring-1 ring-line">
               <p className="text-sm leading-6 text-muted">
-                Add yourself or your family to get advice for each person
-                instead of generic guidance.
+                {t("ui.family.empty")}
               </p>
               <button
                 type="button"
                 onClick={() => onNavigate("settings")}
                 className="mt-2 rounded-full bg-brand px-3 py-1.5 text-[11px] font-medium text-white"
               >
-                Add your family
+                {t("ui.family.add")}
               </button>
             </div>
           ) : null}
@@ -434,8 +451,8 @@ export function HomeView({
       {/* If you must go out */}
       <SectionCard
         icon={<MaskIcon className="h-4 w-4" />}
-        title="If you must go out"
-        subtitle="A plan for going out"
+        title={t("ui.section.mustGo")}
+        subtitle={t("ui.sub.mustGo")}
         delay={120}
       >
         <div className="space-y-2">
@@ -448,15 +465,18 @@ export function HomeView({
         </div>
         <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted">
           <AlertIcon className="h-3.5 w-3.5" />
-          Best time out: {reading.windows.best}. Avoid {reading.windows.avoid}.
+          {t("ui.hero.windows", {
+            best: reading.windows.best,
+            avoid: reading.windows.avoid,
+          })}
         </p>
       </SectionCard>
 
       {/* Do now */}
       <SectionCard
         icon={<HomeIcon className="h-4 w-4" />}
-        title="Do now"
-        subtitle="What you can do today"
+        title={t("ui.section.doNow")}
+        subtitle={t("ui.sub.doNow")}
         delay={160}
       >
         <div className="space-y-2">
@@ -474,6 +494,23 @@ export function HomeView({
         </div>
       </SectionCard>
 
+      {/* Help the air */}
+      <SectionCard
+        icon={<SparkIcon className="h-4 w-4" />}
+        title={t("ui.help.title")}
+        subtitle={t("ui.help.subtitle")}
+        delay={180}
+      >
+        <div className="space-y-2">
+          {reading.helpTheAir.map((item) => (
+            <div key={item.title} className="rounded-xl bg-paper p-3 ring-1 ring-line">
+              <div className="text-sm font-semibold text-ink">{item.title}</div>
+              <p className="mt-1 text-sm leading-5 text-muted">{item.body}</p>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
       {/* Impact */}
       <section
         className="animate-rise overflow-hidden rounded-2xl bg-[#083d39] p-5 text-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
@@ -482,7 +519,7 @@ export function HomeView({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-teal-200">
             <SparkIcon className="h-4 w-4" />
-            Impact receipt
+            {t("ui.section.impact")}
           </div>
           <span className="text-[10px] text-teal-100/60">
             {reading.area} · AQI {reading.aqi}
@@ -492,7 +529,7 @@ export function HomeView({
         <div className="mt-4 space-y-2.5">
           <div className="flex items-baseline justify-between gap-4 border-b border-white/10 pb-2.5">
             <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-teal-200/80">
-              When
+              {t("ui.impact.when")}
             </span>
             <span className="text-right text-sm font-semibold">
               {reading.windows.best}
@@ -500,7 +537,7 @@ export function HomeView({
           </div>
           <div className="flex items-baseline justify-between gap-4 border-b border-white/10 pb-2.5">
             <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-teal-200/80">
-              Do
+              {t("ui.impact.do")}
             </span>
             <span className="text-right text-sm font-medium text-teal-50">
               {reading.impact.title}
@@ -508,7 +545,7 @@ export function HomeView({
           </div>
           <div className="flex items-baseline justify-between gap-4">
             <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-teal-200/80">
-              Payoff
+              {t("ui.impact.payoff")}
             </span>
             <span className="text-right text-sm font-semibold">
               {reading.impact.value}
@@ -526,7 +563,7 @@ export function HomeView({
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-xs font-medium text-white ring-1 ring-white/15 transition hover:bg-white/15 active:scale-[0.99]"
         >
           <ShareIcon className="h-3.5 w-3.5" />
-          Make a story or status
+          {t("ui.impact.button")}
         </button>
       </section>
 
@@ -538,7 +575,7 @@ export function HomeView({
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-medium text-white transition hover:bg-[#0a4a3e] active:scale-[0.99] sm:w-auto"
         >
           <ChatIcon className="h-4 w-4" />
-          Ask about today
+          {t("ui.action.ask")}
         </button>
       </div>
     </div>

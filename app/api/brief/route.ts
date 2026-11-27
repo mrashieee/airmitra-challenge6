@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     const air = await resolveAirReading(state, { target });
     const context = buildContext(state, air, profile);
     const contextString = contextJson(context);
-    const key = keyFor("brief:v2", contextString);
+    const key = keyFor("brief:v3", `${profile.language}::${contextString}`);
 
     const cached = cacheGet<Brief>(key);
     if (cached) {
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const ai = await generateBrief(contextString);
+    const ai = await generateBrief(contextString, profile.language);
     const brief: Brief = ai
       ? {
           ...ai.brief,

@@ -1,7 +1,8 @@
 "use client";
 
 import type { Profile } from "@/lib/profile";
-import { LANGUAGES } from "@/lib/profile-options";
+import { LANGUAGES as LANGUAGE_OPTIONS } from "@/lib/i18n";
+import { useT } from "./language-provider";
 import { cn } from "@/lib/ui";
 import {
   setMotionPreference,
@@ -33,6 +34,7 @@ export function SettingsPanel({
   setLargeText: (v: boolean) => void;
   onEdit: () => void;
 }) {
+  const { t } = useT();
   const motion = useMotionPreference();
   const systemReduced = useSystemReducedMotion();
   const darkReader = useDarkReaderDetected();
@@ -46,27 +48,30 @@ export function SettingsPanel({
         onClick={onEdit}
         className="w-full rounded-xl bg-paper px-3 py-2 text-[11px] font-medium text-muted ring-1 ring-line transition hover:text-ink"
       >
-        Prefer the step-by-step setup? Open guided setup
+        {t("ui.settings.guided")}
       </button>
       <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h3 className="text-sm font-semibold text-ink">Preferred language</h3>
+        <h3 className="text-sm font-semibold text-ink">
+          {t("ui.settings.language")}
+        </h3>
         <p className="mt-1 text-xs leading-5 text-muted">
-          UI is English for now. Your choice will apply to generated advice when
-          Gemini is enabled.
+          {t("ui.settings.languageHint")}
         </p>
         <select
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
           className="mt-3 w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm outline-none"
         >
-          {LANGUAGES.map((l) => (
-            <option key={l}>{l}</option>
+          {LANGUAGE_OPTIONS.map((l) => (
+            <option key={l.code} value={l.name}>
+              {l.native} · {l.name}
+            </option>
           ))}
         </select>
       </section>
 
       <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h3 className="text-sm font-semibold text-ink">Text size</h3>
+        <h3 className="text-sm font-semibold text-ink">{t("ui.settings.textSize")}</h3>
         <button
           type="button"
           onClick={() => setLargeText(!largeText)}
@@ -75,7 +80,7 @@ export function SettingsPanel({
             largeText ? "bg-ink text-white ring-ink" : "bg-paper text-ink ring-line",
           )}
         >
-          <span>Larger text</span>
+          <span>{t("ui.settings.larger")}</span>
           <span
             className={cn(
               "relative h-5 w-9 rounded-full transition",
@@ -93,9 +98,9 @@ export function SettingsPanel({
       </section>
 
       <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h3 className="text-sm font-semibold text-ink">Appearance</h3>
+        <h3 className="text-sm font-semibold text-ink">{t("ui.settings.appearance")}</h3>
         <p className="mt-1 text-xs leading-5 text-muted">
-          System follows your device. Dark applies to the whole app.
+          {t("ui.settings.appearanceHint")}
         </p>
         <div className="mt-3 grid grid-cols-3 gap-1.5">
           {(["light", "dark", "system"] as const).map((option) => (
@@ -111,20 +116,19 @@ export function SettingsPanel({
               )}
             >
               {option === "light"
-                ? "Light"
+                ? t("ui.settings.light")
                 : option === "dark"
-                  ? "Dark"
-                  : "System"}
+                  ? t("ui.settings.dark")
+                  : t("ui.settings.system")}
             </button>
           ))}
         </div>
       </section>
 
       <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h3 className="text-sm font-semibold text-ink">Animations</h3>
+        <h3 className="text-sm font-semibold text-ink">{t("ui.settings.animations")}</h3>
         <p className="mt-1 text-xs leading-5 text-muted">
-          Weather scene, AQI number, and card motion. Auto follows your
-          device&apos;s Reduce Motion setting.
+          {t("ui.settings.animationsHint")}
         </p>
         <div className="mt-3 grid grid-cols-3 gap-1.5">
           {(["auto", "on", "off"] as const).map((option) => (
@@ -139,7 +143,11 @@ export function SettingsPanel({
                   : "bg-paper text-ink ring-line hover:bg-white",
               )}
             >
-              {option === "auto" ? "Auto" : option === "on" ? "On" : "Off"}
+              {option === "auto"
+                ? t("ui.settings.auto")
+                : option === "on"
+                  ? t("ui.settings.on")
+                  : t("ui.settings.off")}
             </button>
           ))}
         </div>
@@ -158,14 +166,13 @@ export function SettingsPanel({
       </section>
 
       <section className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
-        <h3 className="text-sm font-semibold text-ink">Data</h3>
+        <h3 className="text-sm font-semibold text-ink">{t("ui.settings.data")}</h3>
         <p className="mt-1 text-xs leading-5 text-muted">
-          Live AQI from CPCB and OpenAQ ground monitors, with CAMS model data
-          when no monitor is nearby. Every reading shows its source and age.
+          {t("ui.settings.dataHint")}
         </p>
         <div className="mt-3 flex items-center gap-2 text-[11px] text-muted">
           <WindIcon className="h-3.5 w-3.5" />
-          No accounts. No community. No data shared.
+          {t("ui.settings.noAccounts")}
         </div>
       </section>
     </div>

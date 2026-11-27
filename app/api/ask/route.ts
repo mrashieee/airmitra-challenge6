@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     const air = await resolveAirReading(state, { target });
     const context = buildContext(state, air, profile);
     const contextString = contextJson(context);
-    const key = keyFor("ask:v2", `${contextString}::${question.toLowerCase()}`);
+    const key = keyFor("ask:v3", `${profile.language}::${contextString}::${question.toLowerCase()}`);
 
     const cached = cacheGet<AskResult>(key);
     if (cached) {
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const ai = await generateAnswer(contextString, question);
+    const ai = await generateAnswer(contextString, question, profile.language);
     const result: AskResult = ai
       ? {
           answer: ai.answer,
