@@ -29,7 +29,7 @@ PWA with a grounded GenAI brief, not a chat-only app.
 
 ```
 CPCB (data.gov.in) ─┐
-OpenAQ (<=25 km) ───┼─> median of official stations (<=15 km)
+OpenAQ (<=30 km) ───┼─> median of official stations (<=15 km)
 CAMS (Open-Meteo) ──┘        │
                              └─> else CAMS at the city coordinates
 ```

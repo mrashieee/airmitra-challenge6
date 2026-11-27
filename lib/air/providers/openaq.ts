@@ -168,10 +168,21 @@ export async function fetchOpenAQ(
   };
 
   try {
+    // OpenAQ caps radius at 25 km, but bbox lets us cover the same 30 km
+    // cutoff used for CPCB. This matters for cities whose nearest monitor is
+    // 25-30 km away.
+    const dLat = 0.35;
+    const dLon = 0.35 / Math.max(0.2, Math.cos((place.lat * Math.PI) / 180));
+    const bbox = [
+      (place.lon - dLon).toFixed(3),
+      (place.lat - dLat).toFixed(3),
+      (place.lon + dLon).toFixed(3),
+      (place.lat + dLat).toFixed(3),
+    ].join(",");
+
     const url = new URL(`${BASE}/locations`);
-    url.searchParams.set("coordinates", `${place.lat},${place.lon}`);
-    url.searchParams.set("radius", "25000");
-    url.searchParams.set("limit", "10");
+    url.searchParams.set("bbox", bbox);
+    url.searchParams.set("limit", "50");
 
     const res = await fetch(url, {
       headers: { "X-API-Key": key },
@@ -180,66 +191,82 @@ export async function fetchOpenAQ(
     if (!res.ok) return { sample: null, failed: true };
 
     const data = (await res.json()) as { results?: OpenAQLocation[] };
-    const locations = (data.results ?? []).filter(
-      (loc) =>
-        loc.country?.code === "IN" &&
-        Array.isArray(loc.sensors) &&
-        loc.sensors.length > 0,
-    );
 
-    let best: { location: OpenAQLocation; distance: number } | null = null;
-    for (const location of locations) {
-      const lat = location.coordinates?.latitude;
-      const lon = location.coordinates?.longitude;
-      if (typeof lat !== "number" || typeof lon !== "number") continue;
-      const distance = distanceKm(
-        { lat: place.lat, lon: place.lon },
-        { lat, lon },
-      );
-      if (!best || distance < best.distance) best = { location, distance };
-    }
-
-    if (!best) return { sample: null, failed: false };
-
-    const latestRes = await fetch(
-      `${BASE}/locations/${best.location.id}/latest`,
-      {
-        headers: { "X-API-Key": key },
-        signal: AbortSignal.timeout(6000),
-      },
-    );
-    if (!latestRes.ok) {
-      return {
-        sample: null,
-        failed: true,
-        nearestKm: Math.round(best.distance * 10) / 10,
-      };
-    }
-
-    const latest = (await latestRes.json()) as { results?: OpenAQLatest[] };
-    const sample = buildSample(
-      best.location,
-      latest.results ?? [],
-      place.city,
-      best.distance,
-    );
-
-    if (sample) {
-      const ageMs =
-        Date.now() - new Date(sample.source.updatedAt).getTime();
-      if (!Number.isFinite(ageMs) || ageMs > 12 * 60 * 60 * 1000) {
+    const candidates = (data.results ?? [])
+      .filter(
+        (loc) =>
+          loc.country?.code === "IN" &&
+          Array.isArray(loc.sensors) &&
+          loc.sensors.length > 0,
+      )
+      .map((location) => {
+        const lat = location.coordinates?.latitude;
+        const lon = location.coordinates?.longitude;
+        if (typeof lat !== "number" || typeof lon !== "number") return null;
         return {
-          sample: null,
-          failed: false,
-          nearestKm: Math.round(best.distance * 10) / 10,
+          location,
+          distance: distanceKm(
+            { lat: place.lat, lon: place.lon },
+            { lat, lon },
+          ),
         };
+      })
+      .filter(
+        (row): row is { location: OpenAQLocation; distance: number } =>
+          row !== null && row.distance <= 30,
+      )
+      .sort((a, b) => a.distance - b.distance);
+
+    if (!candidates.length) return { sample: null, failed: false };
+
+    let failed = false;
+
+    // Try nearest first, but skip dead stations (e.g. Kochi's 2022 feeds).
+    for (const candidate of candidates.slice(0, 5)) {
+      try {
+        const latestRes = await fetch(
+          `${BASE}/locations/${candidate.location.id}/latest`,
+          {
+            headers: { "X-API-Key": key },
+            signal: AbortSignal.timeout(6000),
+          },
+        );
+        if (!latestRes.ok) {
+          failed = true;
+          continue;
+        }
+
+        const latest = (await latestRes.json()) as {
+          results?: OpenAQLatest[];
+        };
+        const sample = buildSample(
+          candidate.location,
+          latest.results ?? [],
+          place.city,
+          candidate.distance,
+        );
+        if (!sample) continue;
+
+        const ageMs =
+          Date.now() - new Date(sample.source.updatedAt).getTime();
+        if (!Number.isFinite(ageMs) || ageMs > 12 * 60 * 60 * 1000) {
+          continue;
+        }
+
+        return {
+          sample,
+          failed: false,
+          nearestKm: Math.round(candidate.distance * 10) / 10,
+        };
+      } catch {
+        failed = true;
       }
     }
 
     return {
-      sample,
-      failed: false,
-      nearestKm: Math.round(best.distance * 10) / 10,
+      sample: null,
+      failed,
+      nearestKm: Math.round(candidates[0].distance * 10) / 10,
     };
   } catch {
     return { sample: null, failed: true };
