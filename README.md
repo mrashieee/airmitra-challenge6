@@ -32,6 +32,7 @@ CPCB (data.gov.in) ─┐
 OpenAQ (<=30 km) ───┼─> median of official stations (<=15 km)
 nearest monitors ───┤   (<=60 km, median, labelled approximate)
 CAMS (Open-Meteo) ──┘   only when no live monitor is within 60 km
+                        and the model timestamp is <= 3 hours old
 ```
 
 - AQI uses **CPCB NAQI**, not US AQI. The US equivalent is shown for comparison.
@@ -39,7 +40,8 @@ CAMS (Open-Meteo) ──┘   only when no live monitor is within 60 km
   station's newest reading).
 - If no monitor is within 30 km, the app uses the **median of up to three live
   monitors within 60 km** as an approximate reading, with the distance range
-  shown. CAMS is used only when no live monitor exists within 60 km.
+  shown. CAMS is used only when no live monitor exists within 60 km, and only
+  when its own timestamp is within 3 hours.
 
 ## Architecture
 

@@ -23,7 +23,11 @@ type OpenMeteoCurrent = {
   carbon_monoxide?: number | null;
 };
 
-type OpenMeteoAirResponse = { current?: OpenMeteoCurrent; error?: boolean };
+type OpenMeteoAirResponse = {
+  current?: OpenMeteoCurrent;
+  utc_offset_seconds?: number;
+  error?: boolean;
+};
 
 type OpenMeteoWeatherResponse = {
   current?: {
@@ -113,6 +117,14 @@ export async function fetchOpenMeteoAir(
 
     const band = bandFor(result.aqi);
 
+    // Use the model's own timestamp, not "now", and refuse stale model data.
+    const offsetMs = (json.utc_offset_seconds ?? 0) * 1000;
+    const timestamp = current.time
+      ? Date.parse(`${current.time}Z`) - offsetMs
+      : Number.NaN;
+    if (!Number.isFinite(timestamp)) return null;
+    if (Date.now() - timestamp > 3 * 60 * 60 * 1000) return null;
+
     return {
       area: place.city,
       aqi: result.aqi,
@@ -125,7 +137,7 @@ export async function fetchOpenMeteoAir(
         type: "model",
         station: "CAMS · model grid",
         distanceKm: 0,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(timestamp).toISOString(),
       },
     };
   } catch {
