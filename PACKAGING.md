@@ -7,7 +7,7 @@ profile on the device.
 
 ## Android — signed APK
 
-[Download AirMitra 1.0.0 APK](docs/download/AirMitra-1.0.0.apk) (1.1 MB).
+[Download AirMitra 1.0.0 APK](https://github.com/mrashieee/airmitra-challenge6/releases/tag/apk-v1.0.0) (1.1 MB, GitHub release).
 
 - Trusted Web Activity (TWA) around `https://airmitra-app.vercel.app`
 - Package: `app.airmitra.twa`
