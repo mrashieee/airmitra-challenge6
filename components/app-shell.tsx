@@ -36,6 +36,8 @@ import {
   WindIcon,
 } from "./icons";
 
+const subscribeNever = () => () => {};
+
 const NAV: { tab: Tab; key: string; icon: React.ReactNode }[] = [
   { tab: "today", key: "ui.nav.today", icon: <WindIcon className="h-4 w-4" /> },
   { tab: "ask", key: "ui.nav.ask", icon: <ChatIcon className="h-4 w-4" /> },
@@ -56,7 +58,22 @@ function Brand() {
   );
 }
 
+/** First paint: the saved profile lives in localStorage, so wait for hydration
+ *  instead of flashing the setup screen on every refresh. */
+function BootSplash() {
+  return (
+    <div className="flex min-h-dvh items-center justify-center bg-paper">
+      <BrandMark className="h-12 w-12 opacity-80" />
+    </div>
+  );
+}
+
 export function AppShell() {
+  const hydrated = useSyncExternalStore(
+    subscribeNever,
+    () => true,
+    () => false,
+  );
   const rawProfile = useSyncExternalStore(
     subscribeProfile,
     getProfileSnapshot,
@@ -72,7 +89,9 @@ export function AppShell() {
 
   return (
     <LanguageProvider language={uiLanguage}>
-      {!profile || editing ? (
+      {!hydrated ? (
+        <BootSplash />
+      ) : !profile || editing ? (
         <Onboarding
           initial={profile}
           onLanguageChange={setDraftLanguage}
