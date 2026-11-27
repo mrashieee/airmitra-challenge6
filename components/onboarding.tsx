@@ -27,6 +27,7 @@ import {
   type Severity,
 } from "@/lib/profile";
 import {
+  choiceLabel,
   LANGUAGES as LANGUAGE_OPTIONS,
   t as translate,
 } from "@/lib/i18n";
@@ -343,6 +344,9 @@ export function Onboarding({
 
   const state = findState(draft.location.stateCode);
 
+  const tr = (key: string, vars?: Record<string, string | number>) =>
+    translate(draft.language, key, vars);
+
   function setLocation(stateCode: string, cityName: string) {
     const city = findCity(stateCode, cityName);
     if (!city) return;
@@ -359,7 +363,7 @@ export function Onboarding({
 
   function useMyLocation() {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setGeoError("Location is not supported here. Pick your state and city.");
+      setGeoError(tr("ui.onboarding.geoUnsupported"));
       return;
     }
 
@@ -377,9 +381,7 @@ export function Onboarding({
         // guess and would put the user in the wrong district or state.
         if (!Number.isFinite(accuracy) || accuracy > 15000) {
           setGeoAccuracy(null);
-          setGeoError(
-            "Couldn't get a reliable location. Search for your town below instead.",
-          );
+          setGeoError(tr("ui.onboarding.geoUnreliable"));
           setLocating(false);
           return;
         }
@@ -413,11 +415,11 @@ export function Onboarding({
 
         const place = nearestPlace(lat, lon);
         if (place) setLocation(place.stateCode, place.city);
-        else setGeoError("Could not match your location. Pick manually.");
+        else setGeoError(tr("ui.onboarding.geoNoMatch"));
         setLocating(false);
       },
       () => {
-        setGeoError("Location permission denied. Pick manually.");
+        setGeoError(tr("ui.onboarding.geoDenied"));
         setLocating(false);
       },
       { timeout: 15000, maximumAge: 0, enableHighAccuracy: true },
@@ -666,9 +668,9 @@ export function Onboarding({
               ) : null}
               {geoAccuracy !== null && geoAccuracy > 1000 ? (
                 <p className="text-xs leading-5 text-amber-700">
-                  Your device location is approximate (±
-                  {(geoAccuracy / 1000).toFixed(1)} km). Search your town below
-                  for accuracy.
+                  {tr("ui.onboarding.accuracy", {
+                    km: (geoAccuracy / 1000).toFixed(1),
+                  })}
                 </p>
               ) : null}
 
@@ -768,7 +770,12 @@ export function Onboarding({
                       <button
                         key={result.id}
                         type="button"
-                        aria-label={`${result.name}${result.monitor ? ", ground monitor available" : ", model estimate only"}`}
+                        aria-label={tr(
+                          result.monitor
+                            ? "ui.search.ground"
+                            : "ui.search.model",
+                          { place: result.name },
+                        )}
                         onClick={() => setSearchedLocation(result)}
                         className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm text-ink transition hover:bg-paper"
                       >
@@ -776,7 +783,9 @@ export function Onboarding({
                           <span className="block truncate">{result.name}</span>
                           {result.near || result.admin2 ? (
                             <span className="block truncate text-[9px] text-muted">
-                              near {result.near ?? result.admin2}
+                              {tr("ui.search.near", {
+                                place: result.near ?? result.admin2 ?? "",
+                              })}
                             </span>
                           ) : null}
                         </span>
@@ -789,8 +798,8 @@ export function Onboarding({
                           )}
                         >
                           {result.monitor
-                            ? translate(draft.language, "ui.hero.ground")
-                            : translate(draft.language, "ui.hero.modelOnly")}
+                            ? tr("ui.hero.ground")
+                            : tr("ui.hero.modelOnly")}
                         </span>
                       </button>
                     ))}
@@ -849,11 +858,10 @@ export function Onboarding({
                 {draft.family.length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-line p-4 text-center">
                     <p className="text-sm font-medium text-ink">
-                      Add the people you care for
+                      {tr("ui.onboarding.cardEmptyTitle")}
                     </p>
                     <p className="mt-1 text-[11px] leading-5 text-muted">
-                      Start with yourself, then add anyone else. You can skip
-                      this and add them later in Settings.
+                      {tr("ui.onboarding.cardEmptyBody")}
                     </p>
                     <div className="mt-3 flex flex-wrap justify-center gap-2">
                       <button
@@ -861,14 +869,14 @@ export function Onboarding({
                         onClick={() => addMember("You")}
                         className="rounded-full bg-brand px-3 py-1.5 text-[11px] font-medium text-white"
                       >
-                        Add yourself
+                        {tr("ui.editor.addYourself")}
                       </button>
                       <button
                         type="button"
                         onClick={() => addMember("Other")}
                         className="rounded-full bg-card px-3 py-1.5 text-[11px] font-medium text-ink ring-1 ring-line"
                       >
-                        Add a family member
+                        {tr("ui.onboarding.addFamily")}
                       </button>
                     </div>
                   </div>
@@ -877,20 +885,26 @@ export function Onboarding({
                   <div key={member.id} className="rounded-2xl border border-line p-3">
                     <div className="flex items-center gap-2">
                       <Select
-                        ariaLabel="Relation"
+                        ariaLabel={tr("ui.editor.relation")}
                         value={member.relation}
                         onChange={(v) => updateMember(member.id, { relation: v })}
-                        options={RELATIONS.map((r) => ({ value: r, label: r }))}
+                        options={RELATIONS.map((r) => ({
+                          value: r,
+                          label: choiceLabel(draft.language, r),
+                        }))}
                       />
                       <Select
-                        ariaLabel="Age band"
+                        ariaLabel={tr("ui.editor.ageGroup")}
                         value={member.ageBand}
                         onChange={(v) => updateMember(member.id, { ageBand: v })}
-                        options={AGE_BANDS.map((a) => ({ value: a, label: a }))}
+                        options={AGE_BANDS.map((a) => ({
+                          value: a,
+                          label: choiceLabel(draft.language, a),
+                        }))}
                       />
                     </div>
                     <div className="mt-3">
-                      <Label>Conditions</Label>
+                      <Label>{tr("ui.editor.conditions")}</Label>
                       <div className="flex flex-wrap gap-2">
                         {CONDITIONS.map((c) => (
                           <Chip
@@ -898,14 +912,14 @@ export function Onboarding({
                             active={member.conditions.includes(c)}
                             onClick={() => toggleCondition(member.id, c)}
                           >
-                            {c}
+                            {choiceLabel(draft.language, c)}
                           </Chip>
                         ))}
                         <Chip
                           active={member.conditions.length === 0}
                           onClick={() => updateMember(member.id, { conditions: [] })}
                         >
-                          None
+                          {choiceLabel(draft.language, "None")}
                         </Chip>
                       </div>
                     </div>
@@ -920,7 +934,7 @@ export function Onboarding({
                         }
                         className="mt-3 text-[11px] font-medium text-muted hover:text-red-700"
                       >
-                        Remove
+                        {tr("ui.editor.remove")}
                       </button>
                     ) : null}
                   </div>
@@ -933,7 +947,7 @@ export function Onboarding({
                   onClick={() => addMember("Other")}
                   className="w-full rounded-xl border border-dashed border-line px-3 py-2.5 text-xs font-medium text-muted hover:bg-paper"
                 >
-                  + Add another person
+                  {tr("ui.editor.addAnother")}
                 </button>
               ) : null}
             </div>
@@ -951,7 +965,7 @@ export function Onboarding({
               </div>
 
               <div>
-                <Label>Home type</Label>
+                <Label>{tr("ui.editor.homeType")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {HOME_TYPES.map(
                     (v) => (
@@ -960,7 +974,7 @@ export function Onboarding({
                         active={draft.home.type === v}
                         onClick={() => setHome({ type: v })}
                       >
-                        {v}
+                        {choiceLabel(draft.language, v)}
                       </Chip>
                     ),
                   )}
@@ -968,7 +982,7 @@ export function Onboarding({
               </div>
 
               <div>
-                <Label>Cooking</Label>
+                <Label>{tr("ui.editor.cooking")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {COOKING_FUELS.map((v) => (
                     <Chip
@@ -979,14 +993,14 @@ export function Onboarding({
                       }
                       onClick={() => toggleCookingFuel(v)}
                     >
-                      {v}
+                      {choiceLabel(draft.language, v)}
                     </Chip>
                   ))}
                 </div>
               </div>
 
               <div>
-                <Label>Windows</Label>
+                <Label>{tr("ui.editor.windows")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {WINDOW_STATES.map((v) => (
                     <Chip
@@ -994,14 +1008,14 @@ export function Onboarding({
                       active={draft.home.windows === v}
                       onClick={() => setHome({ windows: v })}
                     >
-                      {v}
+                      {choiceLabel(draft.language, v)}
                     </Chip>
                   ))}
                 </div>
               </div>
 
               <div>
-                <Label>Cooling</Label>
+                <Label>{tr("ui.editor.cooling")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {COOLING.map((v) => (
                     <Chip
@@ -1012,14 +1026,14 @@ export function Onboarding({
                       }
                       onClick={() => toggleCooling(v)}
                     >
-                      {v}
+                      {choiceLabel(draft.language, v)}
                     </Chip>
                   ))}
                 </div>
               </div>
 
               <div>
-                <Label>Air purifier</Label>
+                <Label>{tr("ui.editor.purifier")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {PURIFIERS.map((v) => (
                     <Chip
@@ -1027,14 +1041,14 @@ export function Onboarding({
                       active={draft.home.purifiers === v}
                       onClick={() => setHome({ purifiers: v })}
                     >
-                      {v}
+                      {choiceLabel(draft.language, v)}
                     </Chip>
                   ))}
                 </div>
               </div>
 
               <div>
-                <Label>Indoor smoke</Label>
+                <Label>{tr("ui.editor.smoke")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {INDOOR_SMOKE.map(
                     (v) => (
@@ -1043,7 +1057,7 @@ export function Onboarding({
                         active={draft.home.indoorSmoke.includes(v)}
                         onClick={() => toggleSmoke(v)}
                       >
-                        {v}
+                        {choiceLabel(draft.language, v)}
                       </Chip>
                     ),
                   )}
@@ -1051,7 +1065,7 @@ export function Onboarding({
               </div>
 
               <div>
-                <Label>Cleaning methods</Label>
+                <Label>{tr("ui.editor.cleaning")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {CLEANING_METHODS.map((v) => (
                     <Chip
@@ -1059,12 +1073,12 @@ export function Onboarding({
                       active={draft.home.cleaning.includes(v)}
                       onClick={() => toggleCleaning(v)}
                     >
-                      {v}
+                      {choiceLabel(draft.language, v)}
                     </Chip>
                   ))}
                 </div>
                 <div className="mt-3">
-                  <Label>How often?</Label>
+                  <Label>{tr("ui.editor.howOften")}</Label>
                   <div className="flex flex-wrap gap-2">
                     {CLEANING_FREQUENCIES.map((v) => (
                       <Chip
@@ -1072,7 +1086,7 @@ export function Onboarding({
                         active={draft.home.cleaningFrequency === v}
                         onClick={() => setHome({ cleaningFrequency: v })}
                       >
-                        {v}
+                        {choiceLabel(draft.language, v)}
                       </Chip>
                     ))}
                   </div>
@@ -1080,7 +1094,7 @@ export function Onboarding({
               </div>
 
               <div>
-                <Label>Also at home</Label>
+                <Label>{tr("ui.editor.alsoHome")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {[
                     ["Pets", "pets"],
@@ -1097,7 +1111,7 @@ export function Onboarding({
                         } as Partial<HomeProfile>)
                       }
                     >
-                      {label}
+                      {choiceLabel(draft.language, label)}
                     </Chip>
                   ))}
                 </div>
@@ -1118,9 +1132,9 @@ export function Onboarding({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>Wake</Label>
+                  <Label>{tr("ui.editor.wake")}</Label>
                   <Select
-                    ariaLabel="Wake time"
+                    ariaLabel={tr("ui.editor.wake")}
                     value={draft.routine.wake}
                     onChange={(v) => setRoutine({ wake: v })}
                     options={["5:00 AM", "6:00 AM", "7:00 AM", "8:00 AM", "9:00 AM"].map(
@@ -1129,9 +1143,9 @@ export function Onboarding({
                   />
                 </div>
                 <div>
-                  <Label>Sleep</Label>
+                  <Label>{tr("ui.editor.sleep")}</Label>
                   <Select
-                    ariaLabel="Sleep time"
+                    ariaLabel={tr("ui.editor.sleep")}
                     value={draft.routine.sleep}
                     onChange={(v) => setRoutine({ sleep: v })}
                     options={["9:00 PM", "10:00 PM", "11:00 PM", "12:00 AM"].map(
@@ -1142,7 +1156,7 @@ export function Onboarding({
               </div>
 
               <div>
-                <Label>Work</Label>
+                <Label>{tr("ui.editor.work")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {WORK.map((v) => (
                     <Chip
@@ -1150,14 +1164,14 @@ export function Onboarding({
                       active={draft.routine.work === v}
                       onClick={() => setRoutine({ work: v })}
                     >
-                      {v}
+                      {choiceLabel(draft.language, v)}
                     </Chip>
                   ))}
                 </div>
               </div>
 
               <div>
-                <Label>Commute</Label>
+                <Label>{tr("ui.editor.commute")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {COMMUTES.map((v) => (
                     <Chip
@@ -1165,14 +1179,14 @@ export function Onboarding({
                       active={draft.routine.commute.includes(v)}
                       onClick={() => toggleCommute(v)}
                     >
-                      {v}
+                      {choiceLabel(draft.language, v)}
                     </Chip>
                   ))}
                 </div>
               </div>
 
               <div>
-                <Label>Outdoor exercise</Label>
+                <Label>{tr("ui.editor.exercise")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {EXERCISE.map((v) => (
                     <Chip
@@ -1180,14 +1194,14 @@ export function Onboarding({
                       active={draft.routine.exercise === v}
                       onClick={() => setRoutine({ exercise: v })}
                     >
-                      {v}
+                      {choiceLabel(draft.language, v)}
                     </Chip>
                   ))}
                 </div>
               </div>
 
               <div>
-                <Label>Cooking times</Label>
+                <Label>{tr("ui.editor.cookingTimes")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {["Morning", "Afternoon", "Evening"].map((v) => (
                     <Chip
@@ -1195,7 +1209,7 @@ export function Onboarding({
                       active={draft.routine.cookingTimes.includes(v)}
                       onClick={() => toggleCooking(v)}
                     >
-                      {v}
+                      {choiceLabel(draft.language, v)}
                     </Chip>
                   ))}
                 </div>
@@ -1216,7 +1230,7 @@ export function Onboarding({
 
               {draft.family.filter((m) => m.conditions.length > 0).length === 0 ? (
                 <div className="rounded-xl bg-paper p-3 text-xs leading-5 text-muted ring-1 ring-line">
-                  No conditions added. You can skip this step.
+                  {tr("ui.onboarding.noConditions")}
                 </div>
               ) : null}
 
@@ -1226,10 +1240,15 @@ export function Onboarding({
                   .map((member) => (
                     <div key={member.id} className="rounded-2xl border border-line p-3">
                       <div className="text-sm font-semibold text-ink">
-                        {member.relation} · {member.ageBand}
+                        {choiceLabel(draft.language, member.relation)} ·{" "}
+                        {choiceLabel(draft.language, member.ageBand)}
                       </div>
                       <div className="mt-1 text-[11px] text-muted">
-                        {member.conditions.join(" · ")}
+                        {member.conditions
+                          .map((condition) =>
+                            choiceLabel(draft.language, condition),
+                          )
+                          .join(" · ")}
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {(["Mild", "Moderate", "Severe"] as Severity[]).map((s) => (
@@ -1238,7 +1257,7 @@ export function Onboarding({
                             active={member.severity === s}
                             onClick={() => updateMember(member.id, { severity: s })}
                           >
-                            {s}
+                            {choiceLabel(draft.language, s)}
                           </Chip>
                         ))}
                       </div>

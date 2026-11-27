@@ -209,7 +209,11 @@ export function HomeView({
           {reading.source.distanceKm > 0 ? <span>· {reading.source.distanceKm} km</span> : null}
           <span>· {reading.source.updated}</span>
           {reading.source.type === "model" && reading.nearestStationKm ? (
-            <span>· nearest CPCB {Math.round(reading.nearestStationKm)} km</span>
+            <span>
+              · {t("ui.hero.nearestCpcb", {
+                km: Math.round(reading.nearestStationKm),
+              })}
+            </span>
           ) : null}
           <span className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm">
             {reading.source.type === "ground"
@@ -395,9 +399,11 @@ export function HomeView({
         icon={<HomeIcon className="h-4 w-4" />}
         title={t("ui.section.family")}
         subtitle={
-          reading.family.length
-            ? t("ui.sub.familyCount", { count: reading.family.length })
-            : t("ui.sub.familyEmpty")
+          reading.family.length === 1
+            ? t("ui.sub.familyCountOne")
+            : reading.family.length
+              ? t("ui.sub.familyCount", { count: reading.family.length })
+              : t("ui.sub.familyEmpty")
         }
         delay={80}
       >

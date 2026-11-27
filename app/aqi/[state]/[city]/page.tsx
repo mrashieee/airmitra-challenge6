@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { resolveAirReading } from "@/lib/air/resolve";
-import { readingFromAir } from "@/lib/aqi";
+import { readingFromAir, bandFor } from "@/lib/aqi";
 import { cityBySlug, citiesForStatePage, slugify, stateBySlug } from "@/lib/city-page";
 import { createDefaultProfile } from "@/lib/profile";
 import { BAND_STYLES, cn } from "@/lib/ui";
@@ -10,7 +10,7 @@ import { PinIcon, SparkIcon, WindIcon } from "@/components/icons";
 import { BrandMark } from "@/components/brand-mark";
 import { WeatherScene } from "@/components/weather-scene";
 import { AqiNumber } from "@/components/aqi-number";
-import { languageOption, t } from "@/lib/i18n";
+import { bandLabel, languageOption, stationLabel, t } from "@/lib/i18n";
 
 type Params = {
   params: Promise<{ state: string; city: string }>;
@@ -53,6 +53,7 @@ export default async function CityPage({ params, searchParams }: Params) {
   const { state: stateSlug, city: citySlug } = await params;
   const query = await searchParams;
   const language = languageOption(query.lang ?? "English").name;
+  const locale = languageOption(query.lang ?? "English").code;
   const state = stateBySlug(stateSlug);
   if (!state) notFound();
 
@@ -105,7 +106,7 @@ export default async function CityPage({ params, searchParams }: Params) {
               AirMitra
             </span>
             <span className="block text-[10px] text-muted">
-              Household Air Coach
+              {t(language, "ui.brand.tagline")}
             </span>
           </span>
         </Link>
@@ -113,13 +114,16 @@ export default async function CityPage({ params, searchParams }: Params) {
           href="/"
           className="rounded-full bg-brand px-3.5 py-2 text-xs font-medium text-white"
         >
-          Open app
+          {t(language, "ui.city.openApp")}
         </Link>
       </header>
 
       <main className="mx-auto w-full max-w-3xl px-4 pb-16">
         <h1 className="sr-only">
-          {city.name} Air Quality Index (AQI), {state.name}
+          {t(language, "ui.city.h1", {
+            city: city.name,
+            state: state.name,
+          })}
         </h1>
         <section
           className={cn(
@@ -167,33 +171,41 @@ export default async function CityPage({ params, searchParams }: Params) {
             </div>
 
             <p className="mt-2 text-sm text-muted">
-              <span className="font-medium text-ink">{reading.dominant}</span> is
-              the dominant pollutant
+              <span className="font-medium text-ink">
+                {t(language, "ui.city.dominant", {
+                  pollutant: reading.dominant,
+                })}
+              </span>
               {reading.basis ? (
                 <span className="ml-1 text-[10px] text-muted">
-                  (AQI from {reading.basis})
+                  {t(language, "ui.city.basis", { basis: reading.basis })}
                 </span>
               ) : null}
             </p>
 
             {reading.source.type === "model" ? (
               <p className="mt-2 text-[11px] leading-5 text-muted">
-                Model estimate, not a local monitor. Models can differ from other apps.{" "}
+                {t(language, "ui.city.modelNote")}{" "}
                 {reading.nearby?.length
-                  ? `Nearest monitor: ${reading.nearby[0].distanceKm} km away, AQI ${reading.nearby[0].aqi}.`
-                  : "No ground monitor within 60 km."}
+                  ? t(language, "ui.hero.nearestMonitor", {
+                      km: reading.nearby[0].distanceKm,
+                      aqi: reading.nearby[0].aqi,
+                    })
+                  : t(language, "ui.hero.noMonitor60")}
               </p>
             ) : null}
 
                 {reading.source.type === "approximate" ? (
               <p className="mt-2 text-[11px] leading-5 text-muted">
                 {reading.stations && reading.stations.length > 1
-                  ? `Approximate: median of ${reading.stations.length} live monitors, ${Math.min(
-                      ...reading.stations.map((s) => s.distanceKm),
-                    )}–${Math.max(
-                      ...reading.stations.map((s) => s.distanceKm),
-                    )} km away. Not local stations.`
-                  : `Approximate reading from the nearest monitor ${reading.source.distanceKm} km away. Not a local station.`}
+                  ? t(language, "ui.hero.approxMany", {
+                      n: reading.stations.length,
+                      min: Math.min(...reading.stations.map((s) => s.distanceKm)),
+                      max: Math.max(...reading.stations.map((s) => s.distanceKm)),
+                    })
+                  : t(language, "ui.hero.approxOne", {
+                      km: reading.source.distanceKm,
+                    })}
               </p>
             ) : null}
             <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-muted">
@@ -208,7 +220,7 @@ export default async function CityPage({ params, searchParams }: Params) {
                 )}
               />
               <span className="font-medium text-ink">
-                {reading.source.station}
+                {stationLabel(language, reading.source.station)}
               </span>
               {reading.source.distanceKm > 0 ? (
                 <span>· {reading.source.distanceKm} km</span>
@@ -221,12 +233,12 @@ export default async function CityPage({ params, searchParams }: Params) {
               ) : null}
               <span className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm">
                 {reading.source.type === "ground"
-                  ? "ground monitor"
+                  ? t(language, "ui.hero.ground")
                   : reading.source.type === "approximate"
                     ? reading.stations && reading.stations.length > 1
-                      ? "nearest monitors"
-                      : "nearest monitor"
-                    : "model estimate"}
+                      ? t(language, "ui.hero.nearestMany")
+                      : t(language, "ui.hero.nearestOne")
+                    : t(language, "ui.hero.model")}
               </span>
               {reading.usAqi ? (
                 <span
@@ -243,8 +255,8 @@ export default async function CityPage({ params, searchParams }: Params) {
                   className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm"
                 >
                   {reading.source.type === "approximate"
-                    ? "monitors"
-                    : "stations"}{" "}
+                    ? t(language, "ui.city.monitors")
+                    : t(language, "ui.city.stations")}{" "}
                   {reading.aqiRange.min}–{reading.aqiRange.max}
                 </span>
               ) : null}
@@ -284,8 +296,7 @@ export default async function CityPage({ params, searchParams }: Params) {
               {t(language, "ui.city.scale")}
             </div>
             <p className="mt-2 text-sm leading-6 text-muted">
-              AirMitra uses India&apos;s CPCB NAQI. Many apps use the US EPA
-              AQI. Same air, different breakpoints:
+              {t(language, "ui.city.scaleBody")}
             </p>
             <p className="mt-2 rounded-xl bg-paper px-3 py-2 text-sm leading-6 text-ink ring-1 ring-line">
               US AQI{" "}
@@ -306,9 +317,7 @@ export default async function CityPage({ params, searchParams }: Params) {
               ) : null}
             </p>
             <p className="mt-2 text-[11px] leading-5 text-muted">
-              For cleaner air the US number is usually higher; at very high
-              pollution NAQI can be higher. We use NAQI because CPCB, GRAP, and
-              Indian health advisories use it.
+              {t(language, "ui.city.scaleNote")}
             </p>
           </section>
         ) : null}
@@ -317,10 +326,10 @@ export default async function CityPage({ params, searchParams }: Params) {
           <section className="mt-6 border-t border-line pt-5">
             <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
               <PinIcon className="h-4 w-4 text-brand" />
-              Nearest ground monitors
+              {t(language, "ui.section.nearest")}
             </div>
             <p className="mt-1 text-xs leading-5 text-muted">
-              {city.name} has no continuous monitor. Closest live stations:
+              {t(language, "ui.sub.nearestLong", { city: city.name })}
             </p>
             <div className="mt-3 space-y-2">
               {reading.nearby.map((station) => (
@@ -333,10 +342,20 @@ export default async function CityPage({ params, searchParams }: Params) {
                       {station.name}
                     </div>
                     <div className="text-[10px] text-muted">
-                      {station.distanceKm} km away · updated{" "}
-                      {station.ageMinutes < 60
-                        ? `${station.ageMinutes} min ago`
-                        : `${Math.round(station.ageMinutes / 60)}h ago`}
+                      {t(language, "ui.city.kmAway", {
+                        km: station.distanceKm,
+                      })}{" "}
+                      ·{" "}
+                      {t(language, "ui.city.updated", {
+                        time:
+                          station.ageMinutes < 60
+                            ? t(language, "time.minAgo", {
+                                n: station.ageMinutes,
+                              })
+                            : t(language, "time.hoursAgo", {
+                                n: Math.round(station.ageMinutes / 60),
+                              }),
+                      })}
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
@@ -344,15 +363,14 @@ export default async function CityPage({ params, searchParams }: Params) {
                       {station.aqi}
                     </div>
                     <div className="text-[10px] text-muted">
-                      {station.bandLabel}
+                      {bandLabel(language, bandFor(station.aqi).key)}
                     </div>
                   </div>
                 </div>
               ))}
             </div>
             <p className="mt-3 text-[11px] leading-5 text-muted">
-              Different airshed, so use this as regional context — not a local
-              reading.
+              {t(language, "ui.city.nearbyNote")}
             </p>
           </section>
         ) : null}
@@ -362,13 +380,13 @@ export default async function CityPage({ params, searchParams }: Params) {
             <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
               <WindIcon className="h-4 w-4 text-brand" />
               {reading.source.type === "approximate"
-                ? "Monitors used for this estimate"
+                ? t(language, "ui.city.monitorsEstimate")
                 : t(language, "ui.city.stations", { city: city.name })}
             </div>
             <p className="mt-1 text-xs leading-5 text-muted">
               {reading.source.type === "approximate"
-                ? `No monitor in ${city.name}. The headline is the median of the nearest live stations.`
-                : "The headline is the median of these official monitors."}
+                ? t(language, "ui.city.noLocalMonitor", { city: city.name })
+                : t(language, "ui.city.headlineMedian")}
             </p>
             <div className="mt-3 space-y-2">
               {reading.stations.map((station) => (
@@ -381,10 +399,20 @@ export default async function CityPage({ params, searchParams }: Params) {
                       {station.name}
                     </div>
                     <div className="text-[10px] text-muted">
-                      {station.distanceKm} km away · updated{" "}
-                      {station.ageMinutes < 60
-                        ? `${station.ageMinutes} min ago`
-                        : `${Math.round(station.ageMinutes / 60)}h ago`}
+                      {t(language, "ui.city.kmAway", {
+                        km: station.distanceKm,
+                      })}{" "}
+                      ·{" "}
+                      {t(language, "ui.city.updated", {
+                        time:
+                          station.ageMinutes < 60
+                            ? t(language, "time.minAgo", {
+                                n: station.ageMinutes,
+                              })
+                            : t(language, "time.hoursAgo", {
+                                n: Math.round(station.ageMinutes / 60),
+                              }),
+                      })}
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
@@ -392,7 +420,7 @@ export default async function CityPage({ params, searchParams }: Params) {
                       {station.aqi}
                     </div>
                     <div className="text-[10px] text-muted">
-                      {station.bandLabel}
+                      {bandLabel(language, bandFor(station.aqi).key)}
                     </div>
                   </div>
                 </div>
@@ -432,8 +460,7 @@ export default async function CityPage({ params, searchParams }: Params) {
             {t(language, "ui.city.household")}
           </div>
           <p className="mt-2 text-sm leading-6 text-muted">
-            Who lives with you changes the advice. Asthma, a gas stove, dry
-            sweeping, a top-floor flat: each one changes what to do today.
+            {t(language, "ui.city.householdBody")}
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
@@ -462,7 +489,7 @@ export default async function CityPage({ params, searchParams }: Params) {
               {nearby.map((entry) => (
                 <Link
                   key={entry.name}
-                  href={`/aqi/${stateSlug}/${slugify(entry.name)}`}
+                  href={`/aqi/${stateSlug}/${slugify(entry.name)}?lang=${locale}`}
                   className="rounded-full bg-paper px-3 py-1.5 text-xs font-medium text-ink ring-1 ring-line hover:bg-white"
                 >
                   {entry.name}
@@ -473,13 +500,17 @@ export default async function CityPage({ params, searchParams }: Params) {
         ) : null}
 
         <p className="mt-6 text-[11px] leading-5 text-muted">
-          Source: {reading.source.station}. India AQI uses CPCB NAQI, not the US
-          EPA scale. {reading.source.type === "model"
-            ? `${city.name} has no continuous ground monitor, so this is a CAMS model estimate, not a measured reading.`
+          {t(language, "ui.city.sourceNote", {
+            station: stationLabel(language, reading.source.station),
+          })}{" "}
+          {reading.source.type === "model"
+            ? t(language, "ui.city.modelSource", { city: city.name })
             : reading.source.type === "approximate"
-              ? `This is an approximate reading from the nearest monitor, ${reading.source.distanceKm} km away, not a local station.`
-              : "Measured at a ground monitor."}{" "}
-          AirMitra is not a medical service.
+              ? t(language, "ui.city.approxSource", {
+                  km: reading.source.distanceKm,
+                })
+              : t(language, "ui.city.measured")}{" "}
+          {t(language, "ui.city.notMedical")}
         </p>
       </main>
     </div>

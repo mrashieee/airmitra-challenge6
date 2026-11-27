@@ -108,13 +108,29 @@ export function optionLabel(
   return t(language, key);
 }
 
+/**
+ * Translate any stored setup value (home type, fuel, commute, age band...) for
+ * display while keeping the canonical English value in the profile.
+ */
+export function choiceLabel(language: string, value: string): string {
+  const slug = value
+    .toLowerCase()
+    .replace(/\+/g, "plus")
+    .replace(/&/g, "and")
+    .replace(/[\s/_-]+/g, "")
+    .replace(/[^a-z0-9]/g, "");
+  return t(language, `choice.${slug}`);
+}
+
 export function bandLabel(language: string, key: string): string {
   return t(language, `band.${key}`);
 }
 
 /** "2 nearest monitors · median" -> localized "Median of 2 monitors". */
 export function stationLabel(language: string, station: string): string {
-  const match = station.match(/^(\d+) nearest monitors · median$/);
+  const match = station.match(
+    /^(\d+) (?:nearest monitors|official stations) · median$/,
+  );
   if (match) {
     return t(language, "ui.share.median", { n: match[1] });
   }

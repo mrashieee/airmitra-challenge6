@@ -26,7 +26,9 @@ import {
   WORK,
 } from "@/lib/profile-options";
 import { citiesFor } from "@/lib/states";
+import { choiceLabel } from "@/lib/i18n";
 import { cn } from "@/lib/ui";
+import { useT } from "./language-provider";
 import { LocationSelect } from "./location-picker";
 
 type Props = {
@@ -96,6 +98,7 @@ function Chips({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const { language } = useT();
   return (
     <div className="flex flex-wrap gap-1.5">
       {options.map((option) => (
@@ -104,7 +107,7 @@ function Chips({
           active={value === option}
           onClick={() => onChange(option)}
         >
-          {option}
+          {choiceLabel(language, option)}
         </Option>
       ))}
     </div>
@@ -123,6 +126,7 @@ function MultiChips({
   /** When set, this option is exclusive and represents an empty selection. */
   noneLabel?: string;
 }) {
+  const { language } = useT();
   function toggle(option: string) {
     if (noneLabel && option === noneLabel) {
       onChange([]);
@@ -142,7 +146,7 @@ function MultiChips({
         const active = isNone ? values.length === 0 : values.includes(option);
         return (
           <Option key={option} active={active} onClick={() => toggle(option)}>
-            {option}
+            {choiceLabel(language, option)}
           </Option>
         );
       })}
@@ -163,11 +167,12 @@ function MemberEditor({
   onChange: (patch: Partial<FamilyMember>) => void;
   onRemove: () => void;
 }) {
+  const { language, t } = useT();
   return (
     <div className="rounded-xl border border-line p-3">
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-medium uppercase tracking-wide text-muted">
-          Person {index + 1}
+          {t("ui.editor.person", { n: index + 1 })}
         </span>
         {total > 1 ? (
           <button
@@ -175,7 +180,7 @@ function MemberEditor({
             onClick={onRemove}
             className="text-[10px] font-medium text-muted hover:text-red-700"
           >
-            Remove
+            {t("ui.editor.remove")}
           </button>
         ) : null}
       </div>
@@ -184,27 +189,33 @@ function MemberEditor({
         <select
           value={member.relation}
           onChange={(e) => onChange({ relation: e.target.value })}
-          aria-label="Relation"
+          aria-label={t("ui.editor.relation")}
           className="w-full rounded-lg border border-line bg-paper px-2 py-1.5 text-xs text-ink outline-none"
         >
           {RELATIONS.map((relation) => (
-            <option key={relation}>{relation}</option>
+            <option key={relation} value={relation}>
+              {choiceLabel(language, relation)}
+            </option>
           ))}
         </select>
         <select
           value={member.ageBand}
           onChange={(e) => onChange({ ageBand: e.target.value })}
-          aria-label="Age group"
+          aria-label={t("ui.editor.ageGroup")}
           className="w-full rounded-lg border border-line bg-paper px-2 py-1.5 text-xs text-ink outline-none"
         >
           {AGE_BANDS.map((band) => (
-            <option key={band}>{band}</option>
+            <option key={band} value={band}>
+              {choiceLabel(language, band)}
+            </option>
           ))}
         </select>
       </div>
 
       <div className="mt-2">
-        <div className="text-[10px] text-muted">Conditions</div>
+        <div className="text-[10px] text-muted">
+          {t("ui.editor.conditions")}
+        </div>
         <div className="mt-1 flex flex-wrap gap-1.5">
           {CONDITIONS.map((condition) => {
             const active = member.conditions.includes(condition);
@@ -224,7 +235,7 @@ function MemberEditor({
                   })
                 }
               >
-                {condition}
+                {choiceLabel(language, condition)}
               </Option>
             );
           })}
@@ -233,7 +244,9 @@ function MemberEditor({
 
       {member.conditions.length ? (
         <div className="mt-2">
-          <div className="text-[10px] text-muted">How serious?</div>
+          <div className="text-[10px] text-muted">
+            {t("ui.editor.howSerious")}
+          </div>
           <div className="mt-1 flex flex-wrap gap-1.5">
             {SEVERITIES.map((severity) => (
               <Option
@@ -243,7 +256,7 @@ function MemberEditor({
                   onChange({ severity: severity as FamilyMember["severity"] })
                 }
               >
-                {severity}
+                {choiceLabel(language, severity)}
               </Option>
             ))}
           </div>
@@ -254,6 +267,7 @@ function MemberEditor({
 }
 
 export function ProfileEditor({ profile, onSave }: Props) {
+  const { language, t } = useT();
   const [draft, setDraft] = useState<Profile>(profile);
   const [synced, setSynced] = useState<Profile>(profile);
   const dirty = JSON.stringify(draft) !== JSON.stringify(profile);
@@ -307,9 +321,11 @@ export function ProfileEditor({ profile, onSave }: Props) {
     <div className="rounded-2xl bg-card p-4 ring-1 ring-black/5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-ink">Your setup</h3>
+          <h3 className="text-sm font-semibold text-ink">
+            {t("ui.editor.title")}
+          </h3>
           <p className="mt-0.5 text-[11px] leading-5 text-muted">
-            Change anything here. It saves without the long setup flow.
+            {t("ui.editor.sub")}
           </p>
         </div>
         <button
@@ -323,13 +339,13 @@ export function ProfileEditor({ profile, onSave }: Props) {
               : "bg-paper text-muted ring-line",
           )}
         >
-          {dirty ? "Save changes" : "Saved"}
+          {dirty ? t("ui.editor.save") : t("ui.editor.saved")}
         </button>
       </div>
 
       <details className="mt-4 border-t border-line pt-3" open>
         <summary className="cursor-pointer text-xs font-semibold text-ink">
-          Location
+          {t("ui.editor.location")}
         </summary>
         <div className="mt-2">
           <LocationSelect
@@ -351,20 +367,23 @@ export function ProfileEditor({ profile, onSave }: Props) {
             }
           />
           <p className="mt-1 text-[10px] text-muted">
-            Watching {draft.location.city}, {draft.location.stateCode}
+            {t("ui.editor.watching", {
+              city: draft.location.city,
+              state: draft.location.stateCode,
+            })}
           </p>
         </div>
       </details>
 
       <details className="mt-3 border-t border-line pt-3">
         <summary className="cursor-pointer text-xs font-semibold text-ink">
-          Family ({draft.family.length})
+          {t("ui.editor.family", { n: draft.family.length })}
         </summary>
         <div className="mt-2 space-y-2">
           {draft.family.length === 0 ? (
             <div className="rounded-xl border border-dashed border-line p-3 text-center">
               <p className="text-[11px] leading-5 text-muted">
-                No one added yet. Start with yourself.
+                {t("ui.editor.familyEmpty")}
               </p>
               <div className="mt-2 flex justify-center gap-2">
                 <button
@@ -372,14 +391,14 @@ export function ProfileEditor({ profile, onSave }: Props) {
                   onClick={() => addMember("You")}
                   className="rounded-full bg-brand px-3 py-1.5 text-[11px] font-medium text-white"
                 >
-                  Add yourself
+                  {t("ui.editor.addYourself")}
                 </button>
                 <button
                   type="button"
                   onClick={() => addMember("Other")}
                   className="rounded-full bg-paper px-3 py-1.5 text-[11px] font-medium text-ink ring-1 ring-line"
                 >
-                  Add someone
+                  {t("ui.editor.addSomeone")}
                 </button>
               </div>
             </div>
@@ -419,7 +438,7 @@ export function ProfileEditor({ profile, onSave }: Props) {
               }
               className="w-full rounded-xl border border-dashed border-line px-3 py-2 text-[11px] font-medium text-muted hover:bg-paper"
             >
-              + Add another person
+              {t("ui.editor.addAnother")}
             </button>
           ) : null}
         </div>
@@ -427,17 +446,20 @@ export function ProfileEditor({ profile, onSave }: Props) {
 
       <details className="mt-3 border-t border-line pt-3">
         <summary className="cursor-pointer text-xs font-semibold text-ink">
-          Home
+          {t("ui.editor.home")}
         </summary>
         <div className="mt-1">
-          <Field label="Home type">
+          <Field label={t("ui.editor.homeType")}>
             <Chips
               options={HOME_TYPES}
               value={draft.home.type}
               onChange={(type) => setHome({ type })}
             />
           </Field>
-          <Field label="Cooking" hint="Select all that apply. None clears the rest.">
+          <Field
+            label={t("ui.editor.cooking")}
+            hint={t("ui.editor.cookingHint")}
+          >
             <MultiChips
               options={COOKING_FUELS}
               values={draft.home.cooking}
@@ -445,14 +467,17 @@ export function ProfileEditor({ profile, onSave }: Props) {
               onChange={(cooking) => setHome({ cooking })}
             />
           </Field>
-          <Field label="Windows">
+          <Field label={t("ui.editor.windows")}>
             <Chips
               options={WINDOW_STATES}
               value={draft.home.windows}
               onChange={(windows) => setHome({ windows })}
             />
           </Field>
-          <Field label="Cooling" hint="Select all that apply.">
+          <Field
+            label={t("ui.editor.cooling")}
+            hint={t("ui.editor.coolingHint")}
+          >
             <MultiChips
               options={COOLING}
               values={draft.home.cooling}
@@ -460,35 +485,35 @@ export function ProfileEditor({ profile, onSave }: Props) {
               onChange={(cooling) => setHome({ cooling })}
             />
           </Field>
-          <Field label="Air purifier">
+          <Field label={t("ui.editor.purifier")}>
             <Chips
               options={PURIFIERS}
               value={draft.home.purifiers}
               onChange={(purifiers) => setHome({ purifiers })}
             />
           </Field>
-          <Field label="Indoor smoke">
+          <Field label={t("ui.editor.smoke")}>
             <MultiChips
               options={INDOOR_SMOKE}
               values={draft.home.indoorSmoke}
               onChange={(indoorSmoke) => setHome({ indoorSmoke })}
             />
           </Field>
-          <Field label="Cleaning methods">
+          <Field label={t("ui.editor.cleaning")}>
             <MultiChips
               options={CLEANING_METHODS}
               values={draft.home.cleaning}
               onChange={(cleaning) => setHome({ cleaning })}
             />
           </Field>
-          <Field label="How often?">
+          <Field label={t("ui.editor.howOften")}>
             <Chips
               options={CLEANING_FREQUENCIES}
               value={draft.home.cleaningFrequency}
               onChange={(cleaningFrequency) => setHome({ cleaningFrequency })}
             />
           </Field>
-          <Field label="Also at home">
+          <Field label={t("ui.editor.alsoHome")}>
             <div className="flex flex-wrap gap-1.5">
               {(
                 [
@@ -503,7 +528,7 @@ export function ProfileEditor({ profile, onSave }: Props) {
                   active={draft.home[key]}
                   onClick={() => setHome({ [key]: !draft.home[key] })}
                 >
-                  {label}
+                  {choiceLabel(language, label)}
                 </Option>
               ))}
             </div>
@@ -513,12 +538,14 @@ export function ProfileEditor({ profile, onSave }: Props) {
 
       <details className="mt-3 border-t border-line pt-3">
         <summary className="cursor-pointer text-xs font-semibold text-ink">
-          Routine
+          {t("ui.editor.routine")}
         </summary>
         <div className="mt-1">
           <div className="mt-4 grid grid-cols-2 gap-2">
             <div>
-              <div className="text-[10px] text-muted">Wake</div>
+              <div className="text-[10px] text-muted">
+                {t("ui.editor.wake")}
+              </div>
               <select
                 value={draft.routine.wake}
                 onChange={(e) => setRoutine({ wake: e.target.value })}
@@ -532,7 +559,9 @@ export function ProfileEditor({ profile, onSave }: Props) {
               </select>
             </div>
             <div>
-              <div className="text-[10px] text-muted">Sleep</div>
+              <div className="text-[10px] text-muted">
+                {t("ui.editor.sleep")}
+              </div>
               <select
                 value={draft.routine.sleep}
                 onChange={(e) => setRoutine({ sleep: e.target.value })}
@@ -547,7 +576,7 @@ export function ProfileEditor({ profile, onSave }: Props) {
             </div>
           </div>
 
-          <Field label="Work">
+          <Field label={t("ui.editor.work")}>
             <Chips
               options={WORK}
               value={draft.routine.work}
@@ -556,8 +585,8 @@ export function ProfileEditor({ profile, onSave }: Props) {
           </Field>
 
           <Field
-            label="Commute"
-            hint="Pick every mode you use. Two or more is a mixed commute."
+            label={t("ui.editor.commute")}
+            hint={t("ui.editor.commuteHint")}
           >
             <MultiChips
               options={COMMUTES}
@@ -566,7 +595,7 @@ export function ProfileEditor({ profile, onSave }: Props) {
             />
           </Field>
 
-          <Field label="Outdoor exercise">
+          <Field label={t("ui.editor.exercise")}>
             <Chips
               options={EXERCISE}
               value={draft.routine.exercise}
@@ -574,7 +603,7 @@ export function ProfileEditor({ profile, onSave }: Props) {
             />
           </Field>
 
-          <Field label="Cooking times">
+          <Field label={t("ui.editor.cookingTimes")}>
             <MultiChips
               options={COOKING_TIMES}
               values={draft.routine.cookingTimes}
@@ -590,7 +619,7 @@ export function ProfileEditor({ profile, onSave }: Props) {
           onClick={() => onSave(draft)}
           className="mt-4 w-full rounded-xl bg-brand px-3 py-2.5 text-sm font-medium text-white transition hover:bg-[#0a4a3e]"
         >
-          Save changes
+          {t("ui.editor.save")}
         </button>
       ) : null}
     </div>

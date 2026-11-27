@@ -70,23 +70,23 @@ export function WeatherScene({
       {/* Day: sun with rotating rays + breathing halo */}
       {showSun ? (
         <>
-          <div className="absolute -right-4 -top-6 h-64 w-64 sm:-right-8 sm:-top-8">
+          <div className="absolute -end-4 -top-6 h-64 w-64 sm:-end-8 sm:-top-8">
             <div className="animate-glow absolute inset-6 rounded-full bg-amber-200/60 blur-3xl" />
             <div className="sun-rays animate-spin-slow absolute inset-0 rounded-full opacity-80" />
             <div className="animate-float absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-200 shadow-[0_0_80px_rgba(251,191,36,0.85)]" />
           </div>
-          <div className="absolute -right-24 top-12 h-40 w-[60%] rotate-[24deg] bg-gradient-to-b from-amber-100/40 to-transparent blur-2xl" />
+          <div className="absolute -end-24 top-12 h-40 w-[60%] rotate-[24deg] bg-gradient-to-b from-amber-100/40 to-transparent blur-2xl" />
         </>
       ) : null}
 
       {/* Night: moon + halo */}
       {showMoon ? (
         <>
-          <div className="animate-glow absolute -right-16 -top-20 h-64 w-64 rounded-full bg-sky-200/20 blur-3xl" />
-          <div className="animate-float absolute right-8 top-6 h-16 w-16 rounded-full bg-slate-100 shadow-[0_0_70px_rgba(226,232,240,0.55)]">
-            <span className="absolute left-4 top-5 h-2.5 w-2.5 rounded-full bg-slate-300/70" />
-            <span className="absolute right-4 top-3 h-1.5 w-1.5 rounded-full bg-slate-300/60" />
-            <span className="absolute bottom-4 left-6 h-2 w-2 rounded-full bg-slate-300/50" />
+          <div className="animate-glow absolute -end-16 -top-20 z-[1] h-64 w-64 rounded-full bg-sky-200/25 blur-3xl" />
+          <div className="weather-moon animate-float absolute end-6 top-6 z-[2] h-16 w-16 rounded-full bg-[radial-gradient(circle_at_34%_28%,#ffffff_0%,#f8fafc_45%,#d5dee8_100%)] shadow-[0_0_46px_rgba(226,232,240,0.9),0_0_110px_rgba(148,163,184,0.4)] sm:end-8">
+            <span className="absolute left-4 top-5 h-2.5 w-2.5 rounded-full bg-slate-400/35" />
+            <span className="absolute right-4 top-3 h-1.5 w-1.5 rounded-full bg-slate-400/30" />
+            <span className="absolute bottom-4 left-6 h-2 w-2 rounded-full bg-slate-400/25" />
           </div>
         </>
       ) : null}

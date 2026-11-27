@@ -105,20 +105,26 @@ body {
   filter: brightness(0.52) saturate(0.48);
 }
 
+/* Keep the night sky's own colours so the moon reads as a moon, not a grey disc. */
+.dark .hero-night .weather-scene {
+  filter: none;
+}
+
 .dark .weather-hero .weather-scene::after {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 0;
   background: rgba(3, 8, 6, 0.58);
+}
+
+.dark .hero-night .weather-scene::after {
+  background: rgba(2, 5, 10, 0.55);
 }
 
 .dark .weather-hero .text-ink,
 .dark .weather-hero .text-muted {
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
-}
-
-[dir="rtl"] .weather-hero .weather-scene {
-  transform: scaleX(-1);
 }
 
 .sun-rays {

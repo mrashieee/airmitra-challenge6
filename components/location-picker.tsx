@@ -8,6 +8,7 @@ import {
 } from "@/lib/search-types";
 import { findState, STATES, UNION_TERRITORIES } from "@/lib/states";
 import { cn } from "@/lib/ui";
+import { useT } from "./language-provider";
 import { PinIcon, SearchIcon } from "./icons";
 
 export function LocationSelect({
@@ -26,6 +27,7 @@ export function LocationSelect({
   }) => void;
   compact?: boolean;
 }) {
+  const { t } = useT();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<CitySuggestion[]>([]);
   const [crossState, setCrossState] = useState<CrossStateSuggestion[]>([]);
@@ -92,21 +94,21 @@ export function LocationSelect({
   return (
     <div className={cn("space-y-2", compact ? "mt-4" : "mt-5")}>
       <label className="relative block">
-        <span className="sr-only">Choose a state or union territory</span>
+        <span className="sr-only">{t("ui.search.chooseState")}</span>
         <PinIcon className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
         <select
           value={code}
           onChange={(e) => onStateChange(e.target.value)}
           className="w-full appearance-none rounded-xl border border-line bg-card py-2.5 pl-9 pr-8 text-sm font-medium text-ink outline-none transition hover:border-slate-300"
         >
-          <optgroup label="States">
+          <optgroup label={t("ui.search.states")}>
             {STATES.map((s) => (
               <option key={s.code} value={s.code}>
                 {s.name}
               </option>
             ))}
           </optgroup>
-          <optgroup label="Union territories">
+          <optgroup label={t("ui.search.uts")}>
             {UNION_TERRITORIES.map((s) => (
               <option key={s.code} value={s.code}>
                 {s.name}
@@ -125,15 +127,17 @@ export function LocationSelect({
           type="search"
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder={`Search in ${stateName}…`}
+          placeholder={t("ui.search.inState", { state: stateName })}
           className="w-full appearance-none rounded-xl border border-line bg-paper py-2 pl-9 pr-3 text-xs text-ink outline-none placeholder:text-muted"
         />
         {searching ? (
-          <p className="mt-1 text-[10px] text-muted">Searching…</p>
+          <p className="mt-1 text-[10px] text-muted">
+            {t("ui.search.searching")}
+          </p>
         ) : null}
         {!searching && query.trim().length >= MIN_SEARCH_CHARS && results.length === 0 ? (
           <p className="mt-1 text-[10px] text-muted">
-            No place found in {stateName}. Try another spelling or state.
+            {t("ui.search.noPlace", { state: stateName })}
           </p>
         ) : null}
         {!searching && !results.length && crossState.length ? (
@@ -159,7 +163,7 @@ export function LocationSelect({
               <button
                 key={result.id}
                 type="button"
-                aria-label={`${result.name}${result.monitor ? ", ground monitor available" : ", model estimate only"}`}
+                aria-label={t(result.monitor ? "ui.search.ground" : "ui.search.model", { place: result.name })}
                 onClick={() => choose(result)}
                 className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs text-ink transition hover:bg-paper"
               >
@@ -167,7 +171,9 @@ export function LocationSelect({
                   <span className="block truncate">{result.name}</span>
                   {result.near || result.admin2 ? (
                     <span className="block truncate text-[9px] text-muted">
-                      near {result.near ?? result.admin2}
+                      {t("ui.search.near", {
+                        place: result.near ?? result.admin2 ?? "",
+                      })}
                     </span>
                   ) : null}
                 </span>
@@ -179,7 +185,9 @@ export function LocationSelect({
                       : "bg-amber-50 text-amber-700 ring-amber-200",
                   )}
                 >
-                  {result.monitor ? "monitor" : "model"}
+                  {result.monitor
+                    ? t("ui.search.monitor")
+                    : t("ui.search.modelShort")}
                 </span>
               </button>
             ))}

@@ -21,21 +21,41 @@ type ChatMessage = {
   source?: "ai" | "template";
 };
 
-function demoAnswer(question: string, reading: Reading): string {
-  const q = question.toLowerCase();
-  if (q.includes("father") || q.includes("asthma") || q.includes("walk")) {
-    return `Not for your father right now. AQI ${reading.aqi} + asthma = high risk before 11 AM. If he must go: fitted N95, under 15 min, and carry the inhaler. Indoors, keep him in the room with the purifier.`;
+function demoAnswer(
+  question: string,
+  reading: Reading,
+  language: string,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+): string {
+  if (language === "English") {
+    const q = question.toLowerCase();
+    if (q.includes("father") || q.includes("asthma") || q.includes("walk")) {
+      return `Not for your father right now. AQI ${reading.aqi} + asthma = high risk before 11 AM. If he must go: fitted N95, under 15 min, and carry the inhaler. Indoors, keep him in the room with the purifier.`;
+    }
+    if (q.includes("daughter") || q.includes("child") || q.includes("school")) {
+      return `For your daughter: keep play indoors today. If she has to go out, a fitted N95 and a short route. AQI ${reading.aqi} is above the safe range for a 6-year-old.`;
+    }
+    if (q.includes("agarbatti") || q.includes("incense") || q.includes("coil")) {
+      return "Skip agarbatti or mosquito coil today. If you must, light it 8–10 PM with a window cracked open. Indoors, these can push PM2.5 up 3–5x for 1–2 hours.";
+    }
+    if (q.includes("window") || q.includes("open")) {
+      return "Keep windows closed while outdoor air is worse than indoor. Ventilate the courtyard side 11 AM–4 PM when wind picks up.";
+    }
+    return `At AQI ${reading.aqi} (${reading.band.label}), the short answer: ${reading.guidelines[0]} Ask me about a person, a room, or a time and I'll get specific.`;
   }
-  if (q.includes("daughter") || q.includes("child") || q.includes("school")) {
-    return `For your daughter: keep play indoors today. If she has to go out, a fitted N95 and a short route. AQI ${reading.aqi} is above the safe range for a 6-year-old.`;
-  }
-  if (q.includes("agarbatti") || q.includes("incense") || q.includes("coil")) {
-    return "Skip agarbatti or mosquito coil today. If you must, light it 8–10 PM with a window cracked open. Indoors, these can push PM2.5 up 3–5x for 1–2 hours.";
-  }
-  if (q.includes("window") || q.includes("open")) {
-    return "Keep windows closed while outdoor air is worse than indoor. Ventilate the courtyard side 11 AM–4 PM when wind picks up.";
-  }
-  return `At AQI ${reading.aqi} (${reading.band.label}), the short answer: ${reading.guidelines[0]} Ask me about a person, a room, or a time and I'll get specific.`;
+
+  return [
+    t("ui.share.aqiLine", {
+      aqi: reading.aqi,
+      band: reading.band.label,
+      dominant: reading.dominant,
+    }),
+    reading.guidelines[0],
+    reading.doNow[0] ? `${reading.doNow[0].title}: ${reading.doNow[0].body}` : "",
+    t("ui.ask.disclaimer"),
+  ]
+    .filter(Boolean)
+    .join(" ");
 }
 
 export function AskPanel({
@@ -53,7 +73,7 @@ export function AskPanel({
   lat: number;
   lon: number;
 }) {
-  const { t } = useT();
+  const { language, t } = useT();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
@@ -110,7 +130,7 @@ export function AskPanel({
         ...m,
         {
           role: "assistant",
-          text: demoAnswer(clean, reading),
+          text: demoAnswer(clean, reading, language, t),
           source: "template",
         },
       ]);

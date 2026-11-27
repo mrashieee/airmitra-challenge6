@@ -16,6 +16,7 @@ PWA with a grounded GenAI brief, not a chat-only app.
 - **City pages** at `/aqi/<state>/<city>` with canonical metadata and a sitemap.
 - **Language first** — 13 Indian languages (English, Hindi, Malayalam, Tamil,
   Telugu, Kannada, Marathi, Bengali, Gujarati, Punjabi, Odia, Urdu, Assamese).
+  Hindi and Malayalam are hand-checked; the other packs are machine-assisted.
   The interface, the brief and the answers follow the choice.
 - **Household profile** — you, family, conditions, home inventory, routine.
   Starts with **You**; no invented family members. The last setup step is
