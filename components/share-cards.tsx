@@ -50,7 +50,9 @@ export function ShareCardPreview({ reading }: { reading: Reading }) {
             {reading.source.type === "ground"
               ? "Ground monitor"
               : reading.source.type === "approximate"
-                ? `Nearest monitor · ${reading.source.distanceKm} km`
+                ? reading.stations && reading.stations.length > 1
+                  ? `Median of ${reading.stations.length} monitors`
+                  : `Nearest monitor · ${reading.source.distanceKm} km`
                 : "Model estimate"}{" "}
             ·{" "}
             {reading.source.station}
@@ -161,11 +163,19 @@ export function StoryPreview({ reading }: { reading: Reading }) {
             {reading.source.type === "ground"
               ? "Ground monitor"
               : reading.source.type === "approximate"
-                ? "Nearest monitor"
+                ? reading.stations && reading.stations.length > 1
+                  ? `Median of ${reading.stations.length} monitors`
+                  : "Nearest monitor"
                 : "CAMS model estimate"}
-            {reading.source.distanceKm > 0
-              ? ` · ${reading.source.distanceKm} km`
-              : ""}{" "}
+            {reading.source.type === "approximate" &&
+            reading.stations &&
+            reading.stations.length > 1
+              ? ` · ${Math.min(...reading.stations.map((s) => s.distanceKm))}–${Math.max(
+                  ...reading.stations.map((s) => s.distanceKm),
+                )} km`
+              : reading.source.distanceKm > 0
+                ? ` · ${reading.source.distanceKm} km`
+                : ""}{" "}
             · {reading.source.updated}
           </div>
           <div className="mt-1 border-t border-white/15 pt-2">

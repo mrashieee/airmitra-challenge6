@@ -170,14 +170,19 @@ export default async function CityPage({ params }: Params) {
                 Model estimate, not a local monitor.{" "}
                 {reading.nearby?.length
                   ? `Nearest monitor: ${reading.nearby[0].distanceKm} km away, AQI ${reading.nearby[0].aqi}.`
-                  : "No ground monitor within 100 km."}
+                  : "No ground monitor within 60 km."}
               </p>
             ) : null}
 
                 {reading.source.type === "approximate" ? (
               <p className="mt-2 text-[11px] leading-5 text-muted">
-                Approximate reading from the nearest monitor{" "}
-                {reading.source.distanceKm} km away. Not a local station.
+                {reading.stations && reading.stations.length > 1
+                  ? `Approximate: median of ${reading.stations.length} live monitors, ${Math.min(
+                      ...reading.stations.map((s) => s.distanceKm),
+                    )}–${Math.max(
+                      ...reading.stations.map((s) => s.distanceKm),
+                    )} km away. Not local stations.`
+                  : `Approximate reading from the nearest monitor ${reading.source.distanceKm} km away. Not a local station.`}
               </p>
             ) : null}
             <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-muted">
@@ -207,7 +212,9 @@ export default async function CityPage({ params }: Params) {
                 {reading.source.type === "ground"
                   ? "ground monitor"
                   : reading.source.type === "approximate"
-                    ? "nearest monitor"
+                    ? reading.stations && reading.stations.length > 1
+                      ? "nearest monitors"
+                      : "nearest monitor"
                     : "model estimate"}
               </span>
               {reading.usAqi ? (
@@ -224,7 +231,10 @@ export default async function CityPage({ params }: Params) {
                   title="Lowest and highest AQI among official stations in this city"
                   className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60 backdrop-blur-sm"
                 >
-                  stations {reading.aqiRange.min}–{reading.aqiRange.max}
+                  {reading.source.type === "approximate"
+                    ? "monitors"
+                    : "stations"}{" "}
+                  {reading.aqiRange.min}–{reading.aqiRange.max}
                 </span>
               ) : null}
             </div>
@@ -340,10 +350,14 @@ export default async function CityPage({ params }: Params) {
           <section className="mt-6 border-t border-line pt-5">
             <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
               <WindIcon className="h-4 w-4 text-brand" />
-              Stations in {city.name}
+              {reading.source.type === "approximate"
+                ? "Monitors used for this estimate"
+                : `Stations in ${city.name}`}
             </div>
             <p className="mt-1 text-xs leading-5 text-muted">
-              The headline is the median of these official monitors.
+              {reading.source.type === "approximate"
+                ? `No monitor in ${city.name}. The headline is the median of the nearest live stations.`
+                : "The headline is the median of these official monitors."}
             </p>
             <div className="mt-3 space-y-2">
               {reading.stations.map((station) => (

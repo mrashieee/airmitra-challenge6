@@ -6,6 +6,7 @@ import {
   type OpenAQLatest,
   type OpenAQLocation,
 } from "./providers/openaq";
+import type { NearbySampleRow } from "./providers/nearby";
 
 const BASE = "https://api.openaq.org/v3";
 
@@ -215,5 +216,106 @@ export function mergeCityStations(
         ),
       ),
     })),
+  };
+}
+
+function toNearby(row: NearbySampleRow): NearbyStation {
+  return {
+    name: row.name,
+    distanceKm: row.distanceKm,
+    aqi: row.sample.aqi,
+    bandLabel: row.sample.bandLabel,
+    updatedAt: row.sample.source.updatedAt,
+    ageMinutes: row.ageMinutes,
+  };
+}
+
+/**
+ * Approximate reading for a town with no station of its own: median of up to
+ * three nearest live monitors. One station is used as-is, with its distance.
+ */
+export function mergeApproxSamples(
+  rows: NearbySampleRow[],
+  area: string,
+): {
+  sample: AirSample;
+  range?: { min: number; max: number };
+  list: NearbyStation[];
+} | null {
+  if (!rows.length) return null;
+
+  if (rows.length === 1) {
+    const row = rows[0];
+    return {
+      sample: {
+        ...row.sample,
+        source: {
+          ...row.sample.source,
+          type: "approximate",
+          station: `${row.name} · OpenAQ`,
+          distanceKm: row.distanceKm,
+        },
+      },
+      list: [toNearby(row)],
+    };
+  }
+
+  const byKey = new Map<PollutantKey, { values: number[]; unit: string }>();
+  for (const row of rows) {
+    for (const pollutant of row.sample.pollutants) {
+      const entry = byKey.get(pollutant.key) ?? {
+        values: [],
+        unit: pollutant.unit,
+      };
+      entry.values.push(pollutant.value);
+      byKey.set(pollutant.key, entry);
+    }
+  }
+
+  const pollutants = [...byKey.entries()].map(([key, entry]) => ({
+    key,
+    label:
+      rows
+        .flatMap((row) => row.sample.pollutants)
+        .find((pollutant) => pollutant.key === key)?.label ?? key,
+    value: Math.round(median(entry.values) * 10) / 10,
+    unit: entry.unit,
+  }));
+
+  const result = computeAqi(pollutants);
+  if (!result) return null;
+
+  const band = bandFor(result.aqi);
+  const nearest = rows[0];
+  const oldest = rows.reduce(
+    (current, row) =>
+      new Date(row.sample.source.updatedAt) < new Date(current)
+        ? row.sample.source.updatedAt
+        : current,
+    rows[0].sample.source.updatedAt,
+  );
+  const range = {
+    min: Math.min(...rows.map((row) => row.sample.aqi)),
+    max: Math.max(...rows.map((row) => row.sample.aqi)),
+  };
+
+  return {
+    sample: {
+      area,
+      aqi: result.aqi,
+      band: band.key,
+      bandLabel: band.label,
+      dominant: result.dominant,
+      basis: "PM2.5/PM10",
+      pollutants,
+      source: {
+        type: "approximate",
+        station: `${rows.length} nearest monitors · median`,
+        distanceKm: nearest.distanceKm,
+        updatedAt: oldest,
+      },
+    },
+    range,
+    list: rows.map(toNearby),
   };
 }

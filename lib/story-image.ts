@@ -263,7 +263,13 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
     reading.source.type === "ground"
       ? "Ground monitor"
       : reading.source.type === "approximate"
-        ? `Nearest monitor · ${reading.source.distanceKm} km`
+        ? reading.stations && reading.stations.length > 1
+          ? `Median of ${reading.stations.length} monitors · ${Math.min(
+              ...reading.stations.map((s) => s.distanceKm),
+            )}–${Math.max(
+              ...reading.stations.map((s) => s.distanceKm),
+            )} km`
+          : `Nearest monitor · ${reading.source.distanceKm} km`
         : "CAMS model estimate";
   const source = `${sourceLabel} · ${reading.source.updated}`;
   ctx.fillStyle = "rgba(204,251,241,0.55)";

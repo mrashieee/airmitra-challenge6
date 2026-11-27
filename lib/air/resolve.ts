@@ -4,7 +4,11 @@ import { usAqiForPollutants } from "./naqi";
 import { fetchCpcb } from "./providers/cpcb";
 import { fetchOpenAQ } from "./providers/openaq";
 import { fetchNearbySamples, fetchNearbyStations } from "./providers/nearby";
-import { fetchCityStations, mergeCityStations } from "./aggregate";
+import {
+  fetchCityStations,
+  mergeApproxSamples,
+  mergeCityStations,
+} from "./aggregate";
 import { fetchOpenMeteoAir, fetchWeather } from "./providers/openmeteo";
 import type { AirReading, Target } from "./types";
 
@@ -68,6 +72,8 @@ export async function resolveAirReading(
   let fallbackReason: AirReading["fallbackReason"];
   let nearestStationKm: number | undefined;
   let modelNearby: AirReading["nearby"];
+  let cityStations: AirReading["stations"];
+  let aqiRange: AirReading["aqiRange"];
 
   if (!sample) {
     const nearest = cpcb.nearestKm ?? openaq.nearestKm;
@@ -95,21 +101,20 @@ export async function resolveAirReading(
       }
     }
 
-    // Prefer a real station up to 100 km away over a model. It is labelled
-    // approximate in the UI.
+    // Prefer up to three real stations within 60 km over a model. Their
+    // median is labelled approximate, with the distance range shown.
     const nearbySamples = await withTimeout(
-      fetchNearbySamples(place, 1),
+      fetchNearbySamples(place, 3, 60),
       7000,
       [],
     );
+    const approximate = mergeApproxSamples(nearbySamples, place.city);
 
-    if (nearbySamples.length) {
-      const nearest = nearbySamples[0];
-      sample = {
-        ...nearest.sample,
-        source: { ...nearest.sample.source, type: "approximate" },
-      };
-      nearestStationKm = nearest.distanceKm;
+    if (approximate) {
+      sample = approximate.sample;
+      cityStations = approximate.list;
+      aqiRange = approximate.range;
+      nearestStationKm = approximate.sample.source.distanceKm;
     } else {
       sample = await fetchOpenMeteoAir(state, place);
 
@@ -127,8 +132,6 @@ export async function resolveAirReading(
   if (!sample) throw new Error(`No air data available for ${state.code}`);
 
   let finalSample = sample;
-  let cityStations: AirReading["stations"];
-  let aqiRange: AirReading["aqiRange"];
 
   if (finalSample.source.type === "ground") {
     const stations = await withTimeout(fetchCityStations(place), 6500, []);

@@ -23,6 +23,7 @@ export type NearbySampleRow = {
 export async function fetchNearbySamples(
   place: Target,
   limit = 4,
+  maxKm = 100,
 ): Promise<NearbySampleRow[]> {
   const key = process.env.OPENAQ_API_KEY;
   if (!key) return [];
@@ -70,7 +71,7 @@ export async function fetchNearbySamples(
       })
       .filter(
         (row): row is { location: OpenAQLocation; distanceKm: number } =>
-          row !== null && row.distanceKm <= 100,
+          row !== null && row.distanceKm <= maxKm,
       )
       .sort((a, b) => a.distanceKm - b.distanceKm)
       .slice(0, Math.max(limit, 4));
