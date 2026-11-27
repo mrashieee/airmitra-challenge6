@@ -589,23 +589,83 @@ export function HomeView({
 }
 
 export function TodaySkeleton({ city }: { city: string }) {
+  const { t } = useT();
+  const hour = Number(
+    new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit",
+      hour12: false,
+      timeZone: "Asia/Kolkata",
+    }).format(new Date()),
+  );
+  const night = hour < 6 || hour >= 18;
+
   return (
     <div className="space-y-4" aria-busy="true" aria-live="polite">
-      <div className="animate-soft relative overflow-hidden rounded-3xl bg-line/30 p-5 ring-1 ring-black/5">
-        <div className="h-3 w-28 rounded-full bg-card/70" />
-        <div className="mt-4 flex items-end gap-3">
-          <div className="h-14 w-28 rounded-2xl bg-card/80" />
-          <div className="mb-2 h-6 w-20 rounded-full bg-card/60" />
+      <div
+        className={cn(
+          "animate-soft relative overflow-hidden rounded-3xl p-5 ring-1 ring-black/5",
+          night ? "weather-hero hero-night" : "bg-line/30",
+        )}
+      >
+        {night ? (
+          <WeatherScene condition="clear" isDay={false} aqi={0} />
+        ) : null}
+        <div className="relative z-10">
+          <div
+            className={cn(
+              "h-3 w-28 rounded-full",
+              night ? "bg-white/20" : "bg-card/70",
+            )}
+          />
+          <div className="mt-4 flex items-end gap-3">
+            <div
+              className={cn(
+                "h-14 w-28 rounded-2xl",
+                night ? "bg-white/15" : "bg-card/80",
+              )}
+            />
+            <div
+              className={cn(
+                "mb-2 h-6 w-20 rounded-full",
+                night ? "bg-white/10" : "bg-card/60",
+              )}
+            />
+          </div>
+          <div
+            className={cn(
+              "mt-4 h-3 w-64 max-w-full rounded-full",
+              night ? "bg-white/15" : "bg-card/60",
+            )}
+          />
+          <div
+            className={cn(
+              "mt-2 h-3 w-44 rounded-full",
+              night ? "bg-white/10" : "bg-card/50",
+            )}
+          />
+          <div className="mt-6 flex gap-2">
+            <div
+              className={cn(
+                "h-8 w-24 rounded-full",
+                night ? "bg-white/15" : "bg-card/60",
+              )}
+            />
+            <div
+              className={cn(
+                "h-8 w-24 rounded-full",
+                night ? "bg-white/10" : "bg-card/50",
+              )}
+            />
+          </div>
+          <p
+            className={cn(
+              "mt-5 text-[11px] font-medium",
+              night ? "text-white/80" : "text-muted",
+            )}
+          >
+            {t("ui.header.loading")} {city}
+          </p>
         </div>
-        <div className="mt-4 h-3 w-64 max-w-full rounded-full bg-card/60" />
-        <div className="mt-2 h-3 w-44 rounded-full bg-card/50" />
-        <div className="mt-6 flex gap-2">
-          <div className="h-8 w-24 rounded-full bg-card/60" />
-          <div className="h-8 w-24 rounded-full bg-card/50" />
-        </div>
-        <p className="mt-5 text-[11px] font-medium text-muted">
-          Loading live air quality for {city}…
-        </p>
       </div>
       <div className="animate-soft h-36 rounded-2xl bg-card ring-1 ring-black/5" />
       <div className="animate-soft h-28 rounded-2xl bg-card ring-1 ring-black/5" />
