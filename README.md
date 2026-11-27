@@ -15,6 +15,13 @@ PWA with a grounded GenAI brief, not a chat-only app.
 
 [![AirMitra demo](docs/video/Thumbnail_1280x720.jpg)](https://mrashieee.github.io/airmitra-challenge6/)
 
+## Get the app
+
+- **Android:** [signed APK](docs/download/AirMitra-1.0.0.apk)
+- **iOS:** Add to Home Screen from Safari
+- **Desktop:** Electron shell and build instructions in `packaging/desktop`
+- **Packaging notes:** [PACKAGING.md](PACKAGING.md)
+
 ## What it does
 
 - **Live AQI** from CPCB ground stations, then OpenAQ monitors, then CAMS model

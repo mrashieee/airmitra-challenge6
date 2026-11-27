@@ -1,0 +1,13 @@
+{
+  "appId": "app.airmitra.ios",
+  "appName": "AirMitra",
+  "webDir": "www",
+  "server": {
+    "url": "https://airmitra-app.vercel.app",
+    "cleartext": false
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "backgroundColor": "#f5f2e9"
+  }
+}

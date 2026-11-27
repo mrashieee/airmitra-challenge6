@@ -1,0 +1,44 @@
+name: iOS simulator build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  simulator:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: packaging/ios
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: packaging/ios/package-lock.json
+
+      - run: npm ci
+      - run: npx cap add ios
+      - run: npx cap sync ios
+
+      - name: Build simulator app
+        run: |
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: airmitra-ios-simulator
+          path: packaging/ios/build/Build/Products/Debug-iphonesimulator/App.app
+          if-no-files-found: error
