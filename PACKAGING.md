@@ -37,9 +37,11 @@ The Electron shell lives in `packaging/desktop`.
 - Linux: `npm run dist:linux` → `AirMitra-1.0.0-x86_64.AppImage`
 - Windows: `npm run dist:win` → `AirMitra-1.0.0-Setup.exe`
 
-Both were built locally (about 120 MB each) and are intentionally **not
-committed**. The `.github/workflows/desktop.yml` workflow builds them on the
-native GitHub runners and uploads the artifacts.
+Both are built and attached to the
+[desktop-v1.0.0 release](https://github.com/mrashieee/airmitra-challenge6/releases/tag/desktop-v1.0.0).
+They are intentionally **not committed** (about 120 MB each). The
+`.github/workflows/desktop.yml` workflow can rebuild them on the native GitHub
+runners.
 
 The wrapper loads the hosted app, opens external links in the browser, and
 allows geolocation only for "use my location".
