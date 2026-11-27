@@ -9,6 +9,12 @@
   --card: #fffdf8;
   --brand: #0c5b4c;
   --sidebar: #efeadd;
+  --font-indic: "Noto Sans", "Noto Sans Arabic", "Noto Naskh Arabic",
+    "Noto Sans Devanagari", "Noto Sans Malayalam",
+    "Noto Sans Tamil", "Noto Sans Telugu", "Noto Sans Kannada",
+    "Noto Sans Bengali", "Noto Sans Gujarati", "Noto Sans Gurmukhi",
+    "Noto Sans Oriya", "Noto Sans Assamese",
+    ui-sans-serif, system-ui, sans-serif;
 }
 
 .dark {
@@ -23,8 +29,10 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Inter", var(--font-indic), ui-sans-serif, system-ui,
+    sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
   --color-paper: var(--paper);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
@@ -44,8 +52,11 @@ body {
     radial-gradient(circle at 15% 0%, rgba(12, 91, 76, 0.05), transparent 42%),
     radial-gradient(circle at 85% 100%, rgba(180, 140, 60, 0.06), transparent 40%);
   color: var(--ink);
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", sans-serif;
+  font-family: "Inter", var(--font-indic), ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", sans-serif;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .dark body {
@@ -148,8 +159,31 @@ body {
 }
 
 .font-display {
-  font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  font-family: var(--font-source-serif), "Source Serif 4", Georgia,
+    "Times New Roman", serif;
   font-optical-sizing: auto;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+
+/* Keep translated headings legible: Latin serif fonts do not carry Indic
+   glyphs, so use the sans stack for those languages instead of a mixed
+   system-serif fallback. */
+:lang(hi) .font-display:not(.brand-name),
+:lang(ml) .font-display:not(.brand-name),
+:lang(ta) .font-display:not(.brand-name),
+:lang(te) .font-display:not(.brand-name),
+:lang(kn) .font-display:not(.brand-name),
+:lang(mr) .font-display:not(.brand-name),
+:lang(bn) .font-display:not(.brand-name),
+:lang(gu) .font-display:not(.brand-name),
+:lang(pa) .font-display:not(.brand-name),
+:lang(or) .font-display:not(.brand-name),
+:lang(ur) .font-display:not(.brand-name),
+:lang(as) .font-display {
+  font-family: "Inter", var(--font-indic);
+  letter-spacing: -0.01em;
+  line-height: 1.25;
 }
 
 ::selection {

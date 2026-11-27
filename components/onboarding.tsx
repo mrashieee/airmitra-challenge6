@@ -163,7 +163,7 @@ function LanguageGate({
         <div className="flex items-center gap-2.5">
           <BrandMark className="h-8 w-8" />
           <div>
-            <div className="font-display text-base font-semibold tracking-tight text-ink">
+            <div className="font-display brand-name text-base font-semibold tracking-tight text-ink">
               AirMitra
             </div>
             <div className="text-[10px] text-muted">
@@ -606,7 +606,7 @@ export function Onboarding({
           <div className="flex items-center gap-2.5">
             <BrandMark className="h-8 w-8" />
             <div>
-              <div className="font-display text-base font-semibold tracking-tight text-ink">
+              <div className="font-display brand-name text-base font-semibold tracking-tight text-ink">
                 AirMitra
               </div>
               <div className="text-[10px] text-muted">

@@ -52,8 +52,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function CityPage({ params, searchParams }: Params) {
   const { state: stateSlug, city: citySlug } = await params;
   const query = await searchParams;
-  const language = languageOption(query.lang ?? "English").name;
-  const locale = languageOption(query.lang ?? "English").code;
+  const languageInfo = languageOption(query.lang ?? "English");
+  const language = languageInfo.name;
+  const locale = languageInfo.code;
   const state = stateBySlug(stateSlug);
   if (!state) notFound();
 
@@ -97,12 +98,16 @@ export default async function CityPage({ params, searchParams }: Params) {
   );
 
   return (
-    <div className="min-h-dvh bg-paper">
+    <div
+      className="min-h-dvh bg-paper"
+      lang={locale}
+      dir={languageInfo.dir}
+    >
       <header className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-5">
         <Link href="/" className="flex items-center gap-2.5">
           <BrandMark className="h-9 w-9" />
           <span className="leading-tight">
-            <span className="block text-sm font-semibold tracking-tight text-ink">
+            <span className="block font-display brand-name text-sm font-semibold tracking-tight text-ink">
               AirMitra
             </span>
             <span className="block text-[10px] text-muted">

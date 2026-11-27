@@ -12,7 +12,8 @@ const ACCENTS: Record<string, string> = {
   severe: "#fb7185",
 };
 
-const FONT = '"Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif';
+const FONT = '"Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif';
+const SERIF = '"Source Serif 4", Georgia, "Times New Roman", serif';
 
 function hexToRgba(hex: string, alpha: number): string {
   const clean = hex.replace("#", "");
@@ -86,6 +87,11 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas not available");
 
+  // Make sure the app's typography is ready before drawing the share card.
+  if (typeof document !== "undefined" && document.fonts) {
+    await document.fonts.ready;
+  }
+
   const accent = ACCENTS[reading.band.key] ?? ACCENTS.good;
 
   // Background
@@ -108,7 +114,7 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
 
   // Header
   ctx.fillStyle = "#ffffff";
-  ctx.font = `700 46px ${FONT}`;
+  ctx.font = `700 46px ${SERIF}`;
   ctx.fillText("AirMitra", margin, 148);
 
   ctx.fillStyle = "rgba(204, 251, 241, 0.7)";

@@ -51,7 +51,7 @@ function Brand() {
     <div className="flex items-center gap-2.5">
       <BrandMark className="h-9 w-9 shadow-sm" />
       <div className="leading-tight">
-        <div className="font-display text-base font-semibold tracking-tight text-ink">AirMitra</div>
+        <div className="font-display brand-name text-base font-semibold tracking-tight text-ink">AirMitra</div>
         <div className="text-[10px] text-muted">{t("ui.brand.tagline")}</div>
       </div>
     </div>
