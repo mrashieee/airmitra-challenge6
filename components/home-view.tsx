@@ -294,7 +294,7 @@ export function HomeView({
             </div>
           ) : null}
           <p className="mt-3 text-[11px] text-muted">
-            Generated for your household. Not medical advice.
+            AI-generated for your household. Can be wrong. Not medical advice.
           </p>
         </SectionCard>
       ) : (

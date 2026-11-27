@@ -369,7 +369,7 @@ function AppShellInner({
 
             <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-[11px] text-muted">
               <span>
-                India AQI uses CPCB NAQI · general guidance, not medical advice
+                India AQI uses CPCB NAQI · AI output can be wrong · not medical advice
               </span>
               <Link
                 href={`/aqi/${slugify(state.name)}/${slugify(city.name)}`}

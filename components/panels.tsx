@@ -133,6 +133,9 @@ export function AskPanel({
           Answers use your live AQI, family, and home. Falls back to rules if
           Gemini is busy.
         </p>
+        <p className="mt-1 text-[10px] leading-4 text-muted">
+          AI-generated. Can be wrong. Not medical advice.
+        </p>
       </div>
 
       <div className="space-y-3">

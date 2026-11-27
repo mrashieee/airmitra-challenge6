@@ -120,6 +120,27 @@ npm run index:cities   # rebuild data/city-index.json
 - Manual NAMP samples are not used live (they can be months old).
 - English UI; the language selector is a saved preference.
 
+## License
+
+Code is MIT licensed. See `LICENSE`. Data files keep their upstream licenses:
+GeoNames (CC BY 4.0), OpenAQ, CPCB/data.gov.in, Open-Meteo/CAMS, and
+OpenStreetMap/Photon. Attribution is in the README and on each city page.
+
+## AI disclaimer
+
+AirMitra uses Gemini to draft the daily brief and answer questions. The output
+is generated text, not a verified fact, and it can be incomplete or wrong even
+when the AQI is correct. It is grounded in the supplied reading and profile,
+but it is not independently checked.
+
+AirMitra is **not** a medical service. It does not diagnose, prescribe, or
+replace a doctor. For breathlessness at rest, chest tightness, or any emergency,
+seek medical help immediately.
+
+Air quality data can be delayed, sparse, or wrong. Model estimates and nearby
+monitor context are labelled. Do not use AirMitra for regulatory, legal, or
+safety-critical decisions.
+
 ## Data credits
 
 CPCB / data.gov.in, OpenAQ, Open-Meteo (CAMS), GeoNames (CC BY 4.0), and
