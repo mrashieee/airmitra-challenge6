@@ -6,7 +6,7 @@ service worker. The profile stays on the device; there is no account.
 
 The signed APK is published at:
 
-[https://github.com/mrashieee/airmitra-challenge6/releases/tag/apk-v1.0.0](https://github.com/mrashieee/airmitra-challenge6/releases/tag/apk-v1.0.0)
+[https://github.com/mrashieee/airmitra-challenge6/releases/tag/v1.0.0](https://github.com/mrashieee/airmitra-challenge6/releases/tag/v1.0.0)
 
 ## Rebuild
 
