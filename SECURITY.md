@@ -1,30 +1,56 @@
 # Security
 
-## Reporting
+## Reporting a vulnerability
 
-Please open a private GitHub security advisory on this repository rather than a
-public issue.
+Please report suspected vulnerabilities privately to `mrashieee@gmail.com`.
+Do not open a public issue containing credentials, personal data, exploit
+details, or live access tokens.
 
-## Practices
+## Secret handling
 
-- Secrets are server-side only and read from environment variables. `.env` is
-  gitignored; `.env.example` contains placeholders only.
-- The browser never receives provider keys. AI and data calls happen in route
-  handlers.
-- AI routes accept only an allow-listed profile shape, with string lengths and
-  array sizes capped before the prompt is built.
-- AI and data routes are rate-limited per IP and reject oversized bodies.
-- Coordinates are validated against India's bounding box.
-- Production responses set CSP, HSTS, `X-Content-Type-Options`,
-  `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy`.
-  `X-Powered-By` is disabled.
-- The model is instructed that context and questions are untrusted data, not
-  instructions.
-- No accounts, analytics, or PII. The profile and saved settings are stored only in the
-  browser's `localStorage`.
+- `.env`, `.env.local`, and other secret environment files are ignored by Git.
+- Only `.env.example` is committed, and it must contain empty secret values.
+- Gemini, OpenAQ, and data.gov.in keys are server-side secrets. Never expose
+  them through `NEXT_PUBLIC_*` variables or client bundles.
+- Store local passwords in a secret manager or desktop keyring. Do not put
+  passwords directly in shell commands, commit messages, logs, or documentation.
+- Rotate a credential immediately if it appears in terminal output, chat
+  history, screenshots, logs, or a repository. Removing the value from history
+  does not revoke it.
 
-## If a key is exposed
+## Android signing
 
-Revoke and rotate it in the provider console (Google AI Studio, data.gov.in,
-OpenAQ). Treat any key committed to git history as compromised even after the
-file is edited.
+The Android keystore is excluded from Git. Signing passwords must be supplied
+through environment variables backed by a secret manager.
+
+AirMitra 1.0.1 rotates the Android signing certificate after credential
+exposure. The 1.0.0 APK was removed from the GitHub release. Android cannot
+update an installed app across signing certificates, so existing 1.0.0 users
+must uninstall the old app before installing 1.0.1.
+
+When rotating signing keys:
+
+1. Generate and protect a new keystore.
+2. Build and verify the new APK signature.
+3. Update `public/.well-known/assetlinks.json` with the new SHA-256
+   certificate fingerprint.
+4. Deploy the updated Digital Asset Links file.
+5. Remove the old APK from public release assets.
+6. Publish a new version code and release notes.
+
+## API-key rotation
+
+If a Gemini, OpenAQ, or data.gov.in key is exposed:
+
+1. Create a replacement key in the provider dashboard.
+2. Update the Vercel environment variables for the AirMitra project.
+3. Update local development secrets without committing them.
+4. Verify the live app and API health endpoint.
+5. Delete or disable the old provider key.
+6. Review provider usage and billing for unauthorized activity.
+
+## Room Check
+
+Room Check stores host passwords as scrypt hashes and signs sessions with a
+separate session secret. Resetting the host password also removes the session
+secret and invalidates existing host sessions after restart.
