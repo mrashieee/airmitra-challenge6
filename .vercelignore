@@ -1,0 +1,9 @@
+packaging/desktop/node_modules
+packaging/desktop/dist
+packaging/desktop/out
+packaging/ios/node_modules
+packaging/ios/ios
+packaging/ios/build
+packaging/android/node_modules
+packaging/android/twa
+.github
