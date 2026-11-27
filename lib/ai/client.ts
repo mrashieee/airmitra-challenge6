@@ -17,6 +17,8 @@ Rules:
 - If someone is severe, be stricter.
 - Prefer actions the household can actually do today.
 - Use explicit clock windows from CONTEXT (e.g. "6–9 AM", "11 AM–4 PM"). Never say "this hour" or leave time vague.
+- CONTEXT.time.part is the current part of day in India (morning, afternoon, evening or night) and CONTEXT.time.hour is the current hour. Write for the next few hours, not a period that has already passed. If it is evening or night, do not lead with morning actions; use tonight or the next good window instead.
+- The directive must make sense at CONTEXT.time.hour. Do not tell the household to do something that only applies earlier in the day.
 - Write in ${language}. Use simple, everyday language a family would speak.
 - Translate band labels, health conditions and everyday terms into ${language}. Keep only AirMitra, AQI, CPCB, NAQI, CAMS, OpenAQ, N95, Gemini, numbers, units and clock times unchanged.
 

@@ -56,7 +56,10 @@ export async function POST(request: NextRequest) {
     const air = await resolveAirReading(state, { target });
     const context = buildContext(state, air, profile);
     const contextString = contextJson(context);
-    const key = keyFor("brief:v3", `${profile.language}::${contextString}`);
+    const promptContext = `${contextString}
+
+CURRENT PERIOD: ${context.time.part} at ${String(context.time.hour).padStart(2, "0")}:00 IST. Write advice for the next few hours, not for a period that has already passed.`;
+    const key = keyFor("brief:v4", `${profile.language}::${promptContext}`);
 
     const cached = body.force === true ? null : cacheGet<Brief>(key);
     if (cached) {
@@ -65,7 +68,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const ai = await generateBrief(contextString, profile.language);
+    const ai = await generateBrief(promptContext, profile.language);
     const brief: Brief = ai
       ? {
           ...ai.brief,
