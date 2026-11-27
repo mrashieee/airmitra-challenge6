@@ -15,6 +15,7 @@ import {
   WindIcon,
 } from "./icons";
 import { WeatherScene } from "./weather-scene";
+import { shortStationName } from "@/lib/format";
 import { AqiNumber } from "./aqi-number";
 
 type Props = {
@@ -163,6 +164,20 @@ export function HomeView({
                 )} km away. Not local stations.`
               : `Approximate reading from the nearest monitor ${reading.source.distanceKm} km away. Not a local station.`}
           </p>
+        ) : null}
+        {reading.source.type === "approximate" && reading.stations?.length ? (
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] text-muted">
+            <span className="font-medium text-ink">Reference:</span>
+            {reading.stations.map((station) => (
+              <span
+                key={station.name}
+                className="rounded-full bg-white/55 px-2 py-0.5 ring-1 ring-white/60"
+              >
+                {shortStationName(station.name)} · {station.distanceKm} km · AQI{" "}
+                {station.aqi}
+              </span>
+            ))}
+          </div>
         ) : null}
         <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-muted">
           <span

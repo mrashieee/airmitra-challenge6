@@ -1,5 +1,6 @@
 import type { Reading } from "@/lib/aqi";
 import { slugify } from "@/lib/slug";
+import { shortStationName } from "@/lib/format";
 
 const ACCENTS: Record<string, string> = {
   good: "#34d399",
@@ -275,7 +276,20 @@ export async function renderStoryImage(reading: Reading): Promise<Blob> {
   ctx.fillStyle = "rgba(204,251,241,0.55)";
   ctx.font = `500 22px ${FONT}`;
   const sourceLine = wrap(ctx, source, maxWidth, 1)[0];
-  ctx.fillText(sourceLine, margin, H - 236);
+  ctx.fillText(sourceLine, margin, H - 262);
+
+  if (reading.source.type === "approximate" && reading.stations?.length) {
+    const refs = reading.stations
+      .map(
+        (station) =>
+          `${shortStationName(station.name)} ${station.distanceKm} km`,
+      )
+      .join(" · ");
+    ctx.fillStyle = "rgba(204,251,241,0.42)";
+    ctx.font = `500 20px ${FONT}`;
+    const refLine = wrap(ctx, `Ref: ${refs}`, maxWidth, 1)[0];
+    ctx.fillText(refLine, margin, H - 232);
+  }
 
   // Footer
   const footerY = H - 150;

@@ -3,6 +3,7 @@
 import type { Reading } from "@/lib/aqi";
 import { BAND_STYLES, cn } from "@/lib/ui";
 import { slugify } from "@/lib/slug";
+import { shortStationName } from "@/lib/format";
 
 export function ShareCardPreview({ reading }: { reading: Reading }) {
   const styles = BAND_STYLES[reading.band.key];
@@ -178,6 +179,17 @@ export function StoryPreview({ reading }: { reading: Reading }) {
                 : ""}{" "}
             · {reading.source.updated}
           </div>
+          {reading.source.type === "approximate" && reading.stations?.length ? (
+            <div className="mt-0.5 text-[7px] text-teal-100/45">
+              Ref:{" "}
+              {reading.stations
+                .map(
+                  (station) =>
+                    `${shortStationName(station.name)} ${station.distanceKm} km`,
+                )
+                .join(" · ")}
+            </div>
+          ) : null}
           <div className="mt-1 border-t border-white/15 pt-2">
             <div className="text-[9px] font-medium">
               Check the air before you go out

@@ -346,7 +346,7 @@ export default async function CityPage({ params }: Params) {
           </section>
         ) : null}
 
-        {reading.stations?.length && reading.stations.length >= 2 ? (
+        {reading.stations?.length ? (
           <section className="mt-6 border-t border-line pt-5">
             <div className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
               <WindIcon className="h-4 w-4 text-brand" />
