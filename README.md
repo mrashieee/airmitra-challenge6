@@ -30,15 +30,16 @@ PWA with a grounded GenAI brief, not a chat-only app.
 ```
 CPCB (data.gov.in) ─┐
 OpenAQ (<=30 km) ───┼─> median of official stations (<=15 km)
-CAMS (Open-Meteo) ──┘        │
-                             └─> else CAMS at the city coordinates
+nearest monitor ────┤   (<=100 km, labelled approximate)
+CAMS (Open-Meteo) ──┘   only when no live monitor is within 100 km
 ```
 
 - AQI uses **CPCB NAQI**, not US AQI. The US equivalent is shown for comparison.
 - Stale OpenAQ sensor rows are discarded (freshness window relative to the
   station's newest reading).
-- If no monitor is nearby, the page lists the **nearest live monitors** with
-  distance and freshness — context, not a fake local reading.
+- If no monitor is within 30 km, the app uses the **nearest live monitor up to
+  100 km** as an approximate reading, with its distance shown. CAMS is used only
+  when no live monitor exists within 100 km.
 
 ## Architecture
 
