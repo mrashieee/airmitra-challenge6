@@ -9,12 +9,11 @@ PWA with a grounded GenAI brief, not a chat-only app.
 
 ## Demo video
 
-[Watch the 1:45 demo on GitHub](https://github.com/mrashieee/airmitra-challenge6/releases/download/demo-video/AirMitra_Promo_1080p.mp4) ·
-[repo copy](submission/video/AirMitra_Promo_1080p.mp4) ·
-[captions](submission/video/AirMitra_Promo.srt) ·
-[thumbnail](submission/video/Thumbnail_1280x720.jpg)
+[Play the 1:45 demo](https://mrashieee.github.io/airmitra-challenge6/) ·
+[MP4](https://github.com/mrashieee/airmitra-challenge6/releases/download/demo-video/AirMitra_Promo_1080p.mp4) ·
+[thumbnail](docs/video/Thumbnail_1280x720.jpg)
 
-[![AirMitra demo](submission/video/Thumbnail_1280x720.jpg)](submission/video/AirMitra_Promo_1080p.mp4)
+[![AirMitra demo](docs/video/Thumbnail_1280x720.jpg)](https://mrashieee.github.io/airmitra-challenge6/)
 
 ## What it does
 
