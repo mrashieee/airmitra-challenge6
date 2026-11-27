@@ -1,6 +1,10 @@
 # AirMitra — demo video
 
-**Watch:** [`AirMitra_Promo_1080p.mp4`](video/AirMitra_Promo_1080p.mp4) — 1:45, 1920×1080, 30 fps, H.264/AAC.
+**Watch:** [AirMitra_Promo_1080p.mp4](https://github.com/mrashieee/airmitra-challenge6/releases/download/demo-video/AirMitra_Promo_1080p.mp4) — 1:45, 1920×1080, 30 fps, H.264/AAC.
+
+Also in this folder: [`video/AirMitra_Promo_1080p.mp4`](video/AirMitra_Promo_1080p.mp4).
+
+**Release page:** https://github.com/mrashieee/airmitra-challenge6/releases/tag/demo-video
 
 [![AirMitra demo thumbnail](video/Thumbnail_1280x720.jpg)](video/AirMitra_Promo_1080p.mp4)
 
