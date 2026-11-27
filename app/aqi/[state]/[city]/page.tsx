@@ -10,7 +10,7 @@ import { PinIcon, SparkIcon, WindIcon } from "@/components/icons";
 import { BrandMark } from "@/components/brand-mark";
 import { WeatherScene } from "@/components/weather-scene";
 import { AqiNumber } from "@/components/aqi-number";
-import { bandLabel, languageOption, stationLabel, t } from "@/lib/i18n";
+import { bandLabel, languageOption, stationLabel, t, weatherLabelFor } from "@/lib/i18n";
 
 type Params = {
   params: Promise<{ state: string; city: string }>;
@@ -182,6 +182,25 @@ export default async function CityPage({ params, searchParams }: Params) {
                 </span>
               ) : null}
             </p>
+
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted">
+              <span className="font-medium text-ink">
+                {weatherLabelFor(
+                  language,
+                  reading.weather.condition,
+                  reading.weather.isDay,
+                )}
+              </span>
+              {reading.weather.tempC !== null ? (
+                <span>{Math.round(reading.weather.tempC)}°C</span>
+              ) : null}
+              {reading.weather.windKph !== null ? (
+                <span>{Math.round(reading.weather.windKph)} km/h</span>
+              ) : null}
+              {reading.weather.rain ? (
+                <span>{t(language, "ui.weather.rainNow")}</span>
+              ) : null}
+            </div>
 
             {reading.source.type === "model" ? (
               <p className="mt-2 text-[11px] leading-5 text-muted">

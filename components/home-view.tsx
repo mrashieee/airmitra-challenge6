@@ -16,6 +16,7 @@ import {
 } from "./icons";
 import { WeatherScene } from "./weather-scene";
 import { shortStationName } from "@/lib/format";
+import { localeTag, weatherLabelFor } from "@/lib/i18n";
 import { AqiNumber } from "./aqi-number";
 import { useT } from "./language-provider";
 import { stationLabel } from "@/lib/i18n";
@@ -25,6 +26,7 @@ type Props = {
   onNavigate: (tab: Tab) => void;
   brief?: Brief | null;
   briefLoading?: boolean;
+  onRefreshBrief?: () => void;
 };
 
 function SectionCard({
@@ -75,6 +77,7 @@ export function HomeView({
   onNavigate,
   brief,
   briefLoading,
+  onRefreshBrief,
 }: Props) {
   const { t, language } = useT();
   const styles = BAND_STYLES[reading.band.key];
@@ -86,6 +89,12 @@ export function HomeView({
         pollutantOrder.indexOf(a.label) - pollutantOrder.indexOf(b.label),
     )
     .slice(0, 6);
+  const briefTime = brief?.generatedAt
+    ? new Date(brief.generatedAt).toLocaleTimeString(localeTag(language), {
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : null;
 
   return (
     <div className="space-y-6">
@@ -146,6 +155,25 @@ export function HomeView({
                 </span>
               ) : null}
             </p>
+
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted">
+              <span className="font-medium text-ink">
+                {weatherLabelFor(
+                  language,
+                  reading.weather.condition,
+                  reading.weather.isDay,
+                )}
+              </span>
+              {reading.weather.tempC !== null ? (
+                <span>{Math.round(reading.weather.tempC)}°C</span>
+              ) : null}
+              {reading.weather.windKph !== null ? (
+                <span>{Math.round(reading.weather.windKph)} km/h</span>
+              ) : null}
+              {reading.weather.rain ? (
+                <span>{t("ui.weather.rainNow")}</span>
+              ) : null}
+            </div>
           </div>
 
 
@@ -338,8 +366,8 @@ export function HomeView({
           title={t("ui.section.brief")}
           subtitle={
             brief.source === "ai"
-              ? t("ui.sub.briefAI", { model: brief.model ?? "Gemini" })
-              : t("ui.sub.briefRules")
+              ? `${t("ui.sub.briefAI", { model: brief.model ?? "Gemini" })} · ${reading.periodLabel}`
+              : `${t("ui.sub.briefRules")} · ${reading.periodLabel}`
           }
           delay={40}
         >
@@ -368,6 +396,23 @@ export function HomeView({
           <p className="mt-3 text-[11px] text-muted">
             {t("ui.brief.disclaimer")}
           </p>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 text-[10px] text-muted">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+              {briefTime
+                ? t("ui.brief.updated", { time: briefTime })
+                : null}
+            </span>
+            {onRefreshBrief ? (
+              <button
+                type="button"
+                onClick={onRefreshBrief}
+                className="rounded-full bg-paper px-2.5 py-1 text-[10px] font-medium text-muted ring-1 ring-line transition hover:text-ink"
+              >
+                {t("ui.brief.refresh")}
+              </button>
+            ) : null}
+          </div>
         </SectionCard>
       ) : (
         <SectionCard
@@ -458,9 +503,20 @@ export function HomeView({
       <SectionCard
         icon={<MaskIcon className="h-4 w-4" />}
         title={t("ui.section.mustGo")}
-        subtitle={t("ui.sub.mustGo")}
+        subtitle={t("ui.period.plan", {
+          period: reading.periodLabel,
+          time: reading.adviceTime,
+        })}
         delay={120}
       >
+        <div className="mb-3 rounded-xl bg-brand/10 p-3 ring-1 ring-brand/20">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-brand">
+            {reading.periodLabel}
+          </div>
+          <p className="mt-1 text-sm leading-5 text-ink/85">
+            {reading.periodAdvice}
+          </p>
+        </div>
         <div className="space-y-2">
           {reading.mustGoOut.map((row) => (
             <div key={row.name} className="rounded-xl bg-paper p-3 ring-1 ring-line">
@@ -482,7 +538,10 @@ export function HomeView({
       <SectionCard
         icon={<HomeIcon className="h-4 w-4" />}
         title={t("ui.section.doNow")}
-        subtitle={t("ui.sub.doNow")}
+        subtitle={t("ui.period.plan", {
+          period: reading.periodLabel,
+          time: reading.adviceTime,
+        })}
         delay={160}
       >
         <div className="space-y-2">
@@ -508,9 +567,16 @@ export function HomeView({
         delay={180}
       >
         <div className="space-y-2">
-          {reading.helpTheAir.map((item) => (
+          {reading.helpTheAir.map((item, index) => (
             <div key={item.title} className="rounded-xl bg-paper p-3 ring-1 ring-line">
-              <div className="text-sm font-semibold text-ink">{item.title}</div>
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-sm font-semibold text-ink">{item.title}</div>
+                {index === 0 ? (
+                  <span className="shrink-0 rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-medium text-teal-700 ring-1 ring-teal-100">
+                    {t("ui.period.today")}
+                  </span>
+                ) : null}
+              </div>
               <p className="mt-1 text-sm leading-5 text-muted">{item.body}</p>
             </div>
           ))}
@@ -608,7 +674,9 @@ export function TodaySkeleton({ city }: { city: string }) {
         )}
       >
         {night ? (
-          <WeatherScene condition="clear" isDay={false} aqi={0} />
+          <div className="absolute inset-0 opacity-65">
+            <WeatherScene condition="clear" isDay={false} aqi={0} />
+          </div>
         ) : null}
         <div className="relative z-10">
           <div

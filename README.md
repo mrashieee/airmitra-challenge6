@@ -23,12 +23,16 @@ PWA with a grounded GenAI brief, not a chat-only app.
   **Accessibility**: text size and light / dark / system theme.
 - **Grounded GenAI brief and ask** (`gemini-3.1-flash-lite` → lite fallback →
   deterministic templates). The model writes; the data layer decides.
+- **Time-aware guidance** — the GenAI brief refreshes hourly, “Do now” and
+  “If you must go out” change by morning / afternoon / evening / night, and the
+  give-back idea rotates daily. “Refresh now” regenerates the brief on demand.
 - **Status / story cards** — high-quality story image with time windows,
   actions, the impact payoff and one give-back idea (plant a native tree,
   compost, or leave the car), shareable to WhatsApp, X, Telegram, Facebook,
   LinkedIn, or Instagram (download + caption).
 - **Inline settings** — every field editable without the setup wizard.
-- **Weather-aware hero** with day/night sun, moon, stars, clouds, rain and fog.
+- **Weather-aware hero** with day/night sun, moon, stars, clouds, rain and fog,
+  plus the current condition, temperature and wind speed.
 - **PWA** — installable, responsive, reduced-motion aware, true-black dark mode.
 
 ## Data chain

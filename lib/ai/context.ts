@@ -3,6 +3,7 @@ import { comfortWindows } from "@/lib/air/naqi";
 import type { Profile } from "@/lib/profile";
 import type { StateEntry } from "@/lib/states";
 import { bandLabel, optionLabel } from "@/lib/i18n";
+import { indiaHour, periodFor } from "@/lib/time";
 
 export type AiContext = {
   location: { city: string; state: string };
@@ -42,17 +43,8 @@ export function buildContext(
   profile: Profile,
   now = new Date(),
 ): AiContext {
-  const hour = now.getHours();
-  const part =
-    hour < 6
-      ? "night"
-      : hour < 12
-        ? "morning"
-        : hour < 17
-          ? "afternoon"
-          : hour < 21
-            ? "evening"
-            : "night";
+  const hour = indiaHour(now);
+  const part = periodFor(now);
 
   return {
     location: { city: air.state.city, state: state.name },
@@ -95,6 +87,7 @@ export function buildContext(
         day: "numeric",
         month: "short",
         year: "numeric",
+        timeZone: "Asia/Kolkata",
       }),
     },
   };

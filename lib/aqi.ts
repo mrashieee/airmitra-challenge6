@@ -1,5 +1,6 @@
 import { BANDS, bandFor, comfortWindows } from "@/lib/air/naqi";
 import { bandLabel, localeTag, optionLabel, t } from "@/lib/i18n";
+import { istDayIndex, periodFor, type DayPeriod } from "@/lib/time";
 import type { Band, BandKey } from "@/lib/air/naqi";
 import type { AirReading, NearbyStation } from "@/lib/air/types";
 import type { FamilyMember, Profile } from "./profile";
@@ -35,6 +36,10 @@ export type Reading = {
   stations?: NearbyStation[];
   aqiRange?: { min: number; max: number };
   windows: { best: string; avoid: string };
+  period: DayPeriod;
+  periodLabel: string;
+  periodAdvice: string;
+  adviceTime: string;
   demo: boolean;
   guidelines: string[];
   family: { name: string; meta: string; advice: string; tone: "warn" | "calm" }[];
@@ -169,12 +174,24 @@ function familyFor(
   });
 }
 
-function doNowFor(state: StateEntry, profile: Profile | undefined, language: string) {
+function doNowFor(
+  state: StateEntry,
+  profile: Profile | undefined,
+  language: string,
+  period: DayPeriod,
+  windows: { best: string; avoid: string },
+) {
   const item = (key: string) => ({
     title: t(language, `r.do.${key}.title`),
     body: t(language, `r.do.${key}.body`),
     impact: t(language, `r.do.${key}.impact`),
   });
+
+  const nowItem = {
+    title: t(language, `r.period.${period}.title`),
+    body: t(language, `r.period.${period}.body`, { best: windows.best }),
+    impact: t(language, `r.period.${period}.impact`),
+  };
 
   const fallback = [
     item("clean"),
@@ -185,7 +202,11 @@ function doNowFor(state: StateEntry, profile: Profile | undefined, language: str
 
   if (!profile) {
     const offset = hash(state.code) % fallback.length;
-    return [...fallback.slice(offset), ...fallback.slice(0, offset)].slice(0, 3);
+    return [
+      nowItem,
+      ...fallback.slice(offset),
+      ...fallback.slice(0, offset),
+    ].slice(0, 3);
   }
 
   const home = profile.home;
@@ -229,8 +250,11 @@ function doNowFor(state: StateEntry, profile: Profile | undefined, language: str
   const unique = items.filter(
     (entry, index) => items.findIndex((x) => x.title === entry.title) === index,
   );
+  const rest = (unique.length ? unique : fallback).filter(
+    (entry) => entry.title !== nowItem.title,
+  );
 
-  return (unique.length ? unique : fallback).slice(0, 3);
+  return [nowItem, ...rest].slice(0, 3);
 }
 
 function mustGoOutFor(profile: Profile | undefined, language: string) {
@@ -260,7 +284,11 @@ function mustGoOutFor(profile: Profile | undefined, language: string) {
   });
 }
 
-function helpTheAirFor(profile: Profile | undefined, language: string) {
+function helpTheAirFor(
+  profile: Profile | undefined,
+  language: string,
+  day: number,
+) {
   const plant = {
     title: t(language, "r.help.plant.title"),
     body: t(language, "r.help.plant.body"),
@@ -268,16 +296,17 @@ function helpTheAirFor(profile: Profile | undefined, language: string) {
   const drives = profile?.routine.commute.some((mode) =>
     ["Car", "Two-wheeler", "Auto"].includes(mode),
   );
-  const second = drives
-    ? {
-        title: t(language, "r.help.commute.title"),
-        body: t(language, "r.help.commute.body"),
-      }
-    : {
-        title: t(language, "r.help.compost.title"),
-        body: t(language, "r.help.compost.body"),
-      };
-  return [plant, second];
+  const commute = {
+    title: t(language, "r.help.commute.title"),
+    body: t(language, "r.help.commute.body"),
+  };
+  const compost = {
+    title: t(language, "r.help.compost.title"),
+    body: t(language, "r.help.compost.body"),
+  };
+  const items = drives ? [plant, commute, compost] : [plant, compost, commute];
+  const offset = ((day % items.length) + items.length) % items.length;
+  return [...items.slice(offset), ...items.slice(0, offset)];
 }
 
 function relativeTime(iso: string, language: string): string {
@@ -303,11 +332,13 @@ export function readingFromAir(
   updatedLabel?: string,
   demo = false,
   profile?: Profile,
+  now: Date = new Date(),
 ): Reading {
   const language = profile?.language ?? "English";
   const band = BANDS.find((b) => b.key === air.band) ?? bandFor(air.aqi);
   const high = air.aqi > 150;
   const windows = comfortWindows(band.key);
+  const period = periodFor(now);
   const hasChild = (profile?.family ?? []).some(
     (member) => Number.parseInt(member.ageBand, 10) <= 12,
   );
@@ -343,12 +374,19 @@ export function readingFromAir(
     stations: air.stations,
     aqiRange: air.aqiRange,
     windows,
+    period,
+    periodLabel: t(language, `ui.period.${period}`),
+    periodAdvice: t(language, `r.must.period.${period}`),
+    adviceTime: now.toLocaleTimeString(localeTag(language), {
+      hour: "numeric",
+      minute: "2-digit",
+    }),
     demo,
     guidelines: guidelinesFor(air.band, language),
     family: familyFor(air.aqi, air.band, profile, language),
     mustGoOut: mustGoOutFor(profile, language),
-    doNow: doNowFor(state, profile, language),
-    helpTheAir: helpTheAirFor(profile, language),
+    doNow: doNowFor(state, profile, language, period, windows),
+    helpTheAir: helpTheAirFor(profile, language, istDayIndex(now)),
     impact: high
       ? {
           title: t(
@@ -366,7 +404,11 @@ export function readingFromAir(
   };
 }
 
-export function mockReading(state: StateEntry, profile?: Profile): Reading {
+export function mockReading(
+  state: StateEntry,
+  profile?: Profile,
+  now: Date = new Date(),
+): Reading {
   const aqi = state.code === "DL" ? 312 : 90 + (hash(state.code) % 290);
   const band = bandFor(aqi);
   const isModel = MODEL_ONLY.has(state.code);
@@ -418,5 +460,5 @@ export function mockReading(state: StateEntry, profile?: Profile): Reading {
     degraded: false,
   };
 
-  return readingFromAir(state, air, "12 min ago", true, profile);
+  return readingFromAir(state, air, "12 min ago", true, profile, now);
 }

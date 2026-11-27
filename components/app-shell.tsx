@@ -130,6 +130,19 @@ function AppShellInner({
   const [target, setTarget] = useState(profile.location);
   const [tab, setTab] = useState<Tab>("today");
   const [largeText, setLargeText] = useState(profile.largeText);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") setNow(new Date());
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
 
   const code = target.stateCode;
   const city = { name: target.city, lat: target.lat, lon: target.lon };
@@ -144,12 +157,16 @@ function AppShellInner({
   const reading = useMemo(
     () =>
       data
-        ? readingFromAir(state, data, undefined, false, profile)
-        : mockReading(state, profile),
-    [data, state, profile],
+        ? readingFromAir(state, data, undefined, false, profile, now)
+        : mockReading(state, profile, now),
+    [data, state, profile, now],
   );
 
-  const { brief, loading: briefLoading } = useBrief({
+  const {
+    brief,
+    loading: briefLoading,
+    refresh: refreshBrief,
+  } = useBrief({
     profile,
     state: code,
     city: city.name,
@@ -276,6 +293,7 @@ function AppShellInner({
         onNavigate={setTab}
         brief={brief}
         briefLoading={briefLoading}
+        onRefreshBrief={refreshBrief}
       />
     ) : tab === "ask" ? (
       <AskPanel

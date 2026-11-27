@@ -23,6 +23,7 @@ type Body = {
   city?: string;
   lat?: number;
   lon?: number;
+  force?: boolean;
 };
 
 export async function POST(request: NextRequest) {
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
     const contextString = contextJson(context);
     const key = keyFor("brief:v3", `${profile.language}::${contextString}`);
 
-    const cached = cacheGet<Brief>(key);
+    const cached = body.force === true ? null : cacheGet<Brief>(key);
     if (cached) {
       return Response.json(cached, {
         headers: { "Cache-Control": "no-store" },

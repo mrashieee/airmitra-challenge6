@@ -126,6 +126,21 @@ export function bandLabel(language: string, key: string): string {
   return t(language, `band.${key}`);
 }
 
+/** Localized weather condition, with a specific label for clear nights. */
+export function weatherLabelFor(
+  language: string,
+  condition: string,
+  isDay: boolean,
+): string {
+  if (!isDay && condition === "clear") {
+    return t(language, "ui.weather.clearNight");
+  }
+  if (!isDay && condition === "partly") {
+    return t(language, "ui.weather.partlyNight");
+  }
+  return t(language, `ui.weather.${condition}`);
+}
+
 /** "2 nearest monitors · median" -> localized "Median of 2 monitors". */
 export function stationLabel(language: string, station: string): string {
   const match = station.match(

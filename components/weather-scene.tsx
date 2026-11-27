@@ -1,6 +1,5 @@
 import type { WeatherCondition } from "@/lib/air/types";
 import { cn } from "@/lib/ui";
-
 const DAY_GRADIENTS: Record<WeatherCondition, string> = {
   clear: "from-[#fde68a] via-[#fef3c7] to-[#7dd3fc]",
   partly: "from-[#bae6fd] via-[#e0f2fe] to-[#fde68a]",
@@ -23,18 +22,6 @@ const NIGHT_GRADIENTS: Record<WeatherCondition, string> = {
   snow: "from-[#0f172a] via-[#1e293b] to-[#334155]",
 };
 
-export function weatherLabel(condition: WeatherCondition, isDay: boolean) {
-  if (condition === "clear") return isDay ? "Sunny" : "Clear night";
-  if (condition === "partly") return isDay ? "Partly cloudy" : "Partly cloudy night";
-  if (condition === "cloudy") return "Cloudy";
-  if (condition === "fog") return "Fog";
-  if (condition === "drizzle") return "Drizzle";
-  if (condition === "rain") return "Rain";
-  if (condition === "thunder") return "Thunder";
-  return "Snow";
-}
-
-/** Day/night comes from Open-Meteo's `is_day`, computed for the city. */
 export function WeatherScene({
   condition,
   isDay,
