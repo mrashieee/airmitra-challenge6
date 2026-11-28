@@ -31,7 +31,8 @@ the workflow artifacts or a desktop release to distribute them.
 
 - The wrapper only allows the AirMitra origin. Other links open in the default
   browser.
-- Geolocation is allowed only for "use my location"; all other permissions are
-  denied by default.
+- Geolocation is allowed only for the header GPS button; all other permissions
+  are denied by default. Current location is not persisted; only the saved home
+  location in the profile stays on the device.
 - The PWA service worker caches the shell. Live AQI and AI answers still need a
   network connection; the profile stays on the device.
