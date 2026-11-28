@@ -6,7 +6,7 @@
     <title>AirMitra — demo video</title>
     <meta
       name="description"
-      content="AirMitra is a GenAI household air coach for India. Watch the 1:45 demo."
+      content="AirMitra is a GenAI household air coach for India. Watch the 2:41 product film."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -94,10 +94,11 @@
         </div>
       </div>
 
-      <h1>AirMitra — 1:45 demo</h1>
+      <h1>AirMitra — 2:41 product film</h1>
       <p class="lede">
         Live Indian AQI, a household brief, and one clear action for your family
-        — in the language you read.
+        — in the language you read. Now with separate home and current locations,
+        a GPS button, and a median headline when a city has more than one monitor.
       </p>
 
       <div class="player">
@@ -109,6 +110,13 @@
           poster="video/Thumbnail_1280x720.jpg"
         >
           <source src="video/AirMitra_Promo_1080p.mp4" type="video/mp4" />
+          <track
+            kind="captions"
+            src="video/AirMitra_Promo_2min.vtt"
+            srclang="en"
+            label="English"
+            default
+          />
           Your browser does not support the video tag.
           <a href="video/AirMitra_Promo_1080p.mp4">Download the MP4</a>.
         </video>
@@ -129,18 +137,28 @@
 
       <h2>What the video shows</h2>
       <ul>
-        <li>Live AQI from CPCB, OpenAQ and CAMS with source and freshness</li>
+        <li>Live AQI from CPCB, OpenAQ and CAMS with source, distance and freshness</li>
+        <li>The median of the official stations when a city has more than one monitor, with the station range</li>
+        <li>Separate home and current locations: home is saved in Settings, current is set by search or GPS, and current never overwrites home</li>
         <li>Language-first setup across 13 Indian languages</li>
         <li>A brief that adapts to your family, home and routine</li>
         <li>Weather-aware day/night hero</li>
         <li>Hourly GenAI brief, period-specific do-now advice, daily give-back idea</li>
-        <li>A high-quality story card with a give-back action</li>
+        <li>A high-quality story card with a give-back action and public city pages</li>
         <li>No accounts, no analytics, no PII, no ads; profile stays on the device</li>
       </ul>
 
+      <h2>New in this cut</h2>
+      <ul>
+        <li><strong>Home vs current</strong> — the header badge says which one you are reading; the Home button returns to your saved base.</li>
+        <li><strong>GPS</strong> — one tap resolves the nearest known city and shows permission or accuracy errors inline.</li>
+        <li><strong>Median station AQI</strong> — the headline is the rounded median of the station AQI values; pollutant chips stay median concentrations.</li>
+        <li><strong>Inter everywhere</strong> — the film matches the all-sans typography in the app.</li>
+      </ul>
+
       <footer>
-        The video is a recorded snapshot. Live AQI and guidance change with
-        current data and time of day. · <a href="https://airmitra-app.vercel.app">airmitra-app.vercel.app</a>
+        A 2:41 recorded snapshot. Live AQI and guidance change with current data
+        and time of day. · <a href="https://airmitra-app.vercel.app">airmitra-app.vercel.app</a>
       </footer>
     </main>
   </body>

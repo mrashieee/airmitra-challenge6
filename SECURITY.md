@@ -49,8 +49,13 @@ If a Gemini, OpenAQ, or data.gov.in key is exposed:
 5. Delete or disable the old provider key.
 6. Review provider usage and billing for unauthorized activity.
 
-## Room Check
+## Location data
 
-Room Check stores host passwords as scrypt hashes and signs sessions with a
-separate session secret. Resetting the host password also removes the session
-secret and invalidates existing host sessions after restart.
+- Home location is stored in the device-only profile (`localStorage`) and is
+  never sent to the AI routes.
+- The GPS button runs only after the user grants browser/OS permission. The
+  coordinates are used to resolve the current reading and are not saved as home.
+- `/api/reverse` validates coordinates against India's bounding box and is
+  rate-limited per IP; it does not log the coordinates.
+- Current location is transient: a reload returns the app to the saved home.
+- No location history is stored, and there are no accounts or analytics.

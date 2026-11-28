@@ -19,6 +19,11 @@ Install it on an Android phone (allow install from the browser if prompted).
 The first launch needs a network connection; after that the PWA shell is cached.
 The profile stays in local storage. There are no accounts.
 
+The TWA uses the live site, so the current release includes the separate
+**home / current location** flow. The GPS button asks Android for location
+permission only when the user taps it; home stays saved in the profile and is
+edited in Settings.
+
 ## iOS
 
 The practical path today is **Add to Home Screen** from Safari. A native shell
@@ -44,12 +49,24 @@ They are intentionally **not committed** (about 120 MB each). The
 runners.
 
 The wrapper loads the hosted app, opens external links in the browser, and
-allows geolocation only for "use my location".
+allows geolocation only for the header GPS button. The current location is not
+persisted; only the home location in the profile is saved on the device.
 
 ## Cache and privacy
 
-- Profile and settings: device-only `localStorage`.
+- Profile, home location and settings: device-only `localStorage`.
+- Current location: transient app state; it resets to home on reload and is
+  never written back to the profile.
 - App shell/static assets: service worker cache.
 - Live AQI and AI answers: network required; the last reading is not presented
   as live when offline.
 - No accounts, no analytics, no PII, no ads.
+
+## Releases
+
+- **v1.0.1** — Android APK only, after the Android signing-key rotation.
+- **v1.0.0** — Linux AppImage and Windows installer.
+
+Both wrap the same live app. The split is intentional: rotating the Android
+signing key required a new version code and a fresh APK, while the desktop
+binaries did not change.

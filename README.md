@@ -9,7 +9,7 @@ PWA with a grounded GenAI brief, not a chat-only app.
 
 ## Demo video
 
-[Play the 1:45 demo](https://mrashieee.github.io/airmitra-challenge6/) ·
+[Play the 2:41 product film](https://mrashieee.github.io/airmitra-challenge6/) ·
 [MP4](https://mrashieee.github.io/airmitra-challenge6/video/AirMitra_Promo_1080p.mp4) ·
 [thumbnail](docs/video/Thumbnail_1280x720.jpg)
 
@@ -21,11 +21,18 @@ PWA with a grounded GenAI brief, not a chat-only app.
 - **iOS:** Add to Home Screen from Safari
 - **Desktop:** [Linux AppImage and Windows .exe](https://github.com/mrashieee/airmitra-challenge6/releases/tag/v1.0.0) (Electron shell; source in `packaging/desktop`)
 - **Packaging notes:** [PACKAGING.md](PACKAGING.md)
+- **Security policy:** [SECURITY.md](SECURITY.md)
+- **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
 ## What it does
 
 - **Live AQI** from CPCB ground stations, then OpenAQ monitors, then CAMS model
-  data. Cities with 2+ official monitors use the **median** and show the range.
+  data. Cities with 2+ official monitors use the **median of the station AQI
+  values** and show the station range.
+- **Home and current location are separate.** Home is saved in the profile and
+  edited in Settings; current is set from the header, the state/city search, or
+  the GPS button. Switching current never overwrites home, and a badge always
+  says which one is on screen.
 - **Where the data comes from** is always visible: station name, distance,
   freshness, and a `ground monitor` / `model estimate` label.
 - **City pages** at `/aqi/<state>/<city>` with canonical metadata and a sitemap.
@@ -50,23 +57,41 @@ PWA with a grounded GenAI brief, not a chat-only app.
   plus the current condition, temperature and wind speed.
 - **PWA** — installable, responsive, reduced-motion aware, true-black dark mode.
 
+## Home vs current
+
+| | Home | Current |
+|---|---|---|
+| Where it lives | `profile.location`, saved on the device | Transient app state, reset to home on reload |
+| How it changes | Settings → **Home location**, or onboarding | Header search, state change, or the GPS button |
+| What it drives | Household advice, the Home button, the saved base | The reading on screen right now |
+| Badge | `Home` | `Current` |
+
+The GPS button uses `navigator.geolocation`, reverse-geocodes to the nearest
+known Indian city through `/api/reverse`, and falls back to the nearest city in
+the index. Permission and accuracy errors are shown inline. Current location is
+never written back to the saved home.
+
 ## Data chain
 
 ```
 CPCB (data.gov.in) ─┐
-OpenAQ (<=30 km) ───┼─> median of official stations (<=15 km)
-nearest monitors ───┤   (<=60 km, median, labelled approximate)
+OpenAQ (nearest) ───┼─> median of official stations (<=15 km, 2+)
+nearby monitors ────┤   (<=60 km, median of up to 3, labelled approximate)
 CAMS (Open-Meteo) ──┘   only when no live monitor is within 60 km
                         and the model timestamp is <= 3 hours old
 ```
 
 - AQI uses **CPCB NAQI**, not US AQI. The US equivalent is shown for comparison.
+- When a city has 2+ official monitors, the headline is the **rounded median of
+  their AQI values**; the pollutant chips remain median concentrations. The
+  station range is shown next to the headline.
 - Stale OpenAQ sensor rows are discarded (freshness window relative to the
   station's newest reading).
 - If no monitor is within 30 km, the app uses the **median of up to three live
   monitors within 60 km** as an approximate reading, with the distance range
-  shown. CAMS is used only when no live monitor exists within 60 km, and only
-  when its own timestamp is within 3 hours.
+  shown. With one fresh monitor, that monitor is used and labelled. CAMS is used
+  only when no live monitor exists within 60 km, and only when its own timestamp
+  is within 3 hours.
 
 ## Architecture
 
@@ -77,9 +102,9 @@ app/
   api/{aqi,search,geocode,reverse,ask,brief,health}/
 components/
   app-shell, home-view, panels, settings-panel, profile-editor,
-  location-picker, onboarding, share-cards, weather-scene, aqi-number
+  location-bar, location-picker, onboarding, share-cards, weather-scene, aqi-number
 lib/
-  air/            providers (CPCB, OpenAQ, CAMS, nearby), resolve, cache, NAQI
+  air/            providers (CPCB, OpenAQ, CAMS, nearby), resolve, cache, NAQI, aggregate
   ai/             context, prompts, client, templates, cache keys
   city-index.ts   curated + GeoNames city index with monitor tags
   profile*.ts     types, defaults, migrations, server allow-list
@@ -96,6 +121,9 @@ scripts/
 - **No accounts, no PII, no analytics.** The profile and saved settings stay in
   `localStorage`. AI routes receive a sanitised profile to generate advice but
   do not persist it.
+- **Geolocation is opt-in.** The GPS button only runs after the browser grants
+  permission; the coordinates are used for the current reading, not saved as
+  home and not sent to AI routes.
 - **Secrets are server-side only** (`.env`, gitignored). No secret is exposed to
   the browser.
 - **Allow-listed inputs** on AI routes: profile fields are sanitised and capped
@@ -146,11 +174,15 @@ npm run index:cities   # rebuild data/city-index.json
   OpenAQ → CAMS. CPCB remains first when reachable.
 - Some towns have no continuous monitor; they show CAMS model data and nearby
   monitor context.
+- The median path needs 2+ fresh stations. With one fresh station the app uses
+  that station; with none it falls back to CAMS and says so.
 - Manual NAMP samples are not used live (they can be months old).
 - The 13 language packs are machine-translated and then hand-checked for the
   most visible Hindi and Malayalam strings. Gemini-generated advice follows the
   chosen language; if Gemini is unavailable, the localized rule templates are
   used.
+- iOS native shipping needs macOS/Xcode and an Apple Developer account; the
+  practical install today is Add to Home Screen.
 
 ## License
 
