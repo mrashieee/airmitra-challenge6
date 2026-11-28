@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { app, BrowserWindow, shell, session } = require("electron");
 
 const APP_URL = "https://airmitra-app.vercel.app";
