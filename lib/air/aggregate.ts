@@ -179,7 +179,11 @@ export function mergeCityStations(
   const result = computeAqi(pollutants);
   if (!result) return null;
 
-  const band = bandFor(result.aqi);
+  // The headline is the median of the station AQI values. The pollutant
+  // chips above are median concentrations, which keeps the detail stable
+  // when stations report different pollutants.
+  const medianAqi = Math.round(median(stations.map((station) => station.aqi)));
+  const band = bandFor(medianAqi);
   const nearest = stations[0];
   const range = {
     min: Math.min(...stations.map((station) => station.aqi)),
@@ -189,7 +193,7 @@ export function mergeCityStations(
   return {
     sample: {
       area,
-      aqi: result.aqi,
+      aqi: medianAqi,
       band: band.key,
       bandLabel: band.label,
       dominant: result.dominant,
@@ -285,7 +289,10 @@ export function mergeApproxSamples(
   const result = computeAqi(pollutants);
   if (!result) return null;
 
-  const band = bandFor(result.aqi);
+  // Headline = median of the monitor AQI values, not the AQI of median
+  // concentrations. For two monitors this is the midpoint of the two.
+  const medianAqi = Math.round(median(rows.map((row) => row.sample.aqi)));
+  const band = bandFor(medianAqi);
   const nearest = rows[0];
   const oldest = rows.reduce(
     (current, row) =>
@@ -302,7 +309,7 @@ export function mergeApproxSamples(
   return {
     sample: {
       area,
-      aqi: result.aqi,
+      aqi: medianAqi,
       band: band.key,
       bandLabel: band.label,
       dominant: result.dominant,
