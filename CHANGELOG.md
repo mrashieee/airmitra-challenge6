@@ -12,7 +12,7 @@
   rounded median of the station AQI values, with the station range. Pollutant
   chips remain median concentrations. Nearby-monitor median is still used when
   a city has no station.
-- New 2:41 product film, new Inter thumbnail, captions and publishing copy.
+- New 1:29 product film, new Inter thumbnail, captions and publishing copy.
 - Docs refreshed: README, PACKAGING, SECURITY, docs video page, submission pack.
 
 ## 2026-11-27 — packaging and security
