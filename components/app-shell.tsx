@@ -6,7 +6,8 @@ import { slugify } from "@/lib/slug";
 import { mockReading, readingFromAir } from "@/lib/aqi";
 import { useAirReading } from "@/lib/air/use-reading";
 import { useBrief } from "@/lib/ai/use-brief";
-import { citiesFor, findState } from "@/lib/states";
+import { citiesFor, findState, ALL_STATES } from "@/lib/states";
+import { distanceKm } from "@/lib/air/geo";
 import {
   getProfileSnapshot,
   getServerProfileSnapshot,
@@ -22,7 +23,7 @@ import type { Tab } from "@/lib/nav";
 import { cn } from "@/lib/ui";
 import { BrandMark } from "./brand-mark";
 import { HomeView, TodaySkeleton } from "./home-view";
-import { LocationSelect } from "./location-picker";
+import { LocationBar, type LocationPoint } from "./location-bar";
 import { AskPanel, CardsPanel } from "./panels";
 import { SettingsPanel } from "./settings-panel";
 import { ShareCardPreview } from "./share-cards";
@@ -131,6 +132,8 @@ function AppShellInner({
   const [tab, setTab] = useState<Tab>("today");
   const [largeText, setLargeText] = useState(profile.largeText);
   const [now, setNow] = useState(() => new Date());
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState("");
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
@@ -174,19 +177,14 @@ function AppShellInner({
     lon: city.lon,
   });
 
-  function persistTarget(next: {
-    stateCode: string;
-    city: string;
-    lat: number;
-    lon: number;
-  }) {
+  function setCurrent(next: LocationPoint) {
     setTarget(next);
-    saveProfile({ ...profile, location: next });
+    setLocationError("");
   }
 
   function changeState(next: string) {
     const first = citiesFor(next)[0];
-    persistTarget({
+    setCurrent({
       stateCode: next,
       city: first.name,
       lat: first.lat,
@@ -194,14 +192,97 @@ function AppShellInner({
     });
   }
 
-  function changeTarget(next: {
-    stateCode: string;
-    city: string;
-    lat: number;
-    lon: number;
-  }) {
-    persistTarget(next);
+  function changeTarget(next: LocationPoint) {
+    setCurrent(next);
   }
+
+  function nearestPlace(lat: number, lon: number): LocationPoint | null {
+    let best: { point: LocationPoint; distance: number } | null = null;
+    for (const state of ALL_STATES) {
+      for (const city of citiesFor(state.code)) {
+        const d = distanceKm({ lat, lon }, { lat: city.lat, lon: city.lon });
+        if (!best || d < best.distance) {
+          best = {
+            point: {
+              stateCode: state.code,
+              city: city.name,
+              lat: city.lat,
+              lon: city.lon,
+            },
+            distance: d,
+          };
+        }
+      }
+    }
+    return best && best.distance < 250 ? best.point : null;
+  }
+
+  function goHome() {
+    setTarget(profile.location);
+    setLocationError("");
+  }
+
+  function useCurrentLocation() {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setLocationError(t("ui.onboarding.geoUnsupported"));
+      return;
+    }
+
+    setLocating(true);
+    setLocationError("");
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        const accuracy = position.coords.accuracy ?? Number.POSITIVE_INFINITY;
+
+        if (!Number.isFinite(accuracy) || accuracy > 15000) {
+          setLocationError(t("ui.onboarding.geoUnreliable"));
+          setLocating(false);
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/reverse?lat=${lat}&lon=${lon}`);
+          if (res.ok) {
+            const data = (await res.json()) as {
+              name: string;
+              stateCode: string;
+              lat: number;
+              lon: number;
+            };
+            if (ALL_STATES.some((state) => state.code === data.stateCode)) {
+              setCurrent({
+                stateCode: data.stateCode,
+                city: data.name,
+                lat: data.lat,
+                lon: data.lon,
+              });
+              setLocating(false);
+              return;
+            }
+          }
+        } catch {
+          /* fall through to nearest known city */
+        }
+
+        const place = nearestPlace(lat, lon);
+        if (place) setCurrent(place);
+        else setLocationError(t("ui.onboarding.geoNoMatch"));
+        setLocating(false);
+      },
+      () => {
+        setLocationError(t("ui.onboarding.geoDenied"));
+        setLocating(false);
+      },
+      { timeout: 15000, maximumAge: 0, enableHighAccuracy: true },
+    );
+  }
+
+  const isHome =
+    target.stateCode === profile.location.stateCode &&
+    target.city === profile.location.city;
 
   function changeLanguage(next: string) {
     onLanguageChange(next);
@@ -238,8 +319,11 @@ function AppShellInner({
     .join(" · ");
 
   function saveFullProfile(next: Profile) {
+    const homeChanged =
+      next.location.stateCode !== profile.location.stateCode ||
+      next.location.city !== profile.location.city;
     saveProfile(next);
-    setTarget(next.location);
+    if (homeChanged) setTarget(next.location);
     onLanguageChange(next.language);
     setLargeText(next.largeText);
   }
@@ -294,6 +378,7 @@ function AppShellInner({
         brief={brief}
         briefLoading={briefLoading}
         onRefreshBrief={refreshBrief}
+        isHome={isHome}
       />
     ) : tab === "ask" ? (
       <AskPanel
@@ -323,10 +408,15 @@ function AppShellInner({
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[264px] flex-col border-r border-line bg-[color:var(--sidebar)] px-5 py-6 backdrop-blur lg:flex">
         <Brand />
-        <LocationSelect
-          code={code}
+        <LocationBar
+          home={profile.location}
+          current={target}
+          locating={locating}
+          error={locationError}
           onStateChange={changeState}
           onSelectLocation={changeTarget}
+          onHome={goHome}
+          onLocate={useCurrentLocation}
         />
 
         <nav className="mt-6 space-y-1">
@@ -375,10 +465,15 @@ function AppShellInner({
               {native}
             </button>
           </div>
-          <LocationSelect
-            code={code}
+          <LocationBar
+            home={profile.location}
+            current={target}
+            locating={locating}
+            error={locationError}
             onStateChange={changeState}
             onSelectLocation={changeTarget}
+            onHome={goHome}
+            onLocate={useCurrentLocation}
             compact
           />
         </header>

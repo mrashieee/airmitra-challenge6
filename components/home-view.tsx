@@ -27,6 +27,7 @@ type Props = {
   brief?: Brief | null;
   briefLoading?: boolean;
   onRefreshBrief?: () => void;
+  isHome?: boolean;
 };
 
 function SectionCard({
@@ -78,6 +79,7 @@ export function HomeView({
   brief,
   briefLoading,
   onRefreshBrief,
+  isHome = true,
 }: Props) {
   const { t, language } = useT();
   const styles = BAND_STYLES[reading.band.key];
@@ -118,6 +120,16 @@ export function HomeView({
               <PinIcon className="h-3.5 w-3.5" />
               <span className="truncate">
                 {reading.area}, {reading.state.name}
+              </span>
+              <span
+                className={cn(
+                  "shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium ring-1",
+                  isHome
+                    ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                    : "bg-amber-50 text-amber-700 ring-amber-200",
+                )}
+              >
+                {t(isHome ? "ui.location.home" : "ui.location.current")}
               </span>
             </div>
 

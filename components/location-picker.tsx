@@ -16,6 +16,7 @@ export function LocationSelect({
   onStateChange,
   onSelectLocation,
   compact = false,
+  className,
 }: {
   code: string;
   onStateChange: (v: string) => void;
@@ -26,6 +27,7 @@ export function LocationSelect({
     lon: number;
   }) => void;
   compact?: boolean;
+  className?: string;
 }) {
   const { t } = useT();
   const [query, setQuery] = useState("");
@@ -92,7 +94,7 @@ export function LocationSelect({
   }
 
   return (
-    <div className={cn("space-y-2", compact ? "mt-4" : "mt-5")}>
+    <div className={cn("space-y-2", className ?? (compact ? "mt-4" : "mt-5"))}>
       <label className="relative block">
         <span className="sr-only">{t("ui.search.chooseState")}</span>
         <PinIcon className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />

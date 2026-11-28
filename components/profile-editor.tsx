@@ -345,9 +345,12 @@ export function ProfileEditor({ profile, onSave }: Props) {
 
       <details className="mt-4 border-t border-line pt-3" open>
         <summary className="cursor-pointer text-xs font-semibold text-ink">
-          {t("ui.editor.location")}
+          {t("ui.editor.homeLocation")}
         </summary>
         <div className="mt-2">
+          <p className="mb-2 text-[10px] leading-4 text-muted">
+            {t("ui.editor.homeHint")}
+          </p>
           <LocationSelect
             code={draft.location.stateCode}
             onStateChange={(stateCode) => {
@@ -367,7 +370,7 @@ export function ProfileEditor({ profile, onSave }: Props) {
             }
           />
           <p className="mt-1 text-[10px] text-muted">
-            {t("ui.editor.watching", {
+            {t("ui.editor.homeWatching", {
               city: draft.location.city,
               state: draft.location.stateCode,
             })}

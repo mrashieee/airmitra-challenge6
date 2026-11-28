@@ -79,6 +79,15 @@ export function PinIcon(props: IconProps) {
   );
 }
 
+export function LocateIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+    </svg>
+  );
+}
+
 export function SparkIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>
